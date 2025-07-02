@@ -1,26 +1,24 @@
-
 from fastapi import FastAPI, UploadFile, File, Form
-from pydantic import BaseModel
-from typing import Optional
-import uvicorn
+from app.agents.multimodal_assistant import handle_multimodal_input
+from app.agents.reasoning_agent import process_task
+import logging
 
-from agent.core_agent import handle_user_query  # 主處理邏輯
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
 
 app = FastAPI()
 
-
-# 輸入格式：可同時提供文字與圖片
-class QueryInput(BaseModel):
-    text: Optional[str] = None
-
 @app.post("/query")
-async def query_with_optional_image(
-    text: Optional[str] = Form(None),
-    image: Optional[UploadFile] = File(None)
-):
+async def query(text: str = Form(None), image: UploadFile = File(None), audio: UploadFile = File(None)):
+    logger.info(f"Received query with text: {text}")
     image_bytes = await image.read() if image else None
-    response = await handle_user_query(text=text, image=image_bytes)
-    return {"response": response}
+    audio_bytes = await audio.read() if audio else None
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # 多模態助手 → 統一解析
+    task_params = await handle_multimodal_input(text=text, image=image_bytes, audio=audio_bytes)
+    logger.info(f"Parsed task parameters: {task_params}")
+
+    # 主邏輯推理 Agent
+    response = await process_task(task_params)
+    return {"response": response}

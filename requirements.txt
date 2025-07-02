@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+pydantic
+python-multipart
+openai
+google-generativeai
+qdrant-client
+fastembed
+pillow
+pytesseract
+# whisper
+openai-whisper
+transformers
+torch
+matplotlib
+pandas
+aiofiles

@@ -2,12 +2,13 @@
 llm-mcp-assistant/
 ├── app/
 │   ├── main.py              # FastAPI server
-│   ├── agent/               # 所有 Agent 模組
-│   │   ├── core_agent.py        # 主 LLM Agent
-│   │   ├── vision_agent.py      # 圖像處理
-│   │   ├── speech_agent.py      # 語音轉文字
-│   │   ├── mcp_agent.py         # MCP 控制（WebSocket）
-│   │   └── rag_agent.py         # Qdrant 檢索流程
+│   ├── agents/               # 所有 Agent 模組
+│   │   ├── analytics_agent.py
+│   │   ├── knowledge_retriever.py
+│   │   ├── multimodal_assistant.py
+│   │   ├── reasoning_agent.py
+│   │   └── speech_tools.py
+│   │   └── vision_tools.py
 │   ├── tools/              # MCP 工具函式
 │   ├── config.py
 │   └── llm_client.py       # Gemini / OpenRouter API Wrapper
@@ -17,4 +18,23 @@ llm-mcp-assistant/
 ├── requirements.txt
 └── README.md
 
+
 ```
+```
+           [使用者]
+         /    |     \
+     語音   文字    圖像
+      ↓      ↓        ↓
+[語音轉文字] [文字處理] [影像分析]
+       \     |      /
+        \    ↓     /
+          [主 AI 助理 Agent (LLM)]
+            /     |       \
+     [知識查詢] [意圖解析] [MCP指令生成]
+        ↓         ↓             ↓
+ [RAG Agent]  [Tool Agent]    [MCP Control Agent]
+       ↓                         ↓
+ [Qdrant+Embedding]      [MCP Server / Websocket]
+
+```
+
