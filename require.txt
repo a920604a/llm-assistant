@@ -1,0 +1,6 @@
+我想要做
+會先給定一些教學資料當作RAG DB，將教學資料，
+調用ollama api 翻譯成中文後以及使用ollama api 給出可能的meta data or attribute (for 教學筆記)，並插入qdrant 
+
+
+
