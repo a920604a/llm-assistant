@@ -1,1 +1,1 @@
-ollama run yi:9b-chat
+ollama run llama2:7b
