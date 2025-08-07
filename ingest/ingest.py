@@ -110,14 +110,15 @@ def ollama_generate_metadata(text: str, model: str = "gpt-oss:20b") -> dict:
 
 # ✅ 主流程：匯入筆記
 @flow(name="Import Markdown Notes")
-def import_md_notes_flow(md_text_list: List[str]):
+def import_md_notes_flow(md_text_dict: dict):
     ensure_qdrant_collection()
 
     points = []
     idx = 0
+    BATCH_SIZE = 1
 
-    for md_text in md_text_list:
-        print(f"➡️ 翻譯中（原始字數: {len(md_text)}）...")
+    for filename, md_text in md_text_dict.items():
+        print(f"➡️ 處理檔案：{filename}，原始字數: {len(md_text)}")
         translated = ollama_translate(md_text)
         # print(f"翻譯結果 : {translated}")
 
@@ -140,10 +141,17 @@ def import_md_notes_flow(md_text_list: List[str]):
                 models.PointStruct(id=idx, vector=vector, payload=payload)
             )
             idx += 1
+            if len(points) >= BATCH_SIZE:
+                qdrant_client.upsert(collection_name=collection_name, points=points)
+                print(f"寫入 {len(points)} 筆資料")
+                points = []  # 清空已寫入的 batch
             
-
-    print(f"📦 寫入 {len(points)} 筆資料到 Qdrant")
-    qdrant_client.upsert(collection_name=collection_name, points=points)
+    # 寫入最後剩餘的點
+    if points:
+        qdrant_client.upsert(collection_name=collection_name, points=points)
+        print(f"寫入最後 {len(points)} 筆資料")
+    # print(f"📦 寫入 {len(points)} 筆資料到 Qdrant")
+    # qdrant_client.upsert(collection_name=collection_name, points=points)
 
 
 # ✅ CLI 介面使用 click
@@ -152,11 +160,11 @@ def import_md_notes_flow(md_text_list: List[str]):
 def cli(folder):
     # 找資料夾內所有 .md 檔案路徑
     md_files = glob.glob(os.path.join(folder, '*.md'))
-    all_texts = []
+    all_texts = {}
     for file in md_files:
         with open(file, 'r', encoding='utf-8') as f:
-            print(f"正在處理 file: {file}")
-            all_texts.append(f.read())
+            # all_texts.append(f.read())
+            all_texts[file] = f.read()
     import_md_notes_flow(all_texts)
 
 if __name__ == "__main__":
