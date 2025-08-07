@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, Form
-from app.agents.multimodal_assistant import handle_multimodal_input
-from app.agents.reasoning_agent import process_task
+from agents.multimodal_assistant import handle_multimodal_input
+from agents.reasoning_agent import process_task
 import logging
 
 logger = logging.getLogger(__name__)

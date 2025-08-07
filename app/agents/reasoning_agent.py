@@ -1,5 +1,5 @@
-from app.agents.knowledge_retriever import retrieve_docs, format_context
-from app.tools.llm_client import ask_llm
+from agents.knowledge_retriever import retrieve_docs, format_context
+from tools.llm_client import ask_llm
 import logging
 
 logger = logging.getLogger(__name__)

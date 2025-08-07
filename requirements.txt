@@ -1,17 +1,46 @@
-fastapi
-uvicorn[standard]
-pydantic
-python-multipart
+# === Web API Framework ===
+fastapi==0.100.0
+uvicorn[standard]==0.22.0
+aiofiles
+websockets
+websocket-client
+
+
+# === AI / LLM / NLP ===
 openai
 google-generativeai
-qdrant-client
-fastembed
-pillow
-pytesseract
-# whisper
 openai-whisper
 transformers
 torch
+langchain>=0.1.17
+langchain-community>=0.0.17
+langchain-openai>=0.0.8
+
+
+# ML
+scikit-learn==1.3.0
+xgboost
+
+# === Embeddings / Vector DB ===
+qdrant-client
+fastembed
+sentence-transformers
+
+# === OCR / Image Processing ===
+pillow
+pytesseract
+
+# === Data Processing ===
+
+pandas==2.0.3
+pydantic>=1.10.16,<2.0.0
+prefect>=2.16.3
+
+# === Monitoring ===
+prometheus-fastapi-instrumentator
+prometheus_client
+
+# === Utility ===
+python-dotenv==1.0.0
 matplotlib
-pandas
-aiofiles
+click

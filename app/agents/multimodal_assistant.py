@@ -1,5 +1,5 @@
-from app.agents.vision_tools import describe_image, extract_ocr_text
-from app.agents.speech_tools import transcribe_audio
+from agents.vision_tools import describe_image, extract_ocr_text
+from agents.speech_tools import transcribe_audio
 
 async def handle_multimodal_input(text=None, image=None, audio=None):
     task_params = {}

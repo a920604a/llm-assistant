@@ -20,6 +20,23 @@ llm-mcp-assistant/
 
 
 ```
+```
+           [使用者]
+         /    |     \
+     語音   文字    圖像
+      ↓      ↓        ↓
+[語音轉文字] [文字處理] [影像分析]
+       \     |      /
+        \    ↓     /
+          [主 AI 助理 Agent (LLM)]
+            /     |       \
+     [知識查詢] [意圖解析] [MCP指令生成]
+        ↓         ↓             ↓
+ [RAG Agent]  [Tool Agent]    [MCP Control Agent]
+       ↓                         ↓
+ [Qdrant+Embedding]      [MCP Server / Websocket]
+
+```
 
 
 

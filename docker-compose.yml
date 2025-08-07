@@ -1,23 +1,25 @@
-version: "3.9"
-
 services:
-  # api:
-  #   build: .
-  #   ports:
-  #     - "8010:8000"
-  #   volumes:
-  #     - .:/app
-  #   environment:
-  #     - PYTHONPATH=/app # 設定 Python 模組搜尋路徑為 /app
-  #     - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-  #     - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-  #   depends_on:
-  #     - qdrant
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.backend
+    ports:
+      - "8010:8000"
+    volumes:
+      - ./app:/app
+      - ./ingest:/ingest
+      - ./test:/test
+    environment:
+      - PYTHONPATH=/app # 設定 Python 模組搜尋路徑為 /app
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    depends_on:
+      - qdrant
 
   qdrant:
     image: qdrant/qdrant
     ports:
-      - "6333:6333"
+      - "6333:6333" # http://localhost:6333/dashboard
     volumes:
       - ./data/qdrant_data:/qdrant/storage
 
@@ -36,3 +38,23 @@ services:
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:cuda
+    container_name: open-webui
+    ports:
+      - "3011:8080"
+    volumes:
+      - ./data/open-webui:/app/backend/data
+    restart: always
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [ gpu ]
+    environment:
+      - WEBUI_USERNAME=admin@example.com # ✅ 自訂帳號
+      - WEBUI_PASSWORD=0961220102 # ✅ 自訂密碼
+    runtime: nvidia
+    extra_hosts:
+      - host.docker.internal:host-gateway
