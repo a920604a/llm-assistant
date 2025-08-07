@@ -44,3 +44,4 @@ prometheus_client
 python-dotenv==1.0.0
 matplotlib
 click
+pytest
