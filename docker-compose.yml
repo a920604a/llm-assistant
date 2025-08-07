@@ -55,6 +55,7 @@ services:
     environment:
       - WEBUI_USERNAME=admin@example.com # ✅ 自訂帳號
       - WEBUI_PASSWORD=0961220102 # ✅ 自訂密碼
+      - OLLAMA_BASE_URL=http://ollama:11434
     runtime: nvidia
     extra_hosts:
       - host.docker.internal:host-gateway
