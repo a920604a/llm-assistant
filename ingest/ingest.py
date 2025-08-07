@@ -1,3 +1,4 @@
+import glob
 import os
 import json
 import click
@@ -46,7 +47,7 @@ def ensure_qdrant_collection():
     if collection_name not in [c.name for c in qdrant_client.get_collections().collections]:
         qdrant_client.recreate_collection(
             collection_name=collection_name,
-            vectors_config=models.VectorParams(size=1536, distance=models.Distance.COSINE),
+            vectors_config=models.VectorParams(size=768, distance=models.Distance.COSINE),
         )
 
 
@@ -84,7 +85,7 @@ def ollama_generate_metadata(text: str, model: str = "gpt-oss:20b") -> dict:
 {text}
 請用 JSON 格式輸出，例如：
 {{
-  "topic": "大數據架構設計",
+  "title": "大數據架構設計",
   "level": "中階",
   "keywords": ["數據轉型", "分散式儲存", "資料湖"]
 }}
@@ -129,7 +130,7 @@ def import_md_notes_flow(md_text_list: List[str]):
         for chunk in chunks:
             # vector = embeddings.embed_query(chunk)
             vector = get_embedding(chunk)
-            print(vector.shape())
+            # print(vector.shape())
             payload = {
                 "text": chunk,
                 "translated": True,
@@ -139,7 +140,7 @@ def import_md_notes_flow(md_text_list: List[str]):
                 models.PointStruct(id=idx, vector=vector, payload=payload)
             )
             idx += 1
-            break
+            
 
     print(f"📦 寫入 {len(points)} 筆資料到 Qdrant")
     qdrant_client.upsert(collection_name=collection_name, points=points)
@@ -147,12 +148,16 @@ def import_md_notes_flow(md_text_list: List[str]):
 
 # ✅ CLI 介面使用 click
 @click.command()
-@click.option('--file', type=click.Path(exists=True), required=True, help='Markdown 檔案路徑')
-def cli(file):
-    with open(file, 'r', encoding='utf-8') as f:
-        md_text = f.read()
-    import_md_notes_flow([md_text])
-
+@click.option('--folder', type=click.Path(exists=True, file_okay=False), required=True, help='Markdown 資料夾路徑')
+def cli(folder):
+    # 找資料夾內所有 .md 檔案路徑
+    md_files = glob.glob(os.path.join(folder, '*.md'))
+    all_texts = []
+    for file in md_files:
+        with open(file, 'r', encoding='utf-8') as f:
+            print(f"正在處理 file: {file}")
+            all_texts.append(f.read())
+    import_md_notes_flow(all_texts)
 
 if __name__ == "__main__":
     cli()
