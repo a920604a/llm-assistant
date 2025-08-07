@@ -3,4 +3,33 @@
 調用ollama api 翻譯成中文後以及使用ollama api 給出可能的meta data or attribute (for 教學筆記)，並插入qdrant 
 
 
+針對以上給出react TS 前端,打造 LLM search 平台，以下是核心功能，可以給出建議的功能
+- 上傳一些note : 可以是單個 markdown，也可以是整個folder 
+- 搜尋RAG + LLM :  
+後端
+- 上傳一些note :markdown資料庫納入qdrant ，建立Index
+- 搜尋RAG + LLM : 1. Query Rewrite  2.用 qr  Qdrant 做Hybrid Search 3. Docunment Reranking 4.build prompt 5. LLM
 
+
+
+```
+[前端上傳筆記] ---> [後端切段 + Embedding] ---> [Qdrant 建立索引]
+
+[使用者輸入查詢] ---> [Query Rewrite (LLM)]
+                     |
+                     v
+               [Qdrant 混合搜尋 RRF]
+                     |
+                     v
+               [結果 Reranking]
+                     |
+                     v
+            [構建 Prompt + 呼叫 LLM]
+                     |
+                     v
+              [回傳回答與文件片段]
+                     |
+                     v
+               [前端顯示結果]
+
+```

@@ -3,6 +3,7 @@ import os
 import json
 import click
 import requests
+from tqdm.auto import tqdm
 from typing import List
 from prefect import flow, task
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -117,7 +118,9 @@ def import_md_notes_flow(md_text_dict: dict):
     idx = 0
     BATCH_SIZE = 1
 
-    for filename, md_text in md_text_dict.items():
+    # for filename, md_text in md_text_dict.items():
+    for filename, md_text in tqdm(md_text_dict.items(), total=len(md_text_dict), desc="處理檔案"):
+
         print(f"➡️ 處理檔案：{filename}，原始字數: {len(md_text)}")
         translated = ollama_translate(md_text)
         # print(f"翻譯結果 : {translated}")
@@ -135,23 +138,23 @@ def import_md_notes_flow(md_text_dict: dict):
             payload = {
                 "text": chunk,
                 "translated": True,
-                **metadata,
+                **metadata, # title, level, keywords
             }
             points.append(
                 models.PointStruct(id=idx, vector=vector, payload=payload)
             )
             idx += 1
-            if len(points) >= BATCH_SIZE:
-                qdrant_client.upsert(collection_name=collection_name, points=points)
-                print(f"寫入 {len(points)} 筆資料")
-                points = []  # 清空已寫入的 batch
+            # if len(points) >= BATCH_SIZE:
+            #     qdrant_client.upsert(collection_name=collection_name, points=points)
+            #     print(f"寫入 {len(points)} 筆資料")
+            #     points = []  # 清空已寫入的 batch
             
     # 寫入最後剩餘的點
-    if points:
-        qdrant_client.upsert(collection_name=collection_name, points=points)
-        print(f"寫入最後 {len(points)} 筆資料")
+    # if points:
+    #     qdrant_client.upsert(collection_name=collection_name, points=points)
+    #     print(f"寫入最後 {len(points)} 筆資料")
     # print(f"📦 寫入 {len(points)} 筆資料到 Qdrant")
-    # qdrant_client.upsert(collection_name=collection_name, points=points)
+    qdrant_client.upsert(collection_name=collection_name, points=points)
 
 
 # ✅ CLI 介面使用 click
