@@ -48,7 +48,9 @@ def ensure_qdrant_collection():
     if collection_name not in [c.name for c in qdrant_client.get_collections().collections]:
         qdrant_client.recreate_collection(
             collection_name=collection_name,
-            vectors_config=models.VectorParams(size=768, distance=models.Distance.COSINE),
+            vectors_config=models.VectorParams(
+                size=768, 
+                distance=models.Distance.COSINE),
         )
 
 
@@ -159,15 +161,26 @@ def import_md_notes_flow(md_text_dict: dict):
 
 # ✅ CLI 介面使用 click
 @click.command()
-@click.option('--folder', type=click.Path(exists=True, file_okay=False), required=True, help='Markdown 資料夾路徑')
-def cli(folder):
-    # 找資料夾內所有 .md 檔案路徑
-    md_files = glob.glob(os.path.join(folder, '*.md'))
+@click.option('--path', type=click.Path(exists=True, file_okay=False), required=True, help='Markdown 資料夾路徑')
+def cli(path):
     all_texts = {}
-    for file in md_files:
-        with open(file, 'r', encoding='utf-8') as f:
-            # all_texts.append(f.read())
-            all_texts[file] = f.read()
+    
+    if os.path.isdir(path):
+        # 找資料夾內所有 .md 檔案路徑        
+        md_files = glob.glob(os.path.join(path, '*.md'))        
+        for file in md_files:
+            with open(file, 'r', encoding='utf-8') as f:
+                all_texts[file] = f.read()
+        
+    elif os.path.isfile(path) and path.endswith('.md'):
+        # 單一 .md 檔案
+        with open(path, 'r', encoding='utf-8') as f:
+            all_texts[path] = f.read()
+        
+    else:
+        click.echo("請提供 .md 檔案或包含 .md 檔案的資料夾", err=True)
+        return
+    
     import_md_notes_flow(all_texts)
 
 if __name__ == "__main__":

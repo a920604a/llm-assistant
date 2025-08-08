@@ -7,7 +7,7 @@
 - 上傳一些note : 可以是單個 markdown，也可以是整個folder 
 - 搜尋RAG + LLM :  
 後端
-- 上傳一些note :markdown資料庫納入qdrant ，建立Index
+- 上傳一些note :翻譯 → 分段 → 向量化 → 建立 Metadata → 儲存到 Qdrant 向量資料庫 markdown資料庫納入qdrant ，建立Index
 - 搜尋RAG + LLM : 1. Query Rewrite  2.用 qr  Qdrant 做Hybrid Search 3. Docunment Reranking 4.build prompt 5. LLM
 
 

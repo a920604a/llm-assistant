@@ -17,8 +17,6 @@ llm-mcp-assistant/
 ├── docker-compose.yml
 ├── requirements.txt
 └── README.md
-
-
 ```
 
 
