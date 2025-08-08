@@ -1,219 +1,107 @@
-以下是根據你提出的 LLM 搜尋平台需求所擬定的專案需求書草案，涵蓋前端功能、後端流程、架構設計與模組劃分，方便你日後擴充或交接。
+「進階版需求說明書」草案，著重在「多使用者帳號管理」與「個人 RAG 筆記資料庫 + Agentic RAG 檢索聊天機器人」這兩大核心，並參考主流架構設計與多租戶策略。
 
 ---
 
-# 🔍 **RAG 教學筆記搜尋平台專案需求書**
-
-## 🧾 專案名稱
-
-> LLM 教學筆記搜尋平台（RAG + Qdrant + Ollama + React）
+## 進階版專案需求書：多使用者 RAG 筆記平台（支援 Agentic RAG 聊天機器人）
 
 ---
 
-## 🎯 專案目標
+### 1. **專案目標**
 
-建立一套前後端整合的 AI 教學筆記搜尋平台，使用者可上傳教學筆記（Markdown 檔案或整個資料夾），後端將其翻譯成中文、分段、向量化後存入向量資料庫（Qdrant）。使用者可輸入自然語言問題進行搜尋，透過 LLM 提供高相關且可追溯的回應與筆記片段。
-
----
-
-## 🔧 技術選型
-
-### 📦 後端
-
-| 技術                                       | 說明                                    |
-| ---------------------------------------- | ------------------------------------- |
-| Python                                   | 主程式語言                                 |
-| FastAPI                                  | RESTful API 建立                        |
-| Ollama API                               | 調用 LLM 模型做翻譯與 Query Rewrite           |
-| Qdrant                                   | 向量資料庫，用於儲存向量與 metadata                |
-| SentenceTransformers or Ollama embedding | 用於文字向量化                               |
-| Markdown parser                          | 支援檔案分段（例如 `mistune`、`markdown-it-py`） |
-
-### 🌐 前端
-
-| 技術                 | 說明                            |
-| ------------------ | ----------------------------- |
-| React (TypeScript) | 主架構                           |
-| Tailwind CSS       | UI 樣式                         |
-| Zustand / Redux    | 狀態管理                          |
-| SWR / React Query  | API 資料擷取                      |
-| File Upload Lib    | 上傳檔案與資料夾（例如 `react-dropzone`） |
+打造一個支援多人共享、個人化 RAG 筆記的平台。使用者可上傳筆記（Markdown、文件），平台將其向量化並儲存至個人資料庫，使用者可透過聊天介面與 AI 機器人互動，平台將依照 Agentic RAG 流程，進行智慧檢索與思考，生成回覆並提供可靠來源。
 
 ---
 
-## 📁 系統架構圖
+### 2. **核心價值**
 
-```plaintext
-[使用者]
-   |
-   ▼
-[React 前端]
-   |
-   ▼
-[FastAPI 後端]
-   |
-   ├── 上傳處理器（解析 Markdown + 翻譯 + 分段）
-   ├── 向量化處理器（embedding + metadata）
-   ├── Qdrant 儲存器（向量與屬性）
-   └── 搜尋處理器（Query Rewrite + Hybrid Search + Rerank + Prompt）
-   |
-   ▼
-[Qdrant 向量資料庫]
+* **帳號與多使用者管理**：每位使用者擁有獨立帳戶和向量資料隔離，同時支援多人使用。
+* **個人化 RAG 資料庫**：每個使用者的筆記資料僅能由本人訪問，確保隱私與安全。
+* **Agentic RAG 檢索機制**：相對於傳統 RAG，一個智慧 agent 可進行多步推理、驗證與反覆檢索，以提升回應品質與準確度 ([Bright Data][1], [TECHCOMMUNITY.MICROSOFT.COM][2])。
+
+---
+
+### 3. **多租戶架構設計**
+
+* 採用多租戶隔離策略，保障不同使用者間資料安全。可考慮以下模型：
+
+  * **共享邏輯、隔離資料**：所有用戶共用後端服務，但利用 tenant ID 控制向量儲存與訪問 ([ApX Machine Learning][3], [Nile Postgres][4])。
+  * **資料庫層級隔離**：每個使用者使用獨立資料庫 / collection（如 Milvus 或 Qdrant）以達高隔離與效能優勢 ([Milvus][5], [Amazon Web Services, Inc.][6])。
+
+---
+
+### 4. **Agentic RAG 流程設計**
+
+1. **使用者提問**
+2. **Agent 初步檢索＋生成回答**
+3. **Agent 評估回答品質（Groundedness / 是否缺漏）**
+4. **若不足，再次檢索或修正版生成（單步或多步反思）** ([TECHCOMMUNITY.MICROSOFT.COM][2], [Bright Data][1])
+5. **回傳最終答案＋引用來源段落**
+
+---
+
+### 5. **系統架構**
+
+#### 5.1 使用者模組
+
+* 註冊／登入（支援 OAuth、email）
+* 權限與訪問控制（使用 RBAC 或 tenant ID）
+
+#### 5.2 筆記上傳與向量化
+
+* 支援 Markdown、文件上傳與資料夾結構（遞迴掃描）
+* 翻譯（英文→中文，可選）、chunk 分段、Embedding 向量生成
+* 儲存到個人向量資料庫（隔離設計）
+
+#### 5.3 Agentic RAG 模組
+
+* Query Rewrite（優化查詢）
+* 向量 + metadata 檢索
+* 回答初步生成
+* Agent 評估 + 迭代檢索（反思機制）
+* 回答輸出與引用來源資料
+
+#### 5.4 後端整體架構
+
+```
+[使用者 UI]
+   ↓
+[身份驗證 + 帳戶管理]
+   ↓
+[上傳筆記 → 翻譯 → 分段 → Embedding]
+   ↓
+[個人向量資料庫（隔離）]
+   ↓
+[Agentic RAG 檢索 + 多步思考]
+   ↓
+[LLM 生成回答 + 來源輸出]
 ```
 
 ---
 
-## ⚙️ 系統功能模組
+### 6. **資料隔離與安全**
 
-### 🖼 前端功能模組
-
-| 功能             | 描述                                 |
-| -------------- | ---------------------------------- |
-| 🔼 上傳教學筆記      | 支援單檔 .md 或整個資料夾拖拉上傳                |
-| 📂 檔案預覽與解析     | 顯示 Markdown 內容，提供上傳結果狀態            |
-| 🔍 問題查詢輸入      | 使用者可輸入問題，自然語言搜尋筆記內容                |
-| 📘 搜尋結果回應      | 顯示來自 LLM 的回答與相關筆記片段                |
-| 🧠 顯示回應來源      | 提供每段回答的原始筆記連結或上下文                  |
-| 📊 搜尋過程視覺化（可選） | 顯示 query rewrite、reranking 結果等中繼資料 |
+* 每位使用者資料隔離（tenant ID 或資料庫隔離）
+* RBAC 控制、API 權限驗證
+* 支援使用者自行刪除上傳資料（遵循 GDPR / 隱私政策最佳實踐）
+* 可選擇加密存儲與安全審計
 
 ---
 
-### 🔁 後端處理流程（pipeline）
+### 7. **使用者介面功能**
 
-#### 1️⃣ 筆記上傳流程
-
-```plaintext
-[接收檔案] → [Markdown 解析與分段] → [翻譯中文 (Ollama)] → [文字向量化] → [建立 metadata] → [插入 Qdrant]
-```
-
-* **翻譯工具**：Ollama (e.g., `llama3`, `mistral`)
-* **分段規則**：標題段落分群、段落合併避免過短（chunk size 控制）
-* **metadata 結構**：
-
-  ```json
-  {
-    "source": "filename.md",
-    "section_title": "章節標題",
-    "translated": "段落內容翻譯",
-    "tags": ["function", "python", "loop"]
-  }
-  ```
-
-#### 2️⃣ 搜尋流程
-
-```plaintext
-[使用者輸入問題]
-  ↓
-[Query Rewrite - LLM 改寫查詢]
-  ↓
-[Hybrid Search - Qdrant 向量 + Filter]
-  ↓
-[Document Reranking - LLM or Embedding Score]
-  ↓
-[Prompt 構建 - 建立上下文 Prompt]
-  ↓
-[LLM 回答生成 - Ollama API 呼叫]
-  ↓
-[回傳回答 + 關聯筆記]
-```
+* 筆記上傳與進度提示
+* 筆記預覽與 chunk 關聯管理
+* Agent 聊天介面：詢問 → 回答（含引用）
+* Chat 歷史與來源追蹤
+* 高級設定（翻譯、自訂 Prompt、Agent 反思深度）
 
 ---
 
-## 📌 功能細節說明
+### 8. **可擴充功能與優勢**
 
-### 上傳
-
-* 支援：
-
-  * 單一 .md
-  * 整個資料夾（透過遞迴抓取所有 `.md` 檔）
-* 後端接收：
-
-  * 儲存原始筆記（可選）
-  * 執行翻譯（英文→中文）
-  * 切 chunk + embedding
-  * 為每段生成屬性資料（metadata）
-
-### 搜尋
-
-* Query Rewrite：
-
-  * 利用 Ollama LLM 改寫查詢，加強語意匹配
-* Hybrid Search：
-
-  * Qdrant 同時用向量＋metadata（如標題、tags）做過濾
-  * 支援文字 keyword filter 或 top-k 向量檢索
-* Reranking：
-
-  * 使用 LLM 比對 query 與 chunk 對應程度進行 rerank
-* Prompt 構建：
-
-  * 建立具脈絡的 prompt 給 LLM 回答問題
-* 回傳結果：
-
-  * 包含 LLM 回答 + 所引用的段落（標示來源）
-
----
-
-## 🗃 資料結構設計
-
-```ts
-// 每個筆記段落的資料結構
-type NoteChunk = {
-  id: string
-  text: string
-  translated: string
-  vector: number[]
-  metadata: {
-    file: string
-    section: string
-    tags?: string[]
-    created_at: string
-  }
-}
-```
-
----
-
-## 📤 API 設計
-
-| 路由               | 方法   | 說明            |
-| ---------------- | ---- | ------------- |
-| `/upload`        | POST | 上傳筆記（支援單檔與多檔） |
-| `/search`        | POST | 輸入問題後進行全文查詢   |
-| `/status`        | GET  | 查詢筆記處理進度狀態    |
-| `/documents`     | GET  | 已上傳文件清單       |
-| `/documents/:id` | GET  | 單一文件內容與摘要     |
-
----
-
-## 🔐 權限與安全（進階可擴充）
-
-* 使用者登入（可用 Firebase Auth / Magic Link）
-* 每位使用者有獨立的 Qdrant collection / 分區
-* 向量資料不可共用除非授權
-
----
-
-## 📈 未來可擴充功能
-
-* ✅ 回答後可「點選來源筆記段落」
-* ✅ 加入「收藏筆記」或「摘要筆記」功能
-* ✅ 使用者可以「修正翻譯結果」
-* ✅ 上傳 PDF → 自動轉 Markdown
-* ✅ 自訂 Prompt 模板或 QA 類型（如考試題庫、課程摘要）
-
----
-
-## ✅ 開發時程建議（簡化版）
-
-| 時間     | 目標                                   |
-| ------ | ------------------------------------ |
-| Week 1 | 架構設計與 Qdrant 向量 DB 建立測試              |
-| Week 2 | 完成上傳 + 翻譯 + 切段 + 向量化 pipeline        |
-| Week 3 | 完成前端筆記上傳與顯示功能                        |
-| Week 4 | 實作搜尋流程（Query Rewrite + Qdrant + LLM） |
-| Week 5 | 前端搜尋輸入與顯示整合、優化 UI                    |
-| Week 6 | 部署測試、效能優化與 bug 修復                    |
+* **多模態擴充**：未來可加入圖片、PDF 支援或語音輸入
+* **工具整合**：結合 Notion、GitHub、Google Docs API
+* **Agent 個性化**：可設置語調風格、回答深度
+* **社群與協作**：共用筆記庫、群組 RAG 功能（進階版）
 
 ---
