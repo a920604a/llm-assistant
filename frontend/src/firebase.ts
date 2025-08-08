@@ -18,5 +18,11 @@ const analytics = getAnalytics(app);
 export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
 
-export const loginWithGoogle = () => signInWithPopup(auth, provider);
+export const loginWithGoogle = async () => {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    const idToken = await user.getIdToken(); // 🔐 拿到 JWT Token
+    return { user, idToken };
+};
+
 export const logout = () => signOut(auth);
