@@ -1,0 +1,114 @@
+services:
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama_models:/root/.ollama
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - capabilities: [ gpu ]
+    # runtime: nvidia
+    # environment:
+    #   - NVIDIA_VISIBLE_DEVICES=all
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:cuda
+    container_name: open-webui
+    ports:
+      - "3011:8080"
+    volumes:
+      - ./data/open-webui:/app/backend/data
+    restart: always
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - capabilities: [ gpu ]
+    environment:
+      - WEBUI_USERNAME=admin@example.com # ✅ 自訂帳號
+      - WEBUI_PASSWORD=0961220102 # ✅ 自訂密碼
+      - OLLAMA_BASE_URL=http://ollama:11434
+    # runtime: nvidia
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+
+  mcpclient:
+    build:
+      context: ./services/mcpclient
+      dockerfile: Dockerfile.mcpclient
+    container_name: mcpclient
+    environment:
+      - OLLAMA_API_URL=http://ollama:11434
+      - MCP_CLIENT_CONFIG=...
+    ports:
+      - "8000:8000"
+    depends_on:
+      - ollama
+      - qdrant
+      - noteragserver
+      # - imageserver
+      # - speechserver
+      # - securityserver
+
+  noteragserver:
+    build:
+      context: ./services/noteragserver
+      dockerfile: ./Dockerfile.noteragserver
+    container_name: noteragserver
+    ports:
+      - "8010:8000"
+    depends_on:
+      - qdrant
+
+  qdrant:
+    image: qdrant/qdrant
+    container_name: noteragserver-qdrant
+    ports:
+      - "6333:6333" # http://localhost:6333/dashboard
+    volumes:
+      - ./data/qdrant_data:/qdrant/storage
+
+
+  # imageserver:
+  #   build:
+  #     context: ./services/imageserver
+  #     dockerfile: Dockerfile.imageserver
+  #   container_name: imageserver
+  #   environment:
+  #     - VECTOR_DB_URL=http://qdrant:6333
+  #     - SECURITY_SERVICE_URL=http://securityserver:9000
+  #   ports:
+  #     - "8102:8000"
+  #   depends_on:
+  #     - qdrant
+  #     - securityserver
+
+  # speechserver:
+  #   build:
+  #     context: ./services/speechserver
+  #     dockerfile: Dockerfile.speechserver
+  #   container_name: speechserver
+  #   environment:
+  #     - VECTOR_DB_URL=http://qdrant:6333
+  #     - SECURITY_SERVICE_URL=http://securityserver:9000
+  #   ports:
+  #     - "8103:8000"
+  #   depends_on:
+  #     - qdrant
+  #     - securityserver
+
+  # securityserver:
+  #   build:
+  #     context: ./services/securityserver
+  #     dockerfile: Dockerfile
+  #   container_name: securityserver
+  #   ports:
+  #     - "9000:9000"
+
+
+volumes:
+  qdrant_storage:
