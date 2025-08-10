@@ -12,15 +12,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# 複製程式
+# 先複製 requirements.txt
 COPY services/imageservice/requirements.txt ./requirements.txt
 
 COPY ./image ./app
 
-
-# 安裝 python 套件：使用 PyTorch CPU wheels 的 index（通用方式）
-# 注意：如果你需要特定 torch 版本或加速器（GPU/CUDA），請修改此行
+# 安裝 Python 套件
+RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000" , "--reload"]

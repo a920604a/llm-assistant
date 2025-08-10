@@ -43,8 +43,6 @@ services:
     environment:
       - OLLAMA_API_URL=http://ollama:11434
       - MCP_CLIENT_CONFIG=...
-    volumes:
-      - ./services/mcpclient/requirements.txt:/app/requirements.txt
     ports:
       - "8000:8000"
     depends_on:
@@ -56,9 +54,7 @@ services:
     build:
       context: .
       dockerfile: ./services/noteservice/Dockerfile.noteragserver
-    container_name: noteragserver
-    volumes:
-      - ./services/noteservice/requirements.txt:/app/requirements.txt
+    container_name: noteservice
 
     ports:
       - "8010:8000"
@@ -77,10 +73,9 @@ services:
     build:
       context: .
       dockerfile: ./services/imageservice/Dockerfile.imageserver
-    container_name: imageserver
-    volumes:
-      - ./services/imageserver/models:/models # 可放置離線模型檔案 , https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt
-      - ./services/imageserver/requirements.txt:/app/requirements.txt
+    container_name: imageservice
+    # volumes:
+    #   - ./services/imageservice/models:/models # 可放置離線模型檔案 , https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt
 
     # environment:
     #   - VECTOR_DB_URL=http://qdrant:6333
@@ -95,23 +90,13 @@ services:
     build:
       context: .
       dockerfile: ./services/speechservice/Dockerfile.speechserver
-    container_name: speechserver
+    container_name: speechservice
     # environment:
     # - VECTOR_DB_URL=http://qdrant:6333
     # - SECURITY_SERVICE_URL=http://securityserver:9000
-    # volumes:
-    #   - ./services/speechservice/requirements.txt:/app/requirements.txt
 
     ports:
       - "8103:8000"
     depends_on:
       - qdrant
       # - securityserver
-
-  # securityserver:
-  #   build:
-  #     context: ./services/securityserver
-  #     dockerfile: Dockerfile
-  #   container_name: securityserver
-  #   ports:
-  #     - "9000:9000"
