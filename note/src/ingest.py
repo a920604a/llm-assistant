@@ -9,10 +9,10 @@ from prefect import flow, task
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from qdrant_client import QdrantClient, models 
-from fastembed import TextEmbedding
-from sentence_transformers import SentenceTransformer
+from database.qdrant import qdrant_client
 import re
-from conf import OLLAMA_API_URL, QDRANT_URL, collection_name
+from conf import OLLAMA_API_URL, QDRANT_URL, COLLECTION_NAME
+from services.embedding import get_embedding
 
 
 # === LangChain ===
@@ -23,28 +23,13 @@ text_splitter = RecursiveCharacterTextSplitter(
 )
 
 
-
-def get_embedding(text: str, use_sentence_transformers: bool = True) -> List[float]:
-    if use_sentence_transformers: # 輸出向量維度是 768。
-        model_name = 'uer/sbert-base-chinese-nli'
-        model = SentenceTransformer(model_name)
-        vector = model.encode([text])  # 仍需包成 list 傳入
-        return vector[0].tolist()      # 取第一筆並轉 list[float]
-    else:
-        model_name = "BAAI/bge-small-zh-v1.5"
-        embedder = TextEmbedding(model_name=model_name)
-        return next(embedder.embed([text]))  # generator 中取出第一筆
     
-    
-# === Qdrant 初始化 ===
-qdrant_client = QdrantClient(host="qdrant", port=6333)
-
 # ✅ 建立 Collection（若尚未建立）
 @task
 def ensure_qdrant_collection():
-    if collection_name not in [c.name for c in qdrant_client.get_collections().collections]:
+    if COLLECTION_NAME not in [c.name for c in qdrant_client.get_collections().collections]:
         qdrant_client.recreate_collection(
-            collection_name=collection_name,
+            COLLECTION_NAME=COLLECTION_NAME,
             vectors_config=models.VectorParams(
                 size=768, 
                 distance=models.Distance.COSINE),
@@ -144,16 +129,16 @@ def import_md_notes_flow(md_text_dict: dict):
             )
             idx += 1
             # if len(points) >= BATCH_SIZE:
-            #     qdrant_client.upsert(collection_name=collection_name, points=points)
+            #     qdrant_client.upsert(COLLECTION_NAME=COLLECTION_NAME, points=points)
             #     print(f"寫入 {len(points)} 筆資料")
             #     points = []  # 清空已寫入的 batch
             
     # 寫入最後剩餘的點
     # if points:
-    #     qdrant_client.upsert(collection_name=collection_name, points=points)
+    #     qdrant_client.upsert(COLLECTION_NAME=COLLECTION_NAME, points=points)
     #     print(f"寫入最後 {len(points)} 筆資料")
     # print(f"📦 寫入 {len(points)} 筆資料到 Qdrant")
-    qdrant_client.upsert(collection_name=collection_name, points=points)
+    qdrant_client.upsert(COLLECTION_NAME=COLLECTION_NAME, points=points)
 
 
 # ✅ CLI 介面使用 click
