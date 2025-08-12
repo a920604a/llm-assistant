@@ -1,7 +1,9 @@
 FROM python:3.10-slim
 
 # 安裝系統依賴（ffmpeg、tesseract OCR、OpenGL）
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
     ffmpeg \
     tesseract-ocr \
     libgl1-mesa-glx \

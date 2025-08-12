@@ -12,11 +12,8 @@ from qdrant_client import QdrantClient, models
 from fastembed import TextEmbedding
 from sentence_transformers import SentenceTransformer
 import re
+from conf import OLLAMA_API_URL, QDRANT_URL, collection_name
 
-# === 基本設定 ===
-OLLAMA_API_URL = "http://ollama:11434"
-QDRANT_URL = "http://qdrant:6333"
-collection_name = "notes_collection"
 
 # === LangChain ===
 text_splitter = RecursiveCharacterTextSplitter(

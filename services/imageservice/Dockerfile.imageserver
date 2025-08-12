@@ -2,8 +2,12 @@
 FROM python:3.10-slim
 
 # 針對 CPU 推論安裝系統依賴
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    cmake \
     build-essential \
+    libprotobuf-dev \
+    protobuf-compiler \
     git \
     ffmpeg \
     libgl1 \

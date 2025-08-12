@@ -13,16 +13,16 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 # 安裝 multi-arch 支援好的 ASR + TTS 套件
 
-RUN pip install --no-cache-dir \
-    faster-whisper \
-    TTS==0.22.0  \
-    fastapi uvicorn[standard] \
-    pydantic \
-    python-dotenv
+WORKDIR /app
+
+COPY services/speechservice/requirements.txt ./requirements.txt
 
 # 複製服務程式
-WORKDIR /app
 COPY ./speech /app
+
+RUN pip install --no-cache-dir --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+
 
 # 啟動服務
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

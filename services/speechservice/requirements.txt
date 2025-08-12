@@ -1,3 +1,6 @@
+TTS==0.22.0
+faster-whisper
+
 # === Web API Framework ===
 fastapi==0.100.0
 uvicorn[standard]==0.22.0
@@ -33,7 +36,7 @@ pytesseract
 
 # === Data Processing ===
 
-pandas==2.0.3
+pandas<2.0,>=1.4
 pydantic>=1.10.16,<2.0.0
 prefect>=2.16.3
 

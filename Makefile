@@ -1,6 +1,7 @@
 # .env 檔案會自動載入環境變數
 ENV_FILE=.env
-DOCKER_COMPOSE=docker-compose
+DOCKER_COMPOSE=docker-compose -f docker-compose.dev.yml
+
 
 # 啟動所有容器（背景執行）
 up:

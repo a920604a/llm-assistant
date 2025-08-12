@@ -2,14 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 from prometheus_fastapi_instrumentator import Instrumentator
-from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import JSONResponse
-import os
-from .utils import read_imagefile, load_yolo, load_deeplab, pil_to_bgr_np, segmentation_overlay
-import numpy as np
-import uuid
-
-
+from fastapi import FastAPI
+from api.routers import query
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -35,5 +29,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# REST API routers
+app.include_router(query.router,  tags=["query"])
+
+
+
+
+
 

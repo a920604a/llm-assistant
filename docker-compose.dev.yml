@@ -6,14 +6,14 @@ services:
       - "11434:11434"
     volumes:
       - ./ollama_models:/root/.ollama
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - capabilities: [ gpu ]
-    # runtime: nvidia
-    # environment:
-    #   - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [ gpu ]
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
   open-webui:
     image: ghcr.io/open-webui/open-webui:cuda
     container_name: open-webui
@@ -22,16 +22,16 @@ services:
     volumes:
       - ./data/open-webui:/app/backend/data
     restart: always
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - capabilities: [ gpu ]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [ gpu ]
     environment:
       - WEBUI_USERNAME=admin@example.com # ✅ 自訂帳號
       - WEBUI_PASSWORD=0961220102 # ✅ 自訂密碼
       - OLLAMA_BASE_URL=http://ollama:11434
-    # runtime: nvidia
+    runtime: nvidia
     extra_hosts:
       - host.docker.internal:host-gateway
 
@@ -43,8 +43,10 @@ services:
     environment:
       - OLLAMA_API_URL=http://ollama:11434
       - MCP_CLIENT_CONFIG=...
+    volumes:
+      - ./mcpclient:/app
     ports:
-      - "8000:8000"
+      - "8011:8000"
     depends_on:
       - ollama
       - qdrant
@@ -55,9 +57,11 @@ services:
       context: .
       dockerfile: ./services/noteservice/Dockerfile.noteragserver
     container_name: noteservice
+    volumes:
+      - ./note:/app
 
     ports:
-      - "8010:8000"
+      - "8022:8000"
     depends_on:
       - qdrant
 
@@ -74,14 +78,15 @@ services:
       context: .
       dockerfile: ./services/imageservice/Dockerfile.imageserver
     container_name: imageservice
-    # volumes:
+    volumes:
+      - ./image:/app
     #   - ./services/imageservice/models:/models # 可放置離線模型檔案 , https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt
 
     # environment:
     #   - VECTOR_DB_URL=http://qdrant:6333
     #   - SECURITY_SERVICE_URL=http://securityserver:9000
     ports:
-      - "8102:8000"
+      - "8033:8000"
     # depends_on:
     #   - qdrant
     #   - securityserver
@@ -91,12 +96,14 @@ services:
       context: .
       dockerfile: ./services/speechservice/Dockerfile.speechserver
     container_name: speechservice
+    volumes:
+      - ./speech:/app
     # environment:
     # - VECTOR_DB_URL=http://qdrant:6333
     # - SECURITY_SERVICE_URL=http://securityserver:9000
 
     ports:
-      - "8103:8000"
+      - "8044:8000"
     depends_on:
       - qdrant
       # - securityserver
