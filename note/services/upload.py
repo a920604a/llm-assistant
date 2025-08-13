@@ -1,4 +1,5 @@
 from services.user import get_user, update_user
+from tasks.upload import import_md_notes_task
 from datetime import date
 import os
 import logging
@@ -9,15 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 UPLOAD_DIR = "./uploaded_files"
-
-from celery_app import celery_app
-from services.ingest import import_md_notes_flow
-
-@celery_app.task(name="import_md_notes_task")
-def import_md_notes_task(md_text_dict: dict):
-    # 直接呼叫 flow
-    import_md_notes_flow(md_text_dict)
-    return f"處理 {len(md_text_dict)} 個 Markdown 檔案完成"
 
 
 

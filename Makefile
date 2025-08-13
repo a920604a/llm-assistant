@@ -1,11 +1,13 @@
 # .env 檔案會自動載入環境變數
 ENV_FILE=.env
 DOCKER_COMPOSE=docker-compose -f docker-compose.dev.yml
+DEV_COMPOSE=docker-compose -f docker-compose.monitor.dev.yml
 
 
 # 啟動所有容器（背景執行）
 up:
 	$(DOCKER_COMPOSE) up -d
+	$(DEV_COMPOSE) up -d
 
 
 up-front:
@@ -14,6 +16,7 @@ up-front:
 # 停止所有容器
 down:
 	$(DOCKER_COMPOSE) --env-file $(ENV_FILE) down
+	$(DEV_COMPOSE)  down
 
 # 重啟所有容器
 restart:

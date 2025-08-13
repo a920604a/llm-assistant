@@ -8,7 +8,7 @@ from typing import List
 from prefect import flow, task
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
-from qdrant_client import QdrantClient, models 
+from qdrant_client import QdrantClient, models
 from database.qdrant import qdrant_client
 import re
 from conf import OLLAMA_API_URL, QDRANT_URL, COLLECTION_NAME
@@ -17,22 +17,21 @@ from services.embedding import get_embedding
 
 # === LangChain ===
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=800,
-    chunk_overlap=150,
-    separators=["\n\n", "\n", "。", "，", " "]
+    chunk_size=800, chunk_overlap=150, separators=["\n\n", "\n", "。", "，", " "]
 )
 
 
-    
 # ✅ 建立 Collection（若尚未建立）
 @task
 def ensure_qdrant_collection():
-    if COLLECTION_NAME not in [c.name for c in qdrant_client.get_collections().collections]:
+    if COLLECTION_NAME not in [
+        c.name for c in qdrant_client.get_collections().collections
+    ]:
         qdrant_client.recreate_collection(
-            COLLECTION_NAME=COLLECTION_NAME,
+            collection_name=COLLECTION_NAME,
             vectors_config=models.VectorParams(
-                size=768, 
-                distance=models.Distance.COSINE),
+                size=384, distance=models.Distance.COSINE
+            ),
         )
 
 
@@ -57,6 +56,8 @@ def clean_json_string(s: str) -> str:
     s = re.sub(r"^```json\s*", "", s)
     s = re.sub(r"\s*```$", "", s)
     return s
+
+
 # ✅ 產出 Metadata
 @task
 def ollama_generate_metadata(text: str, model: str = "gpt-oss:20b") -> dict:
@@ -103,7 +104,9 @@ def import_md_notes_flow(md_text_dict: dict):
     BATCH_SIZE = 1
 
     # for filename, md_text in md_text_dict.items():
-    for filename, md_text in tqdm(md_text_dict.items(), total=len(md_text_dict), desc="處理檔案"):
+    for filename, md_text in tqdm(
+        md_text_dict.items(), total=len(md_text_dict), desc="處理檔案"
+    ):
 
         print(f"➡️ 處理檔案：{filename}，原始字數: {len(md_text)}")
         translated = ollama_translate(md_text)
@@ -122,48 +125,52 @@ def import_md_notes_flow(md_text_dict: dict):
             payload = {
                 "text": chunk,
                 "translated": True,
-                **metadata, # title, level, keywords
+                **metadata,  # title, level, keywords
             }
-            points.append(
-                models.PointStruct(id=idx, vector=vector, payload=payload)
-            )
+            points.append(models.PointStruct(id=idx, vector=vector, payload=payload))
             idx += 1
             # if len(points) >= BATCH_SIZE:
-            #     qdrant_client.upsert(COLLECTION_NAME=COLLECTION_NAME, points=points)
+            #     qdrant_client.upsert(collection_name=COLLECTION_NAME, points=points)
             #     print(f"寫入 {len(points)} 筆資料")
             #     points = []  # 清空已寫入的 batch
-            
+
     # 寫入最後剩餘的點
     # if points:
-    #     qdrant_client.upsert(COLLECTION_NAME=COLLECTION_NAME, points=points)
+    #     qdrant_client.upsert(collection_name=COLLECTION_NAME, points=points)
     #     print(f"寫入最後 {len(points)} 筆資料")
     # print(f"📦 寫入 {len(points)} 筆資料到 Qdrant")
-    qdrant_client.upsert(COLLECTION_NAME=COLLECTION_NAME, points=points)
+    qdrant_client.upsert(collection_name=COLLECTION_NAME, points=points)
 
 
 # ✅ CLI 介面使用 click
 @click.command()
-@click.option('--path', type=click.Path(exists=True, file_okay=False), required=True, help='Markdown 資料夾路徑')
+@click.option(
+    "--path",
+    type=click.Path(exists=True, file_okay=False),
+    required=True,
+    help="Markdown 資料夾路徑",
+)
 def cli(path):
     all_texts = {}
-    
+
     if os.path.isdir(path):
-        # 找資料夾內所有 .md 檔案路徑        
-        md_files = glob.glob(os.path.join(path, '*.md'))        
+        # 找資料夾內所有 .md 檔案路徑
+        md_files = glob.glob(os.path.join(path, "*.md"))
         for file in md_files:
-            with open(file, 'r', encoding='utf-8') as f:
+            with open(file, "r", encoding="utf-8") as f:
                 all_texts[file] = f.read()
-        
-    elif os.path.isfile(path) and path.endswith('.md'):
+
+    elif os.path.isfile(path) and path.endswith(".md"):
         # 單一 .md 檔案
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, "r", encoding="utf-8") as f:
             all_texts[path] = f.read()
-        
+
     else:
         click.echo("請提供 .md 檔案或包含 .md 檔案的資料夾", err=True)
         return
-    
+
     import_md_notes_flow(all_texts)
+
 
 if __name__ == "__main__":
     cli()

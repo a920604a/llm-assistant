@@ -58,8 +58,8 @@ services:
 
     ports:
       - "8022:8000"
-    # depends_on:
-    #   - qdrant
+    depends_on:
+      - note-qdrant
 
   note-qdrant:
     image: qdrant/qdrant
@@ -79,40 +79,6 @@ services:
     volumes:
       - ./data/note_db:/var/lib/postgresql/data
       - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
-    # imageserver:
-    #   build:
-    #     context: .
-    #     dockerfile: ./services/imageservice/Dockerfile.imageserver
-    #   container_name: imageservice
-    #   volumes:
-    #     - ./image:/app
-    #   #   - ./services/imageservice/models:/models # 可放置離線模型檔案 , https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt
-
-    #   # environment:
-    #   #   - VECTOR_DB_URL=http://qdrant:6333
-    #   #   - SECURITY_SERVICE_URL=http://securityserver:9000
-    #   ports:
-    #     - "8033:8000"
-    #   # depends_on:
-    #   #   - qdrant
-    #   #   - securityserver
-
-    # speechserver:
-    #   build:
-    #     context: .
-    #     dockerfile: ./services/speechservice/Dockerfile.speechserver
-    #   container_name: speechservice
-    #   volumes:
-    #     - ./speech:/app
-    #   # environment:
-    #   # - VECTOR_DB_URL=http://qdrant:6333
-    #   # - SECURITY_SERVICE_URL=http://securityserver:9000
-
-    #   ports:
-    #     - "8044:8000"
-    #   depends_on:
-    #     - qdrant
-    #     # - securityserver
   redis:
     image: redis:7
     container_name: redis
@@ -129,6 +95,7 @@ services:
       - noteserver
       - redis
       - note-db
+      - note-qdrant
     volumes:
       - ./note:/app
 
@@ -140,3 +107,37 @@ services:
       - "5555:5555"
     depends_on:
       - redis
+  # imageserver:
+  #   build:
+  #     context: .
+  #     dockerfile: ./services/imageservice/Dockerfile.imageserver
+  #   container_name: imageservice
+  #   volumes:
+  #     - ./image:/app
+  #   #   - ./services/imageservice/models:/models # 可放置離線模型檔案 , https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt
+
+  #   # environment:
+  #   #   - VECTOR_DB_URL=http://qdrant:6333
+  #   #   - SECURITY_SERVICE_URL=http://securityserver:9000
+  #   ports:
+  #     - "8033:8000"
+  #   # depends_on:
+  #   #   - qdrant
+  #   #   - securityserver
+
+  # speechserver:
+  #   build:
+  #     context: .
+  #     dockerfile: ./services/speechservice/Dockerfile.speechserver
+  #   container_name: speechservice
+  #   volumes:
+  #     - ./speech:/app
+  #   # environment:
+  #   # - VECTOR_DB_URL=http://qdrant:6333
+  #   # - SECURITY_SERVICE_URL=http://securityserver:9000
+
+  #   ports:
+  #     - "8044:8000"
+  #   depends_on:
+  #     - qdrant
+  #     # - securityserver
