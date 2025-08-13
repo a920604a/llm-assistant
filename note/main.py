@@ -1,8 +1,8 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 from prometheus_fastapi_instrumentator import Instrumentator
-from api.routers import query
+from api.routers import query, user, upload
 
 
 logger = logging.getLogger(__name__)
@@ -27,3 +27,5 @@ app.add_middleware(
 # REST API routers
 
 app.include_router(query.router, tags=["query"])
+app.include_router(user.router, tags=["user"])
+app.include_router(upload.router, tags=["upload"])

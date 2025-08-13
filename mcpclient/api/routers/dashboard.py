@@ -5,6 +5,8 @@ from datetime import date
 from typing import Optional
 from api.schemas.DashboardStats import DashboardStats
 from fastapi import APIRouter, HTTPException, status
+from api.verify_token import verify_firebase_token
+from services.user import get_user_data
 import logging
 
 logger = logging.getLogger(__name__)
@@ -24,29 +26,12 @@ fake_db = {
 }
 
 
-def verify_firebase_token(authorization: Optional[str] = Header(None)) -> str:
-    # logger.info(f"authorization {authorization}")
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=401, detail="Missing or invalid authorization header"
-        )
-    id_token = authorization.split(" ")[1]
-    logger.info(f"id_token {id_token}")
-
-    try:
-        decoded_token = firebase_auth.verify_id_token(id_token)
-        user_id = decoded_token["uid"]
-        return user_id
-    except Exception as e:
-        logger.error(f"Firebase verify_id_token error: {e}")
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-
 @router.get("/api/dashboard/stats", response_model=DashboardStats)
 # async def get_dashboard_stats(user_id: str):
 async def get_dashboard_stats(user_id: str = Depends(verify_firebase_token)):
 
-    user_data = fake_db.get("user123")
+    # user_data = fake_db.get("user123")
+    user_data = get_user_data(user_id)
     if not user_data:
         raise HTTPException(status_code=404, detail="User data not found")
 

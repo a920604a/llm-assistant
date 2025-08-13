@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY services/noteservice/requirements.txt ./requirements.txt
+COPY services/celeryworker/requirements.txt ./requirements.txt
 
 COPY ./note /app
 COPY ./celery/celery_app.py /app
@@ -16,4 +16,5 @@ COPY ./celery/celery_app.py /app
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+CMD ["celery", "-A", "celery_app.celery_app", "worker", "-Q", "notes", "-n", "worker.import_md@%h", "--loglevel=info"]

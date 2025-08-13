@@ -1,9 +1,10 @@
-import React, { useState } from "react"
+import React, { useState, useRef } from "react"
 import { uploadFiles } from "../api/upload"
 
 const UploadPage = () => {
     const [uploading, setUploading] = useState(false)
     const [message, setMessage] = useState("")
+    const fileInputRef = useRef<HTMLInputElement | null>(null)
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files
@@ -14,11 +15,14 @@ const UploadPage = () => {
 
         try {
             const result = await uploadFiles(files)
-            setMessage(`成功上傳 ${result.files.length} 個檔案`)
+            setMessage(result.message)
         } catch (error) {
             setMessage(`上傳失敗: ${(error as Error).message}`)
         } finally {
             setUploading(false)
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "" // 重置 input，允許再次選擇同檔案
+            }
         }
     }
 
@@ -32,6 +36,7 @@ const UploadPage = () => {
                 點擊或拖曳檔案到此處 (支援 Markdown / PDF / 資料夾)
                 <input
                     id="file-upload"
+                    ref={fileInputRef}  // 綁定 ref
                     type="file"
                     multiple
                     accept=".md"
