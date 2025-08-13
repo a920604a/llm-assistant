@@ -5,7 +5,6 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from api.routers import query
 
 
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -13,11 +12,7 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI()
 Instrumentator().instrument(app).expose(app)
 
-origins = [
-    "http://localhost",
-    "http://localhost:5173",  # 如果前端跑在 5173 port
-    # 其他允許的來源
-]
+origins = ["http://mcpclient:8000"]
 
 
 # 設定允許的來源
@@ -31,5 +26,4 @@ app.add_middleware(
 
 # REST API routers
 
-app.include_router(query.router,  tags=["query"])
-
+app.include_router(query.router, tags=["query"])

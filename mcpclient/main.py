@@ -3,13 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi import FastAPI
-from api.routers import query
+from api.routers import query, upload, dashboard
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-app = FastAPI(title='MCP Client Service')
+app = FastAPI(title="MCP Client Service")
 
 Instrumentator().instrument(app).expose(app)
 
@@ -29,10 +29,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(query.router,  tags=["query"])
-
-
-
-
-
-
+app.include_router(query.router, tags=["query"])
+app.include_router(upload.router, tags=["upload"])
+app.include_router(dashboard.router, tags=["dashboard"])

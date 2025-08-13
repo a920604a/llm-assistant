@@ -1,0 +1,19 @@
+services:
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    ports:
+      - "7878:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - "9110:9000" # Web UI
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/portainer_data:/data

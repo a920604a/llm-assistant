@@ -1,11 +1,10 @@
 # Dockerfile
-FROM python:3.10-slim
+FROM python:3.10
 # 安裝依賴
 
 RUN apt-get update && apt-get install -y \
     git \
     build-essential \
-    ffmpeg \
     curl \
     && rm -rf /var/lib/apt/lists/*
 

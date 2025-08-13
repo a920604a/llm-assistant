@@ -7,6 +7,10 @@ DOCKER_COMPOSE=docker-compose -f docker-compose.dev.yml
 up:
 	$(DOCKER_COMPOSE) up -d
 
+
+up-front:
+	cd frontend && npm i && npm run dev
+
 # 停止所有容器
 down:
 	$(DOCKER_COMPOSE) --env-file $(ENV_FILE) down
@@ -42,4 +46,5 @@ test:
 
 # 移除所有 volumes (⚠️會清除資料)
 clean:
+	sudo rm -rf ./data
 	$(DOCKER_COMPOSE) down -v

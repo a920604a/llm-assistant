@@ -1,5 +1,5 @@
 # 使用官方 multi-arch Python image
-FROM python:3.10-slim
+FROM python:3.10
 
 # 針對 CPU 推論安裝系統依賴
 RUN apt-get update && apt-get install -y \
