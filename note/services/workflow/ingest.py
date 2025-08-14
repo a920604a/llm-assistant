@@ -4,6 +4,7 @@ import json
 import click
 import re
 import requests
+import logging
 from tqdm.auto import tqdm
 from typing import List
 from prefect import flow, task
@@ -13,6 +14,9 @@ from qdrant_client import models
 from storage.qdrant import qdrant_client
 from conf import OLLAMA_API_URL, COLLECTION_NAME
 from services.workflow.embedding import get_embedding
+
+
+logger = logging.getLogger(__name__)
 
 
 # === LangChain ===
@@ -90,7 +94,7 @@ def ollama_generate_metadata(text: str, model: str = "gpt-oss:20b") -> dict:
         cleaned = clean_json_string(raw)
         return json.loads(cleaned)
     except Exception:
-        print("⚠️ 無法解析 metadata JSON，回傳為：", raw)
+        logger.info("⚠️ 無法解析 metadata JSON，回傳為：", raw)
         return {"topic": "", "level": "", "keywords": []}
 
 
@@ -108,20 +112,20 @@ def import_md_notes_flow(md_text_dict: dict):
         md_text_dict.items(), total=len(md_text_dict), desc="處理檔案"
     ):
 
-        print(f"➡️ 處理檔案：{filename}，原始字數: {len(md_text)}")
+        logger.info(f"➡️ 處理檔案：{filename}，原始字數: {len(md_text)}")
         translated = ollama_translate(md_text)
-        # print(f"翻譯結果 : {translated}")
+        # logger.info(f"翻譯結果 : {translated}")
 
-        print("🧠 產出 Metadata...")
+        logger.info("🧠 產出 Metadata...")
         metadata = ollama_generate_metadata(translated)
-        print(f"Metadata 結果 : {metadata}")
+        logger.info(f"Metadata 結果 : {metadata}")
 
-        print("✂️ 分段中...")
+        logger.info("✂️ 分段中...")
         chunks = text_splitter.split_text(translated)
         for chunk in chunks:
             # vector = embeddings.embed_query(chunk)
             vector = get_embedding(chunk)
-            # print(vector.shape())
+            # logger.info(vector.shape())
             payload = {
                 "text": chunk,
                 "translated": True,
@@ -131,14 +135,14 @@ def import_md_notes_flow(md_text_dict: dict):
             idx += 1
             # if len(points) >= BATCH_SIZE:
             #     qdrant_client.upsert(collection_name=COLLECTION_NAME, points=points)
-            #     print(f"寫入 {len(points)} 筆資料")
+            #     logger.info(f"寫入 {len(points)} 筆資料")
             #     points = []  # 清空已寫入的 batch
 
     # 寫入最後剩餘的點
     # if points:
     #     qdrant_client.upsert(collection_name=COLLECTION_NAME, points=points)
-    #     print(f"寫入最後 {len(points)} 筆資料")
-    # print(f"📦 寫入 {len(points)} 筆資料到 Qdrant")
+    #     logger.info(f"寫入最後 {len(points)} 筆資料")
+    # logger.info(f"📦 寫入 {len(points)} 筆資料到 Qdrant")
     qdrant_client.upsert(collection_name=COLLECTION_NAME, points=points)
 
 

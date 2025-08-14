@@ -20,9 +20,9 @@ async def upload_notes(files, user_id: str):
 
     # save minIO or local file
     md_text_dict, saved_files = await upload_files(files, user_id)
-    md_text_dict, saved_files = await upload_files(
-        files, user_id, True
-    )  # save local storage
+
+    logger.info(f"md_text_dict {md_text_dict}")
+    logger.info(f"saved_files {saved_files}")
 
     # save postgres
     update_note(
@@ -59,6 +59,8 @@ async def upload_files(files, user_id: str, save_local=False):
             saved_files.append(file.filename)
             if file.filename.endswith(".md"):
                 md_text_dict[file.filename] = content.decode("utf-8")
+
+            logger.info(f"file.filename {file.filename}, {content}")
     else:
         create_bucket_if_not_exists()
 
@@ -76,6 +78,7 @@ async def upload_files(files, user_id: str, save_local=False):
                 Body=content,
                 ContentType="text/markdown",
             )
+            logger.info(f"file.filename {file.filename}, {content}")
 
             saved_files.append(file.filename)
 

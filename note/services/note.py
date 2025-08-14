@@ -1,7 +1,3 @@
-from storage.minio import s3_client, create_bucket_if_not_exists, MINIO_BUCKET
-from storage.crud.user import get_user_notes_number
-from storage.crud.note import update_note
-from tasks.upload import import_md_notes_task
 from storage.crud.note import get_notes
 
 
