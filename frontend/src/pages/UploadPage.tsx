@@ -1,27 +1,62 @@
 import React, { useState, useRef } from "react"
 import { uploadFiles } from "../api/upload"
 
+interface UploadState {
+    uploading: boolean;
+    message: string;
+    files: string[];
+}
+
+
+
 const UploadPage = () => {
-    const [uploading, setUploading] = useState(false)
-    const [message, setMessage] = useState("")
+    // const [uploading, setUploading] = useState(false)
+    // const [message, setMessage] = useState("")
+
+
+    const [uploadState, setUploadState] = useState<UploadState>({
+        uploading: false,
+        message: "",
+        files: [],
+    });
+
+
     const fileInputRef = useRef<HTMLInputElement | null>(null)
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files
         if (!files || files.length === 0) return
 
-        setUploading(true)
-        setMessage("上傳中...")
+        // setUploading(true)
+
+        setUploadState({ ...uploadState, uploading: true, message: "上傳中..." });
+        // setMessage("上傳中...")
 
         try {
             const result = await uploadFiles(files)
-            setMessage(result.message)
+            if (result) {
+                setUploadState({
+                    uploading: false,
+                    message: result.message,
+                    files: result.files,
+                });
+            } else {
+                setUploadState({
+                    uploading: false,
+                    message: "尚未登入或無法取得使用者資訊",
+                    files: [],
+                });
+            }
+            // result message, files = []
         } catch (error) {
-            setMessage(`上傳失敗: ${(error as Error).message}`)
+            setUploadState({
+                uploading: false,
+                message: `上傳失敗: ${(error as Error).message}`,
+                files: [],
+            });
         } finally {
-            setUploading(false)
             if (fileInputRef.current) {
-                fileInputRef.current.value = "" // 重置 input，允許再次選擇同檔案
+                fileInputRef.current.value = ""; // 重置 input
             }
         }
     }
@@ -44,8 +79,20 @@ const UploadPage = () => {
                     className="hidden"
                 />
             </label>
-            {uploading && <p className="mt-2 text-blue-600">{message}</p>}
-            {!uploading && message && <p className="mt-2">{message}</p>}
+            {uploadState.uploading && <p className="mt-2 text-blue-600">{uploadState.message}</p>}
+            {/* {!uploading && message && <p className="mt-2">{message}</p>} */}
+            {!uploadState.uploading && uploadState.message && (
+                <div className="mt-2">
+                    <p>{uploadState.message}</p>
+                    {uploadState.files?.length > 0 && (
+                        <ul className="list-disc ml-5 mt-1">
+                            {uploadState.files.map((file) => (
+                                <li key={file}>{file}</li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            )}
         </div>
     )
 }

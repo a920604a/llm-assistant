@@ -8,13 +8,13 @@ export async function uploadFiles(files: FileList | File[]): Promise<{ message: 
     console.log("token", token)
 
     const formData = new FormData()
-    if ("length" in files) {
-        for (let i = 0; i < files.length; i++) {
-            formData.append("files", files[i])
-        }
-    } else {
-        formData.append("files", files)
-    }
+
+    // 統一用 Array.from 將 FileList 轉成陣列
+    Array.from(files).forEach((file) => {
+        formData.append("files", file)
+    })
+
+
 
     const response = await fetch(`${BASE_URL}/upload`, {
         method: "POST",

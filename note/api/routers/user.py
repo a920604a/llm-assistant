@@ -1,6 +1,6 @@
 # REST API routers
 from fastapi import APIRouter, HTTPException
-from services.user import get_user
+from services.user_info import get_user_info
 
 router = APIRouter()
 
@@ -11,8 +11,8 @@ def get_user_data(user_id: str):
     if not user_id or len(user_id) == 0:
         raise HTTPException(status_code=400, detail="Invalid user_id")
 
-    user = get_user(user_id)
-    if not user:
+    info = get_user_info(user_id)
+    if not info:
         raise HTTPException(status_code=404, detail="User not found")
 
-    return user
+    return info

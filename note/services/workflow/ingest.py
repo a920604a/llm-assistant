@@ -2,17 +2,17 @@ import glob
 import os
 import json
 import click
+import re
 import requests
 from tqdm.auto import tqdm
 from typing import List
 from prefect import flow, task
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from qdrant_client import QdrantClient, models
-from database.qdrant import qdrant_client
-import re
-from conf import OLLAMA_API_URL, QDRANT_URL, COLLECTION_NAME
-from services.embedding import get_embedding
+from qdrant_client import models
+
+from storage.qdrant import qdrant_client
+from conf import OLLAMA_API_URL, COLLECTION_NAME
+from services.workflow.embedding import get_embedding
 
 
 # === LangChain ===
