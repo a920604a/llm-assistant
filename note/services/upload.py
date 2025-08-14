@@ -4,8 +4,8 @@ import logging
 
 from storage.minio import s3_client, create_bucket_if_not_exists, MINIO_BUCKET
 from storage.crud.user import get_user_notes_number
-from storage.crud.note import update_note
-from tasks.upload import import_md_notes_task
+from storage.crud.note import update_notes
+from tasks.upload import import_md_notes_task, import_single_md_task
 
 
 logger = logging.getLogger(__name__)
@@ -18,68 +18,95 @@ async def upload_notes(files, user_id: str):
     logger.info("upload_notes")
     uploaded_notes = get_user_notes_number(user_id)
 
-    # save minIO or local file
-    md_text_dict, saved_files = await upload_files(files, user_id)
+    # 儲存檔案（本地或 MinIO）
+    result = await upload_files(files, user_id, save_local=False, save_minio=True)
 
-    logger.info(f"md_text_dict {md_text_dict}")
-    logger.info(f"saved_files {saved_files}")
+    logger.info(f"成功檔案: {result['saved_files']}")
+    logger.info(f"失敗檔案: {result['failed_files']}")
+    logger.info(f"總檔案大小: {result['total_size']} bytes")
 
-    # save postgres
-    update_note(
-        user_id,
-        uploaded_notes=uploaded_notes + len(saved_files),
-        last_query_date=date.today(),
-    )
-    logger.info("update_user")
+    # save user table postgres
+    update_notes(user_id, result["saved_files"])
+    logger.info("update_notes")
 
     # 透過 Celery 背景執行 flow
-    if md_text_dict:
-        logger.info("透過 Celery 背景執行 flow")
-        import_md_notes_task.apply_async(args=[md_text_dict], queue="notes")
+    for filename in result["saved_files"]:
+        import_single_md_task.apply_async(args=[user_id, filename], queue="notes")
 
     return {
-        "message": f"成功上傳 {len(saved_files)} 個檔案",
-        "files": saved_files,
+        "message": (
+            f"成功上傳 {len(result['saved_files'])} 個檔案"
+            + (
+                f"，失敗 {len(result['failed_files'])} 個"
+                if result["failed_files"]
+                else ""
+            )
+        ),
+        "files": result["saved_files"],
         "user_id": user_id,
     }
 
 
-async def upload_files(files, user_id: str, save_local=False):
+async def upload_files(files, user_id: str, save_local=False, save_minio=True):
     saved_files = []
+    failed_files = []
     md_text_dict = {}
+
     if save_local:
-        # 確保目錄存在
         os.makedirs(UPLOAD_DIR, exist_ok=True)
-
-        for file in files:
-            file_location = os.path.join(UPLOAD_DIR, f"{user_id}_{file.filename}")
-            with open(file_location, "wb") as f:
-                content = await file.read()
-                f.write(content)
-            saved_files.append(file.filename)
-            if file.filename.endswith(".md"):
-                md_text_dict[file.filename] = content.decode("utf-8")
-
-            logger.info(f"file.filename {file.filename}, {content}")
-    else:
+    if save_minio:
         create_bucket_if_not_exists()
 
-        for file in files:
-            if not file.filename.endswith(".md"):
+    for file in files:
+        if not file.filename.endswith(".md"):
+            logger.info(f"略過非 markdown 檔案: {file.filename}")
+            continue
+
+        try:
+            # ⚠ 一次讀取避免多次讀導致空檔案
+            content = await file.read()
+            if not content:
+                logger.warning(f"{file.filename} 無內容或讀取失敗")
+                failed_files.append(file.filename)
                 continue
 
-            content = await file.read()
             md_text_dict[file.filename] = content.decode("utf-8")
-
-            # 上傳到 MinIO
-            s3_client.put_object(
-                Bucket=MINIO_BUCKET,
-                Key=file.filename,
-                Body=content,
-                ContentType="text/markdown",
-            )
-            logger.info(f"file.filename {file.filename}, {content}")
-
             saved_files.append(file.filename)
 
-    return md_text_dict, saved_files
+            if save_local:
+                try:
+                    file_location = os.path.join(
+                        UPLOAD_DIR, f"{user_id}_{file.filename}"
+                    )
+                    with open(file_location, "wb") as f:
+                        f.write(content)
+                    logger.info(f"已儲存本地: {file_location}")
+                except Exception as e:
+                    logger.error(f"儲存本地失敗 {file.filename}: {e}")
+                    failed_files.append(file.filename)
+                    continue
+
+            if save_minio:
+                try:
+                    s3_client.put_object(
+                        Bucket=MINIO_BUCKET,
+                        Key=file.filename,
+                        Body=content,
+                        ContentType="text/markdown",
+                    )
+                    logger.info(f"已上傳 MinIO: {file.filename} ({len(content)} bytes)")
+                except Exception as e:
+                    logger.error(f"上傳 MinIO 失敗 {file.filename}: {e}")
+                    failed_files.append(file.filename)
+                    continue
+
+        except Exception as e:
+            logger.error(f"處理檔案 {file.filename} 時發生錯誤: {e}")
+            failed_files.append(file.filename)
+
+    return {
+        "md_text_dict": md_text_dict,
+        "saved_files": saved_files,
+        "failed_files": failed_files,
+        "total_size": sum(len(c.encode("utf-8")) for c in md_text_dict.values()),
+    }

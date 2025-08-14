@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session, sessionmaker
 from contextlib import contextmanager
 from conf import DATABASE_URL
 
-
 engine = create_engine(DATABASE_URL, echo=False)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

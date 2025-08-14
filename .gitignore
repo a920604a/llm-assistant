@@ -2,3 +2,9 @@ data
 __pycache__
 .env
 ollama_models
+
+# Terraform 相關忽略
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl

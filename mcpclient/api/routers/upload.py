@@ -25,7 +25,7 @@ async def upload_files(
 
     user_id = user.get("uid")
     ret = await upload_notes(user_id, files)
-    logger.info(f"note {ret}")
+    logger.info(f"note {ret} user_id {user_id}")
 
     return {
         "message": f"成功上傳 ",

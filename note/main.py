@@ -4,6 +4,9 @@ import logging
 from prometheus_fastapi_instrumentator import Instrumentator
 from api.routers import query, user, upload
 
+# from storage.qdrant import create_qdrant_collection
+
+# create_qdrant_collection()
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)

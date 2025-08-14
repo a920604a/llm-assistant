@@ -15,6 +15,7 @@ from storage.qdrant import qdrant_client
 from conf import OLLAMA_API_URL, COLLECTION_NAME
 from services.workflow.embedding import get_embedding
 
+# from storage.qdrant import create_qdrant_collection
 
 logger = logging.getLogger(__name__)
 
@@ -27,16 +28,16 @@ text_splitter = RecursiveCharacterTextSplitter(
 
 # ✅ 建立 Collection（若尚未建立）
 @task
-def ensure_qdrant_collection():
-    if COLLECTION_NAME not in [
-        c.name for c in qdrant_client.get_collections().collections
-    ]:
-        qdrant_client.recreate_collection(
+def create_qdrant_collection():
+    try:
+        qdrant_client.create_collection(
             collection_name=COLLECTION_NAME,
             vectors_config=models.VectorParams(
                 size=384, distance=models.Distance.COSINE
             ),
         )
+    except Exception as e:
+        print(f"建立 collection 發生錯誤: {e}")
 
 
 # ✅ 翻譯文字
@@ -101,7 +102,8 @@ def ollama_generate_metadata(text: str, model: str = "gpt-oss:20b") -> dict:
 # ✅ 主流程：匯入筆記
 @flow(name="Import Markdown Notes")
 def import_md_notes_flow(md_text_dict: dict):
-    ensure_qdrant_collection()
+
+    create_qdrant_collection()
 
     points = []
     idx = 0
