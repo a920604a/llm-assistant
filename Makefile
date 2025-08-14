@@ -49,5 +49,5 @@ test:
 
 # 移除所有 volumes (⚠️會清除資料)
 clean:
-	$(DOCKER_COMPOSE) down -v
+	$(MAKE) down
 	sudo rm -rf ./data
