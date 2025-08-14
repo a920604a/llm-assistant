@@ -42,7 +42,6 @@ services:
     container_name: mcpclient
     environment:
       - OLLAMA_API_URL=http://ollama:11434
-      - MCP_CLIENT_CONFIG=...
     volumes:
       - ./mcpclient:/app
     ports:

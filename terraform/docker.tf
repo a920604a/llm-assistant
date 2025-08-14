@@ -1,41 +1,144 @@
-# PostgreSQL
+resource "docker_container" "ollama" {
+  name  = "mcphost-ollama"
+  image = "ollama/ollama:latest"
+
+  ports {
+    internal = 11434
+    external = 11434
+  }
+
+  volumes {
+    host_path      = abspath("${path.module}/../ollama_models")
+    container_path = "/root/.ollama"
+  }
+
+  runtime = "nvidia"
+  env = [
+    "NVIDIA_VISIBLE_DEVICES=all"
+  ]
+}
+
+resource "docker_container" "open_webui" {
+  name  = "open-webui"
+  image = "ghcr.io/open-webui/open-webui:cuda"
+
+  ports {
+    internal = 8080
+    external = 3011
+  }
+
+  volumes {
+    host_path      = abspath("${path.module}/../data/open-webui")
+    container_path = "/app/backend/data"
+  }
+
+  runtime = "nvidia"
+
+  env = [
+    "WEBUI_USERNAME=${var.webui_user}",
+    "WEBUI_PASSWORD=${var.webui_password}",
+    "OLLAMA_BASE_URL=http://${docker_container.ollama.name}:11434"
+  ]
+
+  depends_on = [
+    docker_container.ollama
+  ]
+}
+
+resource "docker_container" "mcpclient" {
+  name  = "mcpclient"
+  image = "mcpclient:latest" # TODO , because custom docker image
+
+  ports {
+    internal = 8000
+    external = 8011
+  }
+
+  volumes {
+    host_path      = abspath("${path.module}/../mcpclient")
+    container_path = "/app"
+  }
+
+  env = [
+    "OLLAMA_API_URL=http://${docker_container.ollama.name}:11434",
+  ]
+
+  depends_on = [
+    docker_container.ollama
+  ]
+}
+
+resource "docker_container" "noteserver" {
+  name  = "note"
+  image = "noteserver:latest" # TODO , because custom docker image
+
+  ports {
+    internal = 8000
+    external = 8022
+  }
+
+  volumes {
+    host_path      = abspath("${path.module}/../note")
+    container_path = "/app"
+  }
+
+  env = [
+    for line in split("\n", file("${path.module}/../.env")) : line if length(trimspace(line)) > 0
+  ]
+
+  depends_on = [
+    docker_container.note_db,
+    docker_container.redis,
+    docker_container.note_qdrant
+  ]
+}
+
+resource "docker_container" "note_qdrant" {
+  name  = "note-qdrant"
+  image = "qdrant/qdrant"
+
+  ports {
+    internal = 6333
+    external = 6333
+  }
+
+  volumes {
+    host_path      = abspath("${path.module}/../data/qdrant_data")
+    container_path = "/qdrant/storage"
+  }
+}
+
 resource "docker_container" "note_db" {
-  image = "postgres:15"
   name  = "note-db"
+  image = "postgres:15"
+
+  ports {
+    internal = 5432
+    external = 5411
+  }
+
+  volumes {
+    host_path      = abspath("${path.module}/../data/note_db")
+    container_path = "/var/lib/postgresql/data"
+  }
+
+  volumes {
+    host_path      = abspath("${path.module}/../db/init-scripts")
+    container_path = "/docker-entrypoint-initdb.d"
+    read_only      = true
+  }
+
   env = [
     "POSTGRES_USER=${var.db_user}",
     "POSTGRES_PASSWORD=${var.db_password}",
     "POSTGRES_DB=${var.db_name}"
   ]
-  ports {
-    internal = 5432
-    external = 5411
-  }
-  volumes {
-    host_path      = "${path.module}/data/note_db"
-    container_path = "/var/lib/postgresql/data"
-  }
 }
 
-# Redis
-resource "docker_container" "redis" {
-  image = "redis:7"
-  name  = "note-worker-redis"
-  ports {
-    internal = 6379
-    external = 6379
-  }
-}
-
-# MinIO
-resource "docker_container" "minio" {
-  image = "minio/minio"
+resource "docker_container" "note_storage" {
   name  = "note-minio"
-  command = "server /data --console-address ':9001'"
-  env = [
-    "MINIO_ROOT_USER=${var.minio_user}",
-    "MINIO_ROOT_PASSWORD=${var.minio_password}"
-  ]
+  image = "minio/minio:latest"
+
   ports {
     internal = 9000
     external = 9111
@@ -44,35 +147,64 @@ resource "docker_container" "minio" {
     internal = 9001
     external = 9001
   }
+
   volumes {
-    host_path      = "${path.module}/data/note-storage"
+    host_path      = abspath("${path.module}/../data/note-storage")
     container_path = "/data"
   }
-}
 
-# Ollama
-resource "docker_container" "ollama" {
-  image = "ollama/ollama"
-  name  = "mcphost-ollama"
-  ports {
-    internal = 11434
-    external = 11434
-  }
-  # GPU driver 需 host 配置好 nvidia runtime
-}
-
-# Open-WebUI
-resource "docker_container" "open_webui" {
-  image = "ghcr.io/open-webui/open-webui:cuda"
-  name  = "open-webui"
   env = [
-    "WEBUI_USERNAME=${var.webui_user}",
-    "WEBUI_PASSWORD=${var.webui_password}",
-    "OLLAMA_BASE_URL=http://ollama:11434"
+    "MINIO_ROOT_USER=${var.minio_user}",
+    "MINIO_ROOT_PASSWORD=${var.minio_password}"
   ]
+
+  command = ["server", "/data", "--console-address", ":9001"]
+}
+
+resource "docker_container" "redis" {
+  name  = "note-worker-redis"
+  image = "redis:7"
+
   ports {
-    internal = 8080
-    external = 3011
+    internal = 6379
+    external = 6379
   }
-  depends_on = [docker_container.ollama]
+}
+
+resource "docker_container" "worker" {
+  name  = "note-worker"
+  image = "worker:latest" # TODO , because custom docker image
+
+  command = ["celery", "-A", "celery_app.celery_app", "worker", "--concurrency=4", "-Q", "notes", "-n", "worker.import_md@%h", "--loglevel=info"]
+
+  volumes {
+    host_path      = abspath("${path.module}/../note")
+    container_path = "/app"
+  }
+
+  env = [
+    for line in split("\n", file("${path.module}/../.env")) : line if length(trimspace(line)) > 0
+  ]
+
+  depends_on = [
+    docker_container.noteserver,
+    docker_container.redis,
+    docker_container.note_db
+  ]
+}
+
+resource "docker_container" "flower" {
+  name  = "worker-flower"
+  image = "mher/flower:0.9.7"
+
+  ports {
+    internal = 5555
+    external = 5555
+  }
+
+  command = ["flower", "--broker=redis://redis:6379/0", "--port=5555"]
+
+  depends_on = [
+    docker_container.redis
+  ]
 }

@@ -18,7 +18,7 @@ provider "docker" {
 
 # 資料資料夾
 resource "local_file" "data_dirs" {
-  for_each = toset(["./data/note_db", "./data/note-storage"])
+  for_each = toset(["./data/note_db", "./data/note-storage", "./data/open-webui", "./data/qdrant_data"])
   filename = each.key
   content  = ""
 }
