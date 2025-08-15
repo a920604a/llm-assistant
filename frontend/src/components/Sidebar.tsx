@@ -14,7 +14,7 @@ const Sidebar = () => {
     return (
         <aside className="w-60 bg-gray-800 text-white flex flex-col">
             <div className="h-14 flex items-center justify-center text-2xl font-bold border-b border-gray-700">
-                RAG Notes
+                未來放logo 地方
             </div>
             <nav className="flex-1 p-4 space-y-2">
                 {navItems.map(({ to, label }) => (

@@ -1,14 +1,22 @@
 # .env 檔案會自動載入環境變數
 ENV_FILE=.env
-DOCKER_COMPOSE=docker-compose
+DOCKER_COMPOSE=docker-compose -f docker-compose.dev.yml
+DEV_COMPOSE=docker-compose -f docker-compose.monitor.dev.yml
+
 
 # 啟動所有容器（背景執行）
 up:
 	$(DOCKER_COMPOSE) up -d
+	$(DEV_COMPOSE) up -d
+
+
+up-front:
+	cd frontend && npm i && npm run dev
 
 # 停止所有容器
 down:
 	$(DOCKER_COMPOSE) --env-file $(ENV_FILE) down
+	$(DEV_COMPOSE)  down
 
 # 重啟所有容器
 restart:
@@ -41,4 +49,5 @@ test:
 
 # 移除所有 volumes (⚠️會清除資料)
 clean:
-	$(DOCKER_COMPOSE) down -v
+	$(MAKE) down
+	sudo rm -rf ./data

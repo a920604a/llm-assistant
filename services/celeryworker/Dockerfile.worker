@@ -1,0 +1,19 @@
+FROM python:3.10-slim
+
+# 安裝系統依賴（ffmpeg、tesseract OCR、OpenGL）
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY services/celeryworker/requirements.txt ./requirements.txt
+
+COPY ./note /app
+
+RUN pip install --no-cache-dir --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+
+
+CMD ["celery", "-A", "celery_app.celery_app", "worker", "-Q", "notes", "-n", "worker.import_md@%h", "--loglevel=info"]

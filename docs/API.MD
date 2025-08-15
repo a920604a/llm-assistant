@@ -80,12 +80,3 @@
 | `DashboardPage` | `/system/status`、`/vectors/summary`                  |
 
 ---
-
-如需，我可以幫你產出：
-
-* OpenAPI 3.1 規格（YAML / JSON）；
-* FastAPI Router scaffold（帶 decorator）；
-* Swagger UI 預覽；
-* 或串接文件生成工具（如 Redoc、Stoplight 等）。
-
-是否需要進一步生成其中任一項？

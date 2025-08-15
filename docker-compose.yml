@@ -11,8 +11,6 @@ services:
       - ./test:/test
     environment:
       - PYTHONPATH=/app # 設定 Python 模組搜尋路徑為 /app
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
     depends_on:
       - qdrant
 

@@ -1,4 +1,6 @@
 import { auth } from "../firebase";
+import { BASE_URL } from "./conf";
+
 
 export type DashboardStats = {
     uploaded_notes: number;
@@ -13,7 +15,7 @@ export async function fetchDashboardStats(): Promise<DashboardStats | null> {
     const token = await auth.currentUser.getIdToken();
     console.log("token", token)
 
-    const res = await fetch("http://localhost:8010/api/dashboard/stats", {
+    const res = await fetch(`${BASE_URL}/dashboard/stats`, {
         headers: {
             Authorization: `Bearer ${token}`,
         },

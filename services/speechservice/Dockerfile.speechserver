@@ -1,0 +1,27 @@
+# Dockerfile
+FROM python:3.10
+# 安裝依賴
+
+RUN apt-get update && apt-get install -y \
+    git \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+# 安裝 multi-arch 支援好的 ASR + TTS 套件
+
+WORKDIR /app
+
+COPY services/speechservice/requirements.txt ./requirements.txt
+
+# 複製服務程式
+COPY ./speech /app
+
+RUN pip install --no-cache-dir --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+
+
+# 啟動服務
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
