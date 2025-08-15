@@ -4,6 +4,7 @@ import json
 import click
 import re
 import requests
+import jieba
 import logging
 from tqdm.auto import tqdm
 from typing import List
@@ -13,7 +14,7 @@ from qdrant_client import models
 
 from storage.qdrant import qdrant_client
 from conf import OLLAMA_API_URL, COLLECTION_NAME
-from services.workflow.embedding import get_embedding
+from services.embedding import get_embedding
 
 
 logger = logging.getLogger(__name__)
@@ -90,7 +91,6 @@ def import_md_notes_flow(md_text_dict: dict):
 
     points = []
     idx = 0
-    BATCH_SIZE = 1
 
     # for filename, md_text in md_text_dict.items():
     for filename, md_text in tqdm(
@@ -109,25 +109,21 @@ def import_md_notes_flow(md_text_dict: dict):
         chunks = text_splitter.split_text(translated)
         for chunk in chunks:
             # vector = embeddings.embed_query(chunk)
+            # 向量化 chunk
             vector = get_embedding(chunk)
             # logger.info(vector.shape())
+            # 中文分詞作為 BM25 payload
+            bm25_text = " ".join(jieba.cut(chunk))
             payload = {
                 "text": chunk,
+                "bm25_text": bm25_text,  # BM25 中文索引
                 "translated": True,
                 **metadata,  # title, level, keywords
             }
             points.append(models.PointStruct(id=idx, vector=vector, payload=payload))
             idx += 1
-            # if len(points) >= BATCH_SIZE:
-            #     qdrant_client.upsert(collection_name=COLLECTION_NAME, points=points)
-            #     logger.info(f"寫入 {len(points)} 筆資料")
-            #     points = []  # 清空已寫入的 batch
 
-    # 寫入最後剩餘的點
-    # if points:
-    #     qdrant_client.upsert(collection_name=COLLECTION_NAME, points=points)
-    #     logger.info(f"寫入最後 {len(points)} 筆資料")
-    # logger.info(f"📦 寫入 {len(points)} 筆資料到 Qdrant")
+    # 上傳到 Qdrant
     qdrant_client.upsert(collection_name=COLLECTION_NAME, points=points)
 
 

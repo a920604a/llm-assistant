@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI()
 Instrumentator().instrument(app).expose(app)
 
-origins = ["http://mcpclient:8000", "http://localhost:5173"]
+origins = ["http://mcpclient:8000"]
 
 
 # 設定允許的來源

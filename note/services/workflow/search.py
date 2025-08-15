@@ -1,30 +1,51 @@
 from typing import List
 import requests
+import jieba
 from storage.qdrant import qdrant_client
 from conf import COLLECTION_NAME, OLLAMA_API_URL
-from services.workflow.embedding import get_embedding
+from services.embedding import get_embedding
+from qdrant_client import models
 
 
 # 召回 top k 相關分片
 def retrieval(query: str, top_k: int = 5):
+    # 中文分詞
+    query_tokens = " ".join(jieba.cut(query))
+
     # Step 1: 將 query embed 成向量（用跟 ingest 一樣的模型）
     query_vec = get_embedding(query)
 
     # Step 2: 使用 Qdrant 向量搜尋召回
+    # search_result = qdrant_client.search(
+    #     collection_name=COLLECTION_NAME,
+    #     query_vector=query_vec,
+    #     limit=top_k,
+    # )
+
     search_result = qdrant_client.search(
         collection_name=COLLECTION_NAME,
         query_vector=query_vec,
+        query_filter=models.Filter(
+            must=[
+                models.FieldCondition(
+                    key="bm25_text", match=models.MatchText(text=query_tokens)
+                )
+            ]
+        ),
         limit=top_k,
     )
+
     # 搜尋結果是 PointStruct list，取出 text 內容
     chunks = [hit.payload.get("text", "") for hit in search_result]
     return chunks
 
 
 # 重排（Re-ranking）範例（簡易用 query 字串長度排序示範）
-def re_ranking(chunks: list, query: str):
-    # 這裡可以用更複雜的 rerank 模型或打分，暫時依文字長度逆序
-    sorted_chunks = sorted(chunks, key=lambda c: len(c), reverse=True)
+def re_ranking(chunks: List[str], query: str) -> List[str]:
+    # 簡單示例：依 query 關鍵字數量排序
+    sorted_chunks = sorted(
+        chunks, key=lambda c: sum(1 for kw in query if kw in c), reverse=True
+    )
     return sorted_chunks
 
 

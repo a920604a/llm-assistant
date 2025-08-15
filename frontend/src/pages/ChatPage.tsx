@@ -17,6 +17,7 @@ const ChatPage = () => {
 
         try {
             const res = await ask(input) // 呼叫後端
+            console.log('res', res)
             if (res && res.reply) {
                 setMessages(prev => [...prev, { role: 'bot', content: res.reply }])
             } else {

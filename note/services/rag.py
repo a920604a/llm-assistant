@@ -9,18 +9,22 @@ logger = logging.getLogger(__name__)
 def rag(query: str):
     # Step R: Retrieval
     retrieved = retrieval(query)
-    logger.info("Step R: Retrieval %s", retrieved)
 
-    # Step NR: Re-ranking
-    reranked = re_ranking(retrieved, query)
-    logger.info("Step NR: Re-ranking %s", reranked)
+    if retrieved:
 
-    # 生成 Prompt
-    prompt = build_prompt(query, reranked)
-    logger.info("生成 Prompt %s", prompt)
+        logger.error("Step R: Retrieval %s", retrieved)
 
+        # Step NR: Re-ranking
+        reranked = re_ranking(retrieved, query)
+        logger.error("Step NR: Re-ranking %s", reranked)
+
+        # 生成 Prompt
+        prompt = build_prompt(query, reranked)
+        logger.error("生成 Prompt %s", prompt)
+    else:
+        prompt = query
     # 生成答案
     answer = llm(prompt)
-    logger.info("生成答案 %s", answer)
+    logger.error("生成答案 %s", answer)
 
     return answer

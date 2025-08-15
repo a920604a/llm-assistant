@@ -5,7 +5,6 @@ export async function uploadFiles(files: FileList | File[]): Promise<{ message: 
     if (!auth.currentUser) return null
 
     const token = await auth.currentUser.getIdToken()
-    console.log("token", token)
 
     const formData = new FormData()
 

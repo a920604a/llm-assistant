@@ -13,7 +13,6 @@ export async function fetchDashboardStats(): Promise<DashboardStats | null> {
     if (!auth.currentUser) return null;
 
     const token = await auth.currentUser.getIdToken();
-    console.log("token", token)
 
     const res = await fetch(`${BASE_URL}/dashboard/stats`, {
         headers: {

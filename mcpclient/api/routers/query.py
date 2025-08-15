@@ -29,4 +29,4 @@ def ask_host(user: UserQuery):
         return {"error": "Query 不可為空"}
 
     result = process_user_query(query)
-    return result
+    return {"reply": result}

@@ -7,9 +7,8 @@ export async function ask(query: string): Promise<{ reply: string } | null> {
     if (!auth.currentUser) return null;
 
     const token = await auth.currentUser.getIdToken();
-    console.log("token", token)
 
-    const res = await fetch(`${DEV_BASE_URL}/ask`, {
+    const res = await fetch(`${BASE_URL}/ask`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

@@ -9,7 +9,7 @@ const MainLayout = () => {
             <Sidebar />
             <div className="flex flex-col flex-1">
                 <header className="h-14 bg-white shadow flex items-center justify-between px-6">
-                    <h1 className="text-xl font-semibold text-gray-800">星河安夜的筆記平台</h1>
+                    <h1 className="text-xl font-semibold text-gray-800">遊戲人生的筆記平台</h1>
                     <Auth />  {/* 放在 header 右邊 */}
                 </header>
                 <main className="flex-1 overflow-auto p-6">
