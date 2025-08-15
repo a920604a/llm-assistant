@@ -4,6 +4,7 @@ docker build -t noteserver:latest ./ -f ./services/noteservice/Dockerfile.notese
 docker build -t worker:latest ./ -f ./services/celeryworker/Dockerfile.worker && \
 
 
+
 # 2️⃣ 進入 terraform 專案目錄
 cd ~/Desktop/llm-assistant/terraform && \
 
@@ -19,3 +20,19 @@ terraform plan && \
 
 # 6️⃣ Terraform 套用
 terraform apply
+
+
+# 檢查 Docker container 狀態
+echo "🔍 檢查 container 狀態..."
+
+# 要檢查的 container 名稱
+containers=("mcpclient" "noteserver" "worker" "open_webui" "note_db" "note_qdrant" "redis" "flower")
+
+for name in "${containers[@]}"; do
+    status=$(docker inspect -f '{{.State.Status}}' "$name" 2>/dev/null || echo "not found")
+    if [ "$status" = "running" ]; then
+        echo "✅ $name is running"
+    else
+        echo "❌ $name is NOT running (status: $status)"
+    fi
+done

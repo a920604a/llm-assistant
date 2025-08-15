@@ -1,7 +1,14 @@
+resource "docker_network" "llm_network" {
+  name = "llm-network"
+}
+
 resource "docker_container" "ollama" {
   name  = "mcphost-ollama"
   image = "ollama/ollama:latest"
 
+  networks_advanced {
+    name = docker_network.llm_network.name
+  }
   ports {
     internal = 11434
     external = 11434
@@ -21,6 +28,9 @@ resource "docker_container" "ollama" {
 resource "docker_container" "open_webui" {
   name  = "open-webui"
   image = "ghcr.io/open-webui/open-webui:cuda"
+  networks_advanced {
+    name = docker_network.llm_network.name
+  }
 
   ports {
     internal = 8080
@@ -48,6 +58,9 @@ resource "docker_container" "open_webui" {
 resource "docker_container" "mcpclient" {
   name  = "mcpclient"
   image = "mcpclient:latest" # TODO , because custom docker image
+  networks_advanced {
+    name = docker_network.llm_network.name
+  }
 
   ports {
     internal = 8000
@@ -69,8 +82,11 @@ resource "docker_container" "mcpclient" {
 }
 
 resource "docker_container" "noteserver" {
-  name  = "note"
+  name  = "noteserver"
   image = "noteserver:latest" # TODO , because custom docker image
+  networks_advanced {
+    name = docker_network.llm_network.name
+  }
 
   ports {
     internal = 8000
@@ -96,6 +112,9 @@ resource "docker_container" "noteserver" {
 resource "docker_container" "note_qdrant" {
   name  = "note-qdrant"
   image = "qdrant/qdrant"
+  networks_advanced {
+    name = docker_network.llm_network.name
+  }
 
   ports {
     internal = 6333
@@ -111,6 +130,9 @@ resource "docker_container" "note_qdrant" {
 resource "docker_container" "note_db" {
   name  = "note-db"
   image = "postgres:15"
+  networks_advanced {
+    name = docker_network.llm_network.name
+  }
 
   ports {
     internal = 5432
@@ -136,8 +158,11 @@ resource "docker_container" "note_db" {
 }
 
 resource "docker_container" "note_storage" {
-  name  = "note-minio"
+  name  = "note-sotorage"
   image = "minio/minio:latest"
+  networks_advanced {
+    name = docker_network.llm_network.name
+  }
 
   ports {
     internal = 9000
@@ -162,8 +187,11 @@ resource "docker_container" "note_storage" {
 }
 
 resource "docker_container" "redis" {
-  name  = "note-worker-redis"
+  name  = "redis"
   image = "redis:7"
+  networks_advanced {
+    name = docker_network.llm_network.name
+  }
 
   ports {
     internal = 6379
@@ -172,8 +200,11 @@ resource "docker_container" "redis" {
 }
 
 resource "docker_container" "worker" {
-  name  = "note-worker"
+  name  = "worker"
   image = "worker:latest" # TODO , because custom docker image
+  networks_advanced {
+    name = docker_network.llm_network.name
+  }
 
   command = ["celery", "-A", "celery_app.celery_app", "worker", "--concurrency=4", "-Q", "notes", "-n", "worker.import_md@%h", "--loglevel=info"]
 
@@ -194,9 +225,12 @@ resource "docker_container" "worker" {
 }
 
 resource "docker_container" "flower" {
-  name  = "worker-flower"
+  name  = "flower"
   image = "mher/flower:0.9.7"
 
+  networks_advanced {
+    name = docker_network.llm_network.name
+  }
   ports {
     internal = 5555
     external = 5555
