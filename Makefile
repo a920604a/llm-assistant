@@ -51,3 +51,7 @@ test:
 clean:
 	$(MAKE) down
 	sudo rm -rf ./data
+
+
+up-dev:
+	$(DOCKER_COMPOSE) up -d note-qdrant noteserver
