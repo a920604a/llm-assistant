@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { uploadFiles } from "../api/upload"
 
 interface UploadState {
@@ -34,6 +34,7 @@ const UploadPage = () => {
 
         try {
             const result = await uploadFiles(files)
+            console.log("result", result)
             if (result) {
                 setUploadState({
                     uploading: false,
@@ -60,6 +61,18 @@ const UploadPage = () => {
             }
         }
     }
+    // 新增 useEffect 來清空上傳檔案列表
+    useEffect(() => {
+        if (uploadState.files.length > 0) {
+            const timer = setTimeout(() => {
+                setUploadState((prev) => ({ ...prev, files: [] }));
+            }, 3000); // 3秒後清空
+
+            return () => clearTimeout(timer); // 清理計時器
+        }
+    }, [uploadState.files]);
+
+
 
     return (
         <div>

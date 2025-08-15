@@ -28,6 +28,7 @@ async def upload_files(
     logger.info(f"note {ret} user_id {user_id}")
 
     return {
-        "message": f"成功上傳 ",
+        "message": ret["message"],
+        "files": ret["files"],
         "user_id": user_id,
     }
