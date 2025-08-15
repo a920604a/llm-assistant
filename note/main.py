@@ -10,12 +10,13 @@ from api.routers import query, user, upload
 from storage.qdrant import create_qdrant_collection
 
 
-logger = logging.getLogger("uvicorn")  # uvicorn 自帶 logger
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
 Instrumentator().instrument(app).expose(app)
 
-origins = ["http://mcpclient:8000"]
+origins = ["http://mcpclient:8000", "http://localhost:5173"]
 
 
 # 設定允許的來源
@@ -35,19 +36,19 @@ app.include_router(upload.router, tags=["upload"])
 
 
 # Startup event: 確保 Qdrant 啟動後再建立 collection
+# Startup event: 確保 Qdrant 啟動後再建立 collection
 @app.on_event("startup")
 async def startup_event():
     logger.info("Waiting for Qdrant to be ready...")
     max_retry = 10
+
     for i in range(max_retry):
         try:
-            create_qdrant_collection()
-            logger.info("Qdrant collection created successfully.")
-            print("Qdrant collection created successfully.")
+            create_qdrant_collection()  # 內部已處理「已存在」情況
+            logger.info("✅ Qdrant collection is ready.")
             break
-        except requests.exceptions.RequestException as e:
-            logger.warning(f"Qdrant not ready yet, retry {i+1}/{max_retry}...")
-            print(f"Qdrant not ready yet, retry {i+1}/{max_retry}...")
+        except Exception as e:
+            logger.warning(f"Qdrant not ready yet ({i+1}/{max_retry}): {e}")
             time.sleep(3)
     else:
-        logger.error("Failed to create Qdrant collection after multiple retries.")
+        logger.error("❌ Failed to ensure Qdrant collection after multiple retries.")

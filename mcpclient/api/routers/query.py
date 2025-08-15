@@ -14,7 +14,7 @@ def call_mcp_server(server_url: str, payload: dict):
     return resp.json()
 
 
-@router.post("/ask")
+@router.post("/api/ask")
 def ask_host(user: UserQuery):
     """
     Host API 入口：
@@ -27,7 +27,6 @@ def ask_host(user: UserQuery):
 
     if not query:
         return {"error": "Query 不可為空"}
-    
-    
+
     result = process_user_query(query)
     return result

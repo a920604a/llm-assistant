@@ -1,6 +1,10 @@
+import logging
 from qdrant_client import QdrantClient, models
 from conf import QDRANT_URL, COLLECTION_NAME
+from qdrant_client.http.exceptions import UnexpectedResponse
 
+
+logger = logging.getLogger(__name__)
 
 # Qdrant client，請確認連線設定
 qdrant_client = QdrantClient(
@@ -18,5 +22,12 @@ def create_qdrant_collection():
                 size=384, distance=models.Distance.COSINE
             ),
         )
-    except Exception as e:
-        print(f"建立 collection 發生錯誤: {e}")
+        print(f"✅ Qdrant collection `{COLLECTION_NAME}` created successfully.")
+    except UnexpectedResponse as e:
+        # 如果已存在就當作正常，不丟錯
+        if "already exists" in str(e):
+            logger.info(
+                f"ℹ️ Qdrant collection `{COLLECTION_NAME}` already exists, skipping creation."
+            )
+        else:
+            raise  # 其他 UnexpectedResponse 直接丟出

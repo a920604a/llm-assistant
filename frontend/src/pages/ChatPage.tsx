@@ -1,14 +1,33 @@
+// ChatPage.tsx
 import React, { useState } from 'react'
+import { ask } from "../api/ask"
 
 const ChatPage = () => {
     const [messages, setMessages] = useState<{ role: 'user' | 'bot'; content: string }[]>([])
     const [input, setInput] = useState('')
+    const [loading, setLoading] = useState(false)
 
-    const handleSend = () => {
+    const handleSend = async () => {
         if (!input.trim()) return
-        setMessages([...messages, { role: 'user', content: input }])
+
+        const userMessage = { role: 'user' as const, content: input }
+        setMessages(prev => [...prev, userMessage])
         setInput('')
-        // TODO: 呼叫 API 取得 bot 回覆，並加入 messages
+        setLoading(true)
+
+        try {
+            const res = await ask(input) // 呼叫後端
+            if (res && res.reply) {
+                setMessages(prev => [...prev, { role: 'bot', content: res.reply }])
+            } else {
+                setMessages(prev => [...prev, { role: 'bot', content: '⚠️ 後端沒有回應' }])
+            }
+        } catch (error) {
+            console.error(error)
+            setMessages(prev => [...prev, { role: 'bot', content: '❌ 發生錯誤，請稍後再試' }])
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -17,12 +36,14 @@ const ChatPage = () => {
                 {messages.map((msg, idx) => (
                     <div
                         key={idx}
-                        className={`p-3 rounded ${msg.role === 'user' ? 'bg-blue-100 self-end' : 'bg-gray-200 self-start'
-                            } max-w-md`}
+                        className={`p-3 rounded ${msg.role === 'user'
+                            ? 'bg-blue-100 self-end'
+                            : 'bg-gray-200 self-start'} max-w-md`}
                     >
                         {msg.content}
                     </div>
                 ))}
+                {loading && <div className="text-gray-500">⏳ LLM 思考中...</div>}
             </div>
             <div className="mt-4 flex space-x-2">
                 <input
@@ -35,6 +56,7 @@ const ChatPage = () => {
                 <button
                     onClick={handleSend}
                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    disabled={loading}
                 >
                     送出
                 </button>
