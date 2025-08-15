@@ -7,9 +7,10 @@ from api.schemas.DashboardStats import DashboardStats
 from fastapi import APIRouter, HTTPException, status
 from api.verify_token import verify_firebase_token
 from services.user import get_user_data
-import logging
+from logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
+
 
 
 router = APIRouter()

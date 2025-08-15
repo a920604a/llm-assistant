@@ -1,17 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import requests
 import time
-import logging
-import sys
 from prometheus_fastapi_instrumentator import Instrumentator
 from api.routers import query, user, upload
 
 from storage.qdrant import create_qdrant_collection
 
+from logger import get_logger
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = get_logger(__name__)
+
 
 app = FastAPI()
 Instrumentator().instrument(app).expose(app)

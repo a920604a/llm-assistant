@@ -2,7 +2,9 @@ import requests
 import logging
 from conf import OLLAMA_API_URL
 from utils import clean_json_string
-logger = logging.getLogger(__name__)
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 
 

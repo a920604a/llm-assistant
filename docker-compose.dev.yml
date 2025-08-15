@@ -6,14 +6,6 @@ services:
       - "11434:11434"
     volumes:
       - ./ollama_models:/root/.ollama
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [ gpu ]
-    runtime: nvidia
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
   open-webui:
     image: ghcr.io/open-webui/open-webui:cuda
     container_name: open-webui
@@ -22,16 +14,10 @@ services:
     volumes:
       - ./data/open-webui:/app/backend/data
     restart: always
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [ gpu ]
     environment:
       - WEBUI_USERNAME=admin@example.com # ✅ 自訂帳號
       - WEBUI_PASSWORD=0961220102 # ✅ 自訂密碼
       - OLLAMA_BASE_URL=http://ollama:11434
-    runtime: nvidia
     extra_hosts:
       - host.docker.internal:host-gateway
 

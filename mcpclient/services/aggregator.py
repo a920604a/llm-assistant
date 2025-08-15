@@ -1,9 +1,9 @@
 from services.ollama import call_ollama
 from conf import NOTE_API_URL
 from services.mcp_client import call_note_server
-import logging
+from logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def process_user_query(query: str, shortcut=True):

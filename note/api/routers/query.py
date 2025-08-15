@@ -4,8 +4,9 @@ import logging
 from fastapi import APIRouter
 from services.rag import rag
 from api.schemas.query import Query
+from logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 router = APIRouter()
 

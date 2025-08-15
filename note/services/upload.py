@@ -1,15 +1,14 @@
 from datetime import date
 import os
-import logging
 
 from storage.minio import s3_client, create_bucket_if_not_exists, MINIO_BUCKET
 from storage.crud.user import get_user_notes_number
 from storage.crud.note import update_notes
 from tasks.upload import import_md_notes_task, import_single_md_task
 
+from logger import get_logger
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 UPLOAD_DIR = "./uploaded_files"
 

@@ -1,7 +1,7 @@
 # .env 檔案會自動載入環境變數
 ENV_FILE=.env
-DOCKER_COMPOSE=docker-compose -f docker-compose.dev.yml
-DEV_COMPOSE=docker-compose -f docker-compose.monitor.dev.yml
+DOCKER_COMPOSE=docker compose -f docker-compose.dev.yml
+DEV_COMPOSE=docker compose -f docker-compose.monitor.dev.yml
 
 
 # 啟動所有容器（背景執行）
@@ -55,3 +55,8 @@ clean:
 
 up-dev:
 	$(DOCKER_COMPOSE) up -d note-qdrant noteserver
+
+
+
+ingest:
+	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python services/workflow/ingest.py --file /app/'第一章：可靠性、可伸縮性和可維護性.md'"

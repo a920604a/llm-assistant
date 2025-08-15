@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+MODEL_NAME="deepseek-r1:1.5b" #  "gpt-oss:20b
+
 # === 基本設定 ===
 OLLAMA_API_URL = "http://ollama:11434"
 QDRANT_URL = "http://note-qdrant:6333"

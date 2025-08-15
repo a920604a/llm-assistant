@@ -4,9 +4,9 @@ import logging
 from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi import FastAPI
 from api.routers import query, upload, dashboard
+from logger import get_logger
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = get_logger(__name__)
 
 
 app = FastAPI(title="MCP Client Service")

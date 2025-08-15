@@ -5,7 +5,7 @@ from storage.qdrant import qdrant_client
 from conf import COLLECTION_NAME, OLLAMA_API_URL
 from services.embedding import get_embedding
 from qdrant_client import models
-
+from conf import MODEL_NAME
 
 # 召回 top k 相關分片
 def retrieval(query: str, top_k: int = 5):
@@ -55,7 +55,7 @@ def build_prompt(query: str, retrieved_chunks: List[str]) -> str:
     return prompt
 
 
-def llm(prompt: str, model: str = "gpt-oss:20b"):
+def llm(prompt: str, model: str = MODEL_NAME):
     response = requests.post(
         f"{OLLAMA_API_URL}/api/generate",
         json={

@@ -5,7 +5,6 @@ import click
 import re
 import requests
 import jieba
-import logging
 from tqdm.auto import tqdm
 from typing import List
 from prefect import flow, task
@@ -15,9 +14,10 @@ from qdrant_client import models
 from storage.qdrant import qdrant_client
 from conf import OLLAMA_API_URL, COLLECTION_NAME
 from services.embedding import get_embedding
+from conf import MODEL_NAME
+from logger import get_logger
 
-
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 # === LangChain ===
@@ -28,7 +28,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 
 # ✅ 翻譯文字
 @task
-def ollama_translate(text: str, model: str = "gpt-oss:20b") -> str:
+def ollama_translate(text: str, model: str = MODEL_NAME) -> str:
     response = requests.post(
         f"{OLLAMA_API_URL}/api/generate",
         json={
@@ -51,7 +51,7 @@ def clean_json_string(s: str) -> str:
 
 # ✅ 產出 Metadata
 @task
-def ollama_generate_metadata(text: str, model: str = "gpt-oss:20b") -> dict:
+def ollama_generate_metadata(text: str, model: str = MODEL_NAME) -> dict:
     meta_prompt = f"""
 請閱讀以下教學筆記，並分析出以下屬性：
 - 主題分類（以一段文字描述）
@@ -98,14 +98,18 @@ def import_md_notes_flow(md_text_dict: dict):
     ):
 
         logger.info(f"➡️ 處理檔案：{filename}，原始字數: {len(md_text)}")
+        click.echo(f"➡️ 處理檔案：{filename}，原始字數: {len(md_text)}")
         translated = ollama_translate(md_text)
-        # logger.info(f"翻譯結果 : {translated}")
+        logger.info(f"翻譯結果 : {translated}")
+        click.echo(f"翻譯結果 : {translated}")
 
         logger.info("🧠 產出 Metadata...")
         metadata = ollama_generate_metadata(translated)
         logger.info(f"Metadata 結果 : {metadata}")
+        click.echo(f"Metadata 結果 : {metadata}")
 
         logger.info("✂️ 分段中...")
+        click.echo("✂️ 分段中...")
         chunks = text_splitter.split_text(translated)
         for chunk in chunks:
             # vector = embeddings.embed_query(chunk)
@@ -130,10 +134,11 @@ def import_md_notes_flow(md_text_dict: dict):
 # ✅ CLI 介面使用 click
 @click.command()
 @click.option(
-    "--path",
-    type=click.Path(exists=True, file_okay=False),
+    "--file",
+    "path",  # 把 CLI 的 --file 對應到變數 path
+    type=click.Path(exists=True, file_okay=True, dir_okay=True),
     required=True,
-    help="Markdown 資料夾路徑",
+    help="Markdown 檔案或資料夾路徑",
 )
 def cli(path):
     all_texts = {}

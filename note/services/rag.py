@@ -1,10 +1,7 @@
-import requests
-import logging
-
 from services.workflow.search import retrieval, re_ranking, build_prompt, llm
+from logger import get_logger
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 def rag(query: str):
     # Step R: Retrieval

@@ -1,10 +1,10 @@
-import logging
 from qdrant_client import QdrantClient, models
 from conf import QDRANT_URL, COLLECTION_NAME
 from qdrant_client.http.exceptions import UnexpectedResponse
 
+from logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Qdrant client，請確認連線設定
 qdrant_client = QdrantClient(
