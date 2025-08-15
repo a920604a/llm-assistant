@@ -36,16 +36,18 @@ app.include_router(upload.router, tags=["upload"])
 
 # Startup event: 確保 Qdrant 啟動後再建立 collection
 @app.on_event("startup")
-def startup_event():
+async def startup_event():
     logger.info("Waiting for Qdrant to be ready...")
     max_retry = 10
     for i in range(max_retry):
         try:
             create_qdrant_collection()
             logger.info("Qdrant collection created successfully.")
+            print("Qdrant collection created successfully.")
             break
         except requests.exceptions.RequestException as e:
             logger.warning(f"Qdrant not ready yet, retry {i+1}/{max_retry}...")
+            print(f"Qdrant not ready yet, retry {i+1}/{max_retry}...")
             time.sleep(3)
     else:
         logger.error("Failed to create Qdrant collection after multiple retries.")
