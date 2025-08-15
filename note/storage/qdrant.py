@@ -9,15 +9,14 @@ qdrant_client = QdrantClient(
 )
 
 
-# # ✅ 建立 Collection（若尚未建立）
-# def create_qdrant_collection():
-#     try:
-#         qdrant_client.create_collection(
-#             collection_name=COLLECTION_NAME,
-#             vectors_config=models.VectorParams(
-#                 size=384, distance=models.Distance.COSINE
-#             ),
-#             exist_ok=True,  # collection 已存在就忽略
-#         )
-#     except Exception as e:
-#         print(f"建立 collection 發生錯誤: {e}")
+# ✅ 建立 Collection（若尚未建立）
+def create_qdrant_collection():
+    try:
+        qdrant_client.create_collection(
+            collection_name=COLLECTION_NAME,
+            vectors_config=models.VectorParams(
+                size=384, distance=models.Distance.COSINE
+            ),
+        )
+    except Exception as e:
+        print(f"建立 collection 發生錯誤: {e}")

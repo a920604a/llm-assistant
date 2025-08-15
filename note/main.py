@@ -1,16 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import requests
+import time
 import logging
+import sys
 from prometheus_fastapi_instrumentator import Instrumentator
 from api.routers import query, user, upload
 
-# from storage.qdrant import create_qdrant_collection
+from storage.qdrant import create_qdrant_collection
 
-# create_qdrant_collection()
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
-
+logger = logging.getLogger("uvicorn")  # uvicorn 自帶 logger
 
 app = FastAPI()
 Instrumentator().instrument(app).expose(app)
@@ -32,3 +32,20 @@ app.add_middleware(
 app.include_router(query.router, tags=["query"])
 app.include_router(user.router, tags=["user"])
 app.include_router(upload.router, tags=["upload"])
+
+
+# Startup event: 確保 Qdrant 啟動後再建立 collection
+@app.on_event("startup")
+def startup_event():
+    logger.info("Waiting for Qdrant to be ready...")
+    max_retry = 10
+    for i in range(max_retry):
+        try:
+            create_qdrant_collection()
+            logger.info("Qdrant collection created successfully.")
+            break
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Qdrant not ready yet, retry {i+1}/{max_retry}...")
+            time.sleep(3)
+    else:
+        logger.error("Failed to create Qdrant collection after multiple retries.")
