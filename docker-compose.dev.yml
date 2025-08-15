@@ -59,8 +59,8 @@ services:
       - "8022:8000"
     env_file:
       - ./.env # <- 指定要讀的環境變數檔
-    # depends_on:
-    #   - note-qdrant
+    depends_on:
+      - note-qdrant
 
   note-qdrant:
     image: qdrant/qdrant
@@ -81,7 +81,7 @@ services:
     volumes:
       - ./data/note_db:/var/lib/postgresql/data
       - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
-  note-sotorage:
+  note-storage:
     image: minio/minio
     container_name: note-minio
     command: server /data --console-address ":9001"
