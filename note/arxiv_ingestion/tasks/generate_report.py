@@ -12,6 +12,7 @@ def generate_report_task(result_summary: dict) -> str:
         f"- Papers fetched: {result_summary.get('papers_fetched', 0)}\n"
         f"- PDFs downloaded: {result_summary.get('pdfs_downloaded', 0)}\n"
         f"- PDFs parsed: {result_summary.get('pdfs_parsed', 0)}\n"
+        f"- PDFs Index: {result_summary.get('papers_indexed', 0)}\n"
         f"- Papers stored: {result_summary.get('papers_stored', 0)}\n"
         f"- Errors: {len(result_summary.get('errors', []))}\n"
     )

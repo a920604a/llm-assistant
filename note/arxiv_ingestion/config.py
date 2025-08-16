@@ -1,7 +1,23 @@
 from pydantic import BaseSettings, Field
+from dotenv import load_dotenv
 
+import os
+
+
+load_dotenv()
 
 PDF_CACHE_DIR = "./data/arxiv_pdfs"
+COLLECTION_NAME="arxiv_collection"
+QDRANT_URL = "http://note-qdrant:6333"
+
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@note-db:5432/note")
+
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "http://note-minio:9000")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "note")
+MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "note123")
+MINIO_BUCKET = os.getenv("MINIO_BUCKET", "notes-md")
+
+
 
 class DefaultSettings(BaseSettings):
     class Config:

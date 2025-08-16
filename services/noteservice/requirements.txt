@@ -39,6 +39,8 @@ psycopg2-binary==2.9.6
 # === OCR / Image Processing ===
 pillow
 pytesseract
+pdfplumber
+PyMuPDF
 
 # === Data Processing ===
 

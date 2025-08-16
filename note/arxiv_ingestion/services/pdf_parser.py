@@ -7,8 +7,8 @@ import fitz  # PyMuPDF
 import io
 from PIL import Image
 import os
-from config import PDF_CACHE_DIR
-
+from config import PDF_CACHE_DIR, MINIO_BUCKET
+from db.minio import s3_client
 from services.schemas import PdfContent, PaperSection, PaperTable, PaperFigure, ParserType
 
 logger = logging.getLogger(__name__)
@@ -24,6 +24,8 @@ class PDFParserService:
 
     def _parse_pdf_sync(self, pdf_path: Path) -> Optional[PdfContent]:
         pdf_path = Path(pdf_path)
+
+        
         pdf_filename = pdf_path.stem
 
         if not pdf_path.exists():
@@ -36,6 +38,7 @@ class PDFParserService:
         try:
             # --- pdfplumber: 文字與表格 ---
             with pdfplumber.open(pdf_path) as pdf:
+                
                 for i, page in enumerate(pdf.pages, start=1):
                     text = page.extract_text() or ""
                     if text.strip():
@@ -55,10 +58,35 @@ class PDFParserService:
                     base_image = pdf_document.extract_image(xref)
                     image_bytes = base_image["image"]
                     image_ext = base_image["ext"]
+                    
+                    # 建立 MinIO Object Key
+                    object_name = f"{pdf_filename}/p{page_idx+1}-img{img_idx}.{image_ext}"
+
+                    # 建立本地路徑
+                    image_path = self.image_dir / object_name
+                    image_path.parent.mkdir(parents=True, exist_ok=True)
+
+                    # 用 PIL 轉存 buffer
                     pil_image = Image.open(io.BytesIO(image_bytes))
-                    image_path = self.image_dir / f"{pdf_filename}-p{page_idx+1}-img{img_idx}.{image_ext}"
+
+                    # 存本地
                     pil_image.save(image_path)
-                    figures.append(PaperFigure(caption=f"Page {page_idx+1} Image {img_idx}", id=str(image_path)))
+
+                    # 存 MinIO
+                    buffer = io.BytesIO()
+                    pil_image.save(buffer, format=pil_image.format or image_ext.upper())
+                    buffer.seek(0)
+                    
+                    
+                    # 上傳 MinIO
+                    s3_client.upload_fileobj(buffer, MINIO_BUCKET, object_name)
+                    
+
+                    # 儲存 MinIO 位置在 figures metadata
+                    figures.append(PaperFigure(
+                        caption=f"Page {page_idx+1} Image {img_idx}", 
+                        id=f"s3://{MINIO_BUCKET}/{image_path}"
+                    ))
             pdf_document.close()
 
             return PdfContent(

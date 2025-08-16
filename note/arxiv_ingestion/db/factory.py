@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session as SessionType, declarative_base
 from typing import Generator, Optional
 import os
+from config import DATABASE_URL
 from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
@@ -15,10 +16,7 @@ class Database:
     """
 
     def __init__(self, db_url: Optional[str] = None):
-        self.db_url = db_url or os.getenv(
-            "DATABASE_URL",
-            "postgresql://user:password@note-db:5432/note"  # 請替換成實際帳密與 DB 名稱
-        )
+        self.db_url = db_url or DATABASE_URL
         self.engine = create_engine(self.db_url, echo=False, future=True)
         self.SessionLocal = sessionmaker(bind=self.engine, autocommit=False, autoflush=False, class_=SessionType)
         logger.info(f"Database initialized with {self.db_url}")

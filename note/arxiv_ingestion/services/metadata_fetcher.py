@@ -10,14 +10,9 @@ from db.models import Paper  # SQLAlchemy ORM model
 from services.schemas import ArxivPaper, ParsedPaper, ArxivMetadata
 from db.factory import make_database
 
-
 logger = logging.getLogger(__name__)
 
 class MetadataFetcher:
-    """Combine arXiv client + PDF parser + DB storage."""
-    
-    
-
     def __init__(self, arxiv_client: ArxivClient, pdf_parser: PDFParserService):
         self.arxiv_client = arxiv_client
         self.pdf_parser = pdf_parser
@@ -120,13 +115,7 @@ class MetadataFetcher:
     async def _download_and_parse_pipeline(
         self, idx:int, paper: ArxivPaper, download_semaphore: asyncio.Semaphore, parse_semaphore: asyncio.Semaphore
     ) -> tuple[int, bool, bool, Optional[str], Optional[ParsedPaper]]:
-        """ 
-        Complete download+parse pipeline for a single paper with true parallelism.
-        Downloads PDF, then immediately starts parsing while other downloads continue.
 
-        Returns:
-            Tuple of (download_success: bool, parsed_paper: Optional[ParsedPaper])
-        """
         
         download_success = False
         parsed_success = False
@@ -144,6 +133,7 @@ class MetadataFetcher:
                     logger.debug(f"Download complete: {paper.arxiv_id} in {pdf_path}")
                 else:
                     logger.error(f"Download failed: {paper.arxiv_id}")
+                    return (idx, False, False, None, None)
 
             # Step 2: Parse PDF with parse concurrency control (happens AFTER download completes)
             # This allows other downloads to continue while this PDF is being parsed
@@ -176,15 +166,7 @@ class MetadataFetcher:
         return (idx, download_success, parsed_success , pdf_path, parsed_paper)
 
     def _serialize_parsed_content(self, parsed_paper: ParsedPaper) -> Dict[str, Any]:
-        """
-        Serialize ParsedPaper content for database storage.
 
-        Args:
-            parsed_paper: ParsedPaper object with PDF content
-
-        Returns:
-            Dictionary with serialized content for database storage
-        """
         try:
             pdf_content = parsed_paper.pdf_content
 

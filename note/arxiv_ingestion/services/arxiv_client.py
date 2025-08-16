@@ -2,6 +2,7 @@
 import asyncio
 import logging
 import time
+import io
 from pathlib import Path
 from dateutil import parser
 from typing import List, Optional
@@ -11,14 +12,13 @@ import httpx
 import xml.etree.ElementTree as ET
 from exceptions import ArxivAPIException, ArxivAPITimeoutError
 from config import ArxivSettings
+from db.minio import s3_client
+from config import MINIO_BUCKET
 from services.schemas import ArxivPaper
 
 logger = logging.getLogger(__name__)
 
 class ArxivClient:
-    """Client for fetching papers from arXiv API."""
-
-    
 
     def __init__(self, settings: ArxivSettings):
         
@@ -186,23 +186,13 @@ class ArxivClient:
     
     
     async def download_pdf(self, paper: ArxivPaper, force_download: bool = False, max_retries: int = 3) -> Optional[Path]:
-        """
-        Download a PDF for the given paper, with caching and retry logic.
-
-        Args:
-            paper: ArxivPaper object containing PDF URL
-            force_download: Force re-download even if cached
-            max_retries: Maximum download attempts
-
-        Returns:
-            Path to downloaded PDF or None if failed
-        """
         if not paper.pdf_url:
             logger.error(f"No PDF URL for paper {paper.arxiv_id}")
             return None
 
         # 構造安全檔名
         pdf_path = self.pdf_cache_dir / f"{paper.arxiv_id.replace('/', '_')}.pdf"
+        object_name = f"{paper.arxiv_id}.pdf"
 
         # 若已有快取且不強制下載，直接回傳
         if pdf_path.exists() and not force_download:
@@ -217,9 +207,19 @@ class ArxivClient:
                 async with httpx.AsyncClient(timeout=self.timeout_seconds, follow_redirects=True) as client:
                     async with client.stream("GET", paper.pdf_url) as response:
                         response.raise_for_status()
+                        
+
                         with open(pdf_path, "wb") as f:
                             async for chunk in response.aiter_bytes():
                                 f.write(chunk)
+                            
+                    
+
+                # MinIO 上傳
+                with open(pdf_path, "rb") as f:
+                    s3_client.upload_fileobj(f, MINIO_BUCKET, object_name)
+                                        
+                                
                 logger.info(f"Successfully downloaded PDF: {pdf_path.name} in {pdf_path}")
                 return pdf_path
 
