@@ -1,7 +1,7 @@
 # tasks/upload.py
 import traceback
 from celery_app import celery_app
-from workflow.ingest import import_md_notes_flow
+from note.workflow.ingest_pipeline import ingest_notes_pipeline
 from storage.minio import s3_client, MINIO_BUCKET
 
 from logger import get_logger
@@ -28,7 +28,7 @@ def import_md_notes_task(payload: dict):
             content = obj["Body"].read().decode("utf-8")
             md_text_dict[filename] = content
 
-        import_md_notes_flow(md_text_dict)
+        ingest_notes_pipeline(md_text_dict)
         return f"處理 {len(md_text_dict)} 個 Markdown 檔案完成"
 
     except Exception as e:
@@ -44,7 +44,7 @@ def import_single_md_task(user_id: str, filename: str):
         content = obj["Body"].read().decode("utf-8")
 
         # 傳給流程處理
-        import_md_notes_flow({filename: content})
+        ingest_notes_pipeline({filename: content})
         return f"{filename} 處理完成"
 
     except Exception as e:
