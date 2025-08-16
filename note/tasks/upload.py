@@ -1,7 +1,7 @@
 # tasks/upload.py
 import traceback
 from celery_app import celery_app
-from services.workflow.ingest import import_md_notes_flow
+from workflow.ingest import import_md_notes_flow
 from storage.minio import s3_client, MINIO_BUCKET
 
 from logger import get_logger

@@ -1,4 +1,4 @@
-from services.workflow.search import retrieval, re_ranking, build_prompt, llm
+from workflow.search import retrieval, re_ranking, build_prompt, llm
 from logger import get_logger
 
 logger = get_logger(__name__)
@@ -6,10 +6,10 @@ logger = get_logger(__name__)
 def rag(query: str):
     # Step R: Retrieval
     retrieved = retrieval(query)
+    logger.error("Step R: Retrieval %s", retrieved)
 
     if retrieved:
 
-        logger.error("Step R: Retrieval %s", retrieved)
 
         # Step NR: Re-ranking
         reranked = re_ranking(retrieved, query)

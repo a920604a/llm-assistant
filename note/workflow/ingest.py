@@ -99,11 +99,14 @@ def import_md_notes_flow(md_text_dict: dict):
 
         logger.info(f"➡️ 處理檔案：{filename}，原始字數: {len(md_text)}")
         click.echo(f"➡️ 處理檔案：{filename}，原始字數: {len(md_text)}")
-        translated = ollama_translate(md_text)
-        logger.info(f"翻譯結果 : {translated}")
-        click.echo(f"翻譯結果 : {translated}")
+        
+        # translated = ollama_translate(md_text)
+        # logger.info(f"翻譯結果 : {translated}")
+        # click.echo(f"翻譯結果 : {translated}")
+        translated = md_text
 
         logger.info("🧠 產出 Metadata...")
+        click.echo("🧠 產出 Metadata...")
         metadata = ollama_generate_metadata(translated)
         logger.info(f"Metadata 結果 : {metadata}")
         click.echo(f"Metadata 結果 : {metadata}")

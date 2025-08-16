@@ -6,9 +6,13 @@ from conf import COLLECTION_NAME, OLLAMA_API_URL
 from services.embedding import get_embedding
 from qdrant_client import models
 from conf import MODEL_NAME
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 # 召回 top k 相關分片
-def retrieval(query: str, top_k: int = 5):
+def retrieval(query: str, top_k: int = 5, level='初學者'):
     # 中文分詞
     query_tokens = " ".join(jieba.cut(query))
 
@@ -28,7 +32,8 @@ def retrieval(query: str, top_k: int = 5):
         query_filter=models.Filter(
             must=[
                 models.FieldCondition(
-                    key="bm25_text", match=models.MatchText(text=query_tokens)
+                    key="level", 
+                    match=models.MatchValue(value=level)
                 )
             ]
         ),
@@ -66,3 +71,34 @@ def llm(prompt: str, model: str = MODEL_NAME):
     )
     response.raise_for_status()
     return response.json()["response"]
+
+
+# === 完整 RAG 流程 ===
+def rag(query: str, top_k: int = 5) -> str:
+    logger.info("步驟 1：召回相關分段")
+    retrieved_chunks = retrieval(query, top_k=top_k)
+    logger.info(f"共召回 {len(retrieved_chunks)} 個分段")
+
+    if retrieved_chunks:
+        logger.info("步驟 2：重排分段")
+        reranked_chunks = re_ranking(retrieved_chunks, query)
+        logger.info(f"重排後的第一段前 100 字：{reranked_chunks[0][:100]}...")
+
+        logger.info("步驟 3：建立 prompt")
+        context = "\n".join(reranked_chunks[:3])  # 取前 3 段
+        prompt = f"使用者問題: {query}\n相關內容:\n{context}\n請根據以上內容回答問題："
+        logger.info(f"Prompt 範例（前 300 字）：\n{prompt[:300]}...")
+    else:
+        logger.warning("未召回任何分段，直接使用 query 作為 prompt")
+        prompt = query
+
+    logger.info("步驟 4：生成回答")
+    answer = llm(prompt)
+    logger.info(f"生成回答（前 200 字）：{answer[:200]}...")
+    return answer
+
+if __name__ == "__main__":
+    query = "初學者的課程有哪些?"
+    answer = rag(query)
+    print(answer)
+

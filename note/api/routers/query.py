@@ -14,6 +14,6 @@ router = APIRouter()
 @router.post("/api/query")
 def ask_host(query: Query):
     q = query.text.strip()
-    logger.error("ask_host %s", q)
+    logger.info("ask_host %s", q)
 
     return rag(q)

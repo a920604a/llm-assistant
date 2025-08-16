@@ -59,4 +59,10 @@ up-dev:
 
 
 ingest:
-	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python services/workflow/ingest.py --file /app/'第一章：可靠性、可伸縮性和可維護性.md'"
+	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python workflow/ingest.py --file /app/'第一章：可靠性、可伸縮性和可維護性.md'"
+# 	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python workflow/ingest_eng.py"
+
+
+search:
+	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python workflow/search.py"
+# 	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python workflow/search_eng.py"
