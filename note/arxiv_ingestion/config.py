@@ -6,6 +6,11 @@ import os
 
 load_dotenv()
 
+OLLAMA_API_URL="http://ollama:11434"
+
+MODEL_NAME="phi3:latest" 
+
+
 PDF_CACHE_DIR = "./data/arxiv_pdfs"
 COLLECTION_NAME="arxiv_collection"
 QDRANT_URL = "http://note-qdrant:6333"

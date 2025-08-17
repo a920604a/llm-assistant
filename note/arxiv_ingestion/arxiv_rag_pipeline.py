@@ -6,9 +6,7 @@ from tasks.rerank import re_ranking
 from tasks.prompt import build_prompt
 from tasks.llm import llm
 import logging
-
-logger = logging.getLogger(__name__)
-
+from prefect import get_run_logger
 
 
 
@@ -16,11 +14,14 @@ logger = logging.getLogger(__name__)
 # --- Full RAG pipeline ---
 @flow(name="Arxiv Paper RAG Pipeline")
 def rag(query: str, top_k: int = 5) -> str:
+    logger = get_run_logger()
     logger.info("Step 1: Retrieval")
-    retrieved_chunks = retrieval.submit(query, top_k=top_k).result()
+    retrieved_chunks, msg = retrieval.submit(query, top_k=top_k).result()
 
     if retrieved_chunks:
-        logger.info("Step 2: Re-ranking")
+        logger.info("Step 2: Re-ranking ")
+        logger.info(msg)
+        
         reranked = re_ranking.submit(retrieved_chunks, query).result()
 
         logger.info("Step 3: Build prompt")
