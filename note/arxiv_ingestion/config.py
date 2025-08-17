@@ -27,7 +27,7 @@ class DefaultSettings(BaseSettings):
 
 class ArxivSettings(DefaultSettings):
     api_base_url: str = "https://export.arxiv.org/api/query"
-    cache_dir: str = "/app/cache/arxiv_pdfs"  # 或你想存 PDF 的路徑
+    cache_dir: str = PDF_CACHE_DIR
     # base_url: str = "https://export.arxiv.org/api/query"
     pdf_cache_dir: str = PDF_CACHE_DIR
     namespaces: dict = Field(

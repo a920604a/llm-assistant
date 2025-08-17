@@ -37,6 +37,6 @@ def rag(query: str, top_k: int = 5) -> str:
 
 
 if __name__ == "__main__":
-    query = "the course start?"
+    query = "What is Planning Agents on an Ego-Trip"
     answer = rag(query)
     print(answer)

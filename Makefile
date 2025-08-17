@@ -70,3 +70,6 @@ search:
 
 ingest-arxiv:
 	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app/arxiv_ingestion python /app/arxiv_ingestion/arxiv_pipeline.py"
+
+search-arxiv:
+	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app/arxiv_ingestion python /app/arxiv_ingestion/arxiv_rag_pipeline.py"

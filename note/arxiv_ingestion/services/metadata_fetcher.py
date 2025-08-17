@@ -125,12 +125,12 @@ class MetadataFetcher:
         try:
             # Step 1: Download PDF with download concurrency control
             async with download_semaphore:
-                logger.debug(f"Starting download: {paper.arxiv_id}")
+                logger.info(f"Starting download: {paper.arxiv_id}")
                 pdf_path = await self.arxiv_client.download_pdf(paper, force_download= False)
 
                 if pdf_path:
                     download_success = True
-                    logger.debug(f"Download complete: {paper.arxiv_id} in {pdf_path}")
+                    logger.info(f"Download complete: {paper.arxiv_id} in {pdf_path}")
                 else:
                     logger.error(f"Download failed: {paper.arxiv_id}")
                     return (idx, False, False, None, None)
@@ -165,31 +165,7 @@ class MetadataFetcher:
             logger.error(f"Pipeline error for {paper.arxiv_id}: {e}")
         return (idx, download_success, parsed_success , pdf_path, parsed_paper)
 
-    def _serialize_parsed_content(self, parsed_paper: ParsedPaper) -> Dict[str, Any]:
-
-        try:
-            pdf_content = parsed_paper.pdf_content
-
-            # Serialize sections
-            sections = [{"title": section.title, "content": section.content} for section in pdf_content.sections]
-
-            # Serialize references
-            references = list(pdf_content.references)  #
-
-            return {
-                "raw_text": pdf_content.raw_text,
-                "sections": sections,
-                "references": references,
-                "parser_used": pdf_content.parser_used.value if pdf_content.parser_used else None,
-                "parser_metadata": pdf_content.metadata or {},
-                "pdf_processed": True,
-                "pdf_processing_date": datetime.now(),
-            }
-        except Exception as e:
-            logger.error(f"Failed to serialize parsed content: {e}")
-            return {"pdf_processed": False, "parser_metadata": {"error": str(e)}}
-
-   
+ 
     # ------------------------------
     # Stage 3: Store to DB
     # ------------------------------

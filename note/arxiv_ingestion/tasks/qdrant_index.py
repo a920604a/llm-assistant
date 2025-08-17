@@ -1,3 +1,4 @@
+import io
 from prefect import task
 from qdrant_client import models
 from db.qdrant import qdrant_client
@@ -6,6 +7,10 @@ from typing import List
 from services.schemas import ArxivPaper
 from config import COLLECTION_NAME
 import logging
+from db.minio import s3_client
+from services.pdf_parser import TextExtractor
+from config import MINIO_BUCKET
+
 
 logger = logging.getLogger(__name__)
 
@@ -45,14 +50,27 @@ def qdrant_index_task(papers: List[ArxivPaper]):
     points: List[models.PointStruct] = []
     idx = 0
 
+    textExtractor = TextExtractor()
+    
     for paper in papers:
-        text = (paper.abstract or "").strip()  # 直接用屬性
+    
+        buffer = io.BytesIO()
+        # 從 MinIO 下載 PDF 到記憶體
+        s3_client.download_fileobj(MINIO_BUCKET, f"{paper.arxiv_id}/{paper.arxiv_id}.pdf", buffer)
+        buffer.seek(0)
+        sections, all_text = textExtractor.extract(buffer)
+        
+        text = "\n".join(all_text)
+        print(f"{paper.arxiv_id} 抽取文字長度: {len(text)}")
+        
+        
         if not text:
             continue
 
         
         metadata = {
             "arxiv_id": paper.arxiv_id,
+            "abstract": paper.abstract,
             "title": paper.title,
             "authors": paper.authors,
             "categories": paper.categories,

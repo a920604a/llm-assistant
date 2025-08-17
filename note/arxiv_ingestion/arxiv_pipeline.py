@@ -59,6 +59,6 @@ if __name__ == "__main__":
     create_bucket_if_not_exists()
     
     target_date = (datetime.utcnow() - timedelta(days=10)).strftime("%Y%m%d")
-    arxiv_pipeline(target_date=target_date, max_results=5, process_pdfs=True)
+    arxiv_pipeline(target_date=target_date, max_results=1, process_pdfs=True)
     
     

@@ -2,7 +2,6 @@
 import asyncio
 import logging
 import time
-import io
 from pathlib import Path
 from dateutil import parser
 from typing import List, Optional
@@ -192,7 +191,9 @@ class ArxivClient:
 
         # 構造安全檔名
         pdf_path = self.pdf_cache_dir / f"{paper.arxiv_id.replace('/', '_')}.pdf"
-        object_name = f"{paper.arxiv_id}.pdf"
+        object_name = f"{pdf_path.stem}/{paper.arxiv_id}.pdf"
+        
+        
 
         # 若已有快取且不強制下載，直接回傳
         if pdf_path.exists() and not force_download:
@@ -207,18 +208,16 @@ class ArxivClient:
                 async with httpx.AsyncClient(timeout=self.timeout_seconds, follow_redirects=True) as client:
                     async with client.stream("GET", paper.pdf_url) as response:
                         response.raise_for_status()
-                        
-
                         with open(pdf_path, "wb") as f:
                             async for chunk in response.aiter_bytes():
                                 f.write(chunk)
-                            
-                    
 
-                # MinIO 上傳
-                with open(pdf_path, "rb") as f:
-                    s3_client.upload_fileobj(f, MINIO_BUCKET, object_name)
-                                        
+                
+                # 確認檔案存在後再上傳 MinIO
+                if pdf_path.exists():
+                    with open(pdf_path, "rb") as f:
+                        s3_client.upload_fileobj(f, MINIO_BUCKET, object_name)
+
                                 
                 logger.info(f"Successfully downloaded PDF: {pdf_path.name} in {pdf_path}")
                 return pdf_path
