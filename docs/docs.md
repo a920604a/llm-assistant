@@ -27,30 +27,50 @@ llm-mcp-assistant/
 
 ```mermaid
 flowchart LR
+    %% === 前端模組 ===
     subgraph Frontend[前端]
+        style Frontend fill:#FFD966,stroke:#333,stroke-width:2px
         U[使用者輸入 Query]
+        style U fill:#FFF2CC,stroke:#333,stroke-width:1px
     end
 
+    %% === Host 模組 ===
     subgraph Host[MCP Host + Ollama]
+        style Host fill:#9FC5E8,stroke:#333,stroke-width:2px
         G[生成 Generation]
         HR[重排 Re-ranking, 多來源]
+        style G fill:#D9E1F2,stroke:#333,stroke-width:1px
+        style HR fill:#D9E1F2,stroke:#333,stroke-width:1px
     end
 
+    %% === Note MCP Server ===
     subgraph NoteServer[Note MCP Server]
+        style NoteServer fill:#F4CCCC,stroke:#333,stroke-width:2px
         C[分片 Chunking]
         I[索引 Indexing]
         R[召回 Retrieval]
         NR[重排 Re-ranking, 單來源]
+        style C fill:#FCE5CD,stroke:#333,stroke-width:1px
+        style I fill:#FCE5CD,stroke:#333,stroke-width:1px
+        style R fill:#FCE5CD,stroke:#333,stroke-width:1px
+        style NR fill:#FCE5CD,stroke:#333,stroke-width:1px
     end
 
+    %% === Image Server ===
     subgraph ImageServer[Image MCP Server]
+        style ImageServer fill:#C9DAF8,stroke:#333,stroke-width:2px
         Img[影像處理/分析]
+        style Img fill:#D9E1F2,stroke:#333,stroke-width:1px
     end
 
+    %% === Speech Server ===
     subgraph SpeechServer[Speech MCP Server]
+        style SpeechServer fill:#D9EAD3,stroke:#333,stroke-width:2px
         Sp[語音處理/ASR/TTS]
+        style Sp fill:#E2EFDA,stroke:#333,stroke-width:1px
     end
 
+    %% === 流程連線 ===
     U --> |Query| Host
     Host --> |傳送 Query| NoteServer
     NoteServer --> C --> I
