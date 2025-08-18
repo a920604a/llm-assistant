@@ -83,10 +83,10 @@ search:
 
 
 ingest-arxiv:
-	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app/arxiv_ingestion python /app/arxiv_ingestion/arxiv_pipeline.py"
+	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python /app/arxiv_ingestion/arxiv_pipeline.py"
 
 search-arxiv:
-	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app/arxiv_ingestion python /app/arxiv_ingestion/arxiv_rag_pipeline.py"
+	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python /app/arxiv_ingestion/arxiv_rag_pipeline.py"
 
 
 .PHONY: test

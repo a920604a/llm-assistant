@@ -9,23 +9,23 @@ from datetime import datetime
 from urllib.parse import quote, urlencode
 import httpx
 import xml.etree.ElementTree as ET
-from exceptions import ArxivAPIException, ArxivAPITimeoutError
-from config import ArxivSettings
-from db.minio import s3_client
-from config import MINIO_BUCKET
-from services.schemas import ArxivPaper
+
+from arxiv_ingestion.exceptions import ArxivAPIException, ArxivAPITimeoutError
+from arxiv_ingestion.config import ArxivSettings
+from arxiv_ingestion.db.minio import s3_client
+from arxiv_ingestion.config import MINIO_BUCKET
+from arxiv_ingestion.services.schemas import ArxivPaper
 
 logger = logging.getLogger(__name__)
+
 
 class ArxivClient:
 
     def __init__(self, settings: ArxivSettings):
-        
+
         self.pdf_cache_dir = Path(settings.pdf_cache_dir)
         self.pdf_cache_dir.mkdir(parents=True, exist_ok=True)
-    
-        
-        
+
         self._last_request_time: Optional[float] = None
 
         self.cache_dir = Path(settings.cache_dir)
@@ -38,11 +38,11 @@ class ArxivClient:
         self._last_request: Optional[datetime] = None
 
     async def fetch_papers(
-        self, 
-        max_results: int = None, 
-        from_date: Optional[str] = None, 
-        to_date: Optional[str] = None,    
-        start: int = 0,    
+        self,
+        max_results: int = None,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
+        start: int = 0,
         sort_by: str = "submittedDate",
         sort_order: str = "descending",
     ) -> List[ArxivPaper]:
@@ -63,7 +63,7 @@ class ArxivClient:
             date_to = f"{to_date}2359" if to_date else "*"
             # Use correct arXiv API syntax with + symbols
             query += f" AND submittedDate:[{date_from}+TO+{date_to}]"
-            
+
         params = {
             "search_query": query,
             "start": start,
@@ -73,10 +73,10 @@ class ArxivClient:
         }
 
         # url = f"{self.base_url}?{httpx.QueryParams(params)}"
-        
+
         safe = ":+[]"  # Don't encode :, +, [, ] characters needed for arXiv queries
         url = f"{self.base_url}?{urlencode(params, quote_via=quote, safe=safe)}"
-        
+
         # rate limit
         if self._last_request_time:
             delta = time.time() - self._last_request_time
@@ -84,7 +84,7 @@ class ArxivClient:
                 await asyncio.sleep(self.rate_limit_delay - delta)
 
         self._last_request_time = time.time()
-        
+
         try:
             async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
                 resp = await client.get(url)
@@ -96,24 +96,24 @@ class ArxivClient:
             papers = self._parse_xml(xml_data)
             logger.info(f"Query returned {len(papers)} papers")
             return papers
-                
 
         except httpx.TimeoutException as e:
             logger.error(f"arXiv API timeout: {e}")
             raise ArxivAPITimeoutError(f"arXiv API request timed out: {e}")
         except httpx.HTTPStatusError as e:
             logger.error(f"arXiv API HTTP error: {e}")
-            raise ArxivAPIException(f"arXiv API returned error {e.response.status_code}: {e}")
+            raise ArxivAPIException(
+                f"arXiv API returned error {e.response.status_code}: {e}"
+            )
         except Exception as e:
             logger.error(f"Failed to fetch papers from arXiv: {e}")
             raise ArxivAPIException(f"Unexpected error fetching papers from arXiv: {e}")
 
-        
     def _parse_xml(self, xml_text: str) -> List[ArxivPaper]:
         """Parse arXiv API XML response to list of ArxivPaper."""
         ns = {
             "atom": "http://www.w3.org/2005/Atom",
-            "arxiv": "http://arxiv.org/schemas/atom"
+            "arxiv": "http://arxiv.org/schemas/atom",
         }
 
         try:
@@ -138,12 +138,16 @@ class ArxivClient:
 
                 # 摘要
                 abstract_elem = entry.find("atom:summary", ns)
-                abstract = abstract_elem.text.strip() if abstract_elem is not None else ""
+                abstract = (
+                    abstract_elem.text.strip() if abstract_elem is not None else ""
+                )
 
                 # 日期
                 published_elem = entry.find("atom:published", ns)
                 updated_elem = entry.find("atom:updated", ns)
-                published_date = published_elem.text if published_elem is not None else None
+                published_date = (
+                    published_elem.text if published_elem is not None else None
+                )
                 updated_date = updated_elem.text if updated_elem is not None else None
 
                 # 作者列表
@@ -182,18 +186,17 @@ class ArxivClient:
 
         logger.info(f"Fetched {len(papers)} papers from arXiv")
         return papers
-    
-    
-    async def download_pdf(self, paper: ArxivPaper, force_download: bool = False, max_retries: int = 3) -> Optional[Path]:
+
+    async def download_pdf(
+        self, paper: ArxivPaper, force_download: bool = False, max_retries: int = 3
+    ) -> Optional[Path]:
         if not paper.pdf_url:
             logger.error(f"No PDF URL for paper {paper.arxiv_id}")
             return None
 
         # 構造安全檔名
         pdf_path = self.pdf_cache_dir / f"{paper.arxiv_id.replace('/', '_')}.pdf"
-        object_name = f"{pdf_path.stem}/{paper.arxiv_id}.pdf"
-        
-        
+        object_name = f"{paper.arxiv_id}/{paper.arxiv_id}.pdf"
 
         # 若已有快取且不強制下載，直接回傳
         if pdf_path.exists() and not force_download:
@@ -205,27 +208,31 @@ class ArxivClient:
 
         for attempt in range(max_retries):
             try:
-                async with httpx.AsyncClient(timeout=self.timeout_seconds, follow_redirects=True) as client:
+                async with httpx.AsyncClient(
+                    timeout=self.timeout_seconds, follow_redirects=True
+                ) as client:
                     async with client.stream("GET", paper.pdf_url) as response:
                         response.raise_for_status()
                         with open(pdf_path, "wb") as f:
                             async for chunk in response.aiter_bytes():
                                 f.write(chunk)
 
-                
                 # 確認檔案存在後再上傳 MinIO
                 if pdf_path.exists():
                     with open(pdf_path, "rb") as f:
                         s3_client.upload_fileobj(f, MINIO_BUCKET, object_name)
 
-                                
-                logger.info(f"Successfully downloaded PDF: {pdf_path.name} in {pdf_path}")
+                logger.info(
+                    f"Successfully downloaded PDF: {pdf_path.name} in {pdf_path}"
+                )
                 return pdf_path
 
             except (httpx.TimeoutException, httpx.HTTPError) as e:
                 if attempt < max_retries - 1:
                     wait_time = 5 * (attempt + 1)
-                    logger.warning(f"Download attempt {attempt + 1} failed: {e}. Retrying in {wait_time}s...")
+                    logger.warning(
+                        f"Download attempt {attempt + 1} failed: {e}. Retrying in {wait_time}s..."
+                    )
                     await asyncio.sleep(wait_time)
                 else:
                     logger.error(f"Download failed after {max_retries} attempts: {e}")

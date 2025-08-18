@@ -6,14 +6,22 @@ import pdfplumber
 import fitz  # PyMuPDF
 import io
 from PIL import Image
-import os
-from config import PDF_CACHE_DIR, MINIO_BUCKET
-from db.minio import s3_client
-from services.schemas import PdfContent, PaperSection, PaperTable, PaperFigure, ParserType
+
+from arxiv_ingestion.config import PDF_CACHE_DIR, MINIO_BUCKET
+from arxiv_ingestion.db.minio import s3_client
+from arxiv_ingestion.services.schemas import (
+    PdfContent,
+    PaperSection,
+    PaperTable,
+    PaperFigure,
+    ParserType,
+)
 from typing import List
 
 
 logger = logging.getLogger(__name__)
+
+
 class TextExtractor:
     def extract(self, pdf_path: Path) -> (List[PaperSection], List[str]):
         sections, all_text = [], []
@@ -21,10 +29,12 @@ class TextExtractor:
             for i, page in enumerate(pdf.pages, start=1):
                 text = page.extract_text() or ""
                 if text.strip():
-                    sections.append(PaperSection(title=f"Page {i}", content=text, level=1))
+                    sections.append(
+                        PaperSection(title=f"Page {i}", content=text, level=1)
+                    )
                     all_text.append(text)
         return sections, all_text
-    
+
     def extract_stream(self, pdf_stream: io.BytesIO) -> (List[PaperSection], List[str]):
         sections, all_text = [], []
         # pdfplumber 可以吃 BytesIO，不一定要檔案路徑
@@ -32,10 +42,11 @@ class TextExtractor:
             for i, page in enumerate(pdf.pages, start=1):
                 text = page.extract_text() or ""
                 if text.strip():
-                    sections.append(PaperSection(title=f"Page {i}", content=text, level=1))
+                    sections.append(
+                        PaperSection(title=f"Page {i}", content=text, level=1)
+                    )
                     all_text.append(text)
         return sections, all_text
-
 
 
 class TableExtractor:
@@ -45,12 +56,13 @@ class TableExtractor:
             for i, page in enumerate(pdf.pages, start=1):
                 page_tables = page.extract_tables()
                 for t_idx, _ in enumerate(page_tables, start=1):
-                    tables.append(PaperTable(
-                        caption=f"Page {i} Table {t_idx}",
-                        id=f"{pdf_filename}-p{i}-t{t_idx}"
-                    ))
+                    tables.append(
+                        PaperTable(
+                            caption=f"Page {i} Table {t_idx}",
+                            id=f"{pdf_filename}-p{i}-t{t_idx}",
+                        )
+                    )
         return tables
-
 
 
 class FigureExtractor:
@@ -86,10 +98,12 @@ class FigureExtractor:
                 s3_client.upload_fileobj(buffer, MINIO_BUCKET, object_name)
 
                 # metadata
-                figures.append(PaperFigure(
-                    caption=f"Page {page_idx+1} Image {img_idx}",
-                    id=f"s3://{MINIO_BUCKET}/{object_name}"
-                ))
+                figures.append(
+                    PaperFigure(
+                        caption=f"Page {page_idx+1} Image {img_idx}",
+                        id=f"s3://{MINIO_BUCKET}/{object_name}",
+                    )
+                )
         pdf_document.close()
         return figures
 
@@ -98,12 +112,13 @@ class FigureExtractor:
 # Service Orchestrator
 # --------------------------
 
+
 class PDFParserService:
     """PDF 解析服務：抽文字、表格與圖片"""
 
-    def __init__(self, 
-                cache_dir: str = PDF_CACHE_DIR, 
-                image_dir: str = "./data/arxiv_images"):
+    def __init__(
+        self, cache_dir: str = PDF_CACHE_DIR, image_dir: str = "./data/arxiv_images"
+    ):
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
@@ -132,7 +147,7 @@ class PDFParserService:
                 raw_text="\n".join(all_text),
                 references=[],
                 parser_used=ParserType.DOCLING,
-                metadata={"pages": len(sections)}
+                metadata={"pages": len(sections)},
             )
 
         except Exception as e:
@@ -142,4 +157,3 @@ class PDFParserService:
     async def parse_pdf(self, pdf_path: Path) -> Optional[PdfContent]:
         """非同步解析 PDF"""
         return await asyncio.to_thread(self._parse_pdf_sync, pdf_path)
-

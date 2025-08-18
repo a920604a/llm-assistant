@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import time
+import threading
+from datetime import datetime, timedelta
 from prometheus_fastapi_instrumentator import Instrumentator
 from api.routers import query, user, upload
-
+from arxiv_ingestion.arxiv_pipeline import arxiv_pipeline
 from storage.qdrant import create_qdrant_collection
 
 from logger import get_logger
@@ -33,7 +35,22 @@ app.include_router(user.router, tags=["user"])
 app.include_router(upload.router, tags=["upload"])
 
 
-# Startup event: 確保 Qdrant 啟動後再建立 collection
+# ---------------------- Background daily pipeline ----------------------
+def daily_pipeline_runner():
+    """每天執行 Arxiv pipeline，不阻塞 API"""
+    while True:
+        target_date = (datetime.utcnow() - timedelta(days=10)).strftime("%Y%m%d")
+        try:
+            logger.info("🔹 Running daily Arxiv pipeline...")
+            arxiv_pipeline(target_date=target_date, max_results=5, process_pdfs=True)
+            logger.info("✅ Pipeline run completed.")
+        except Exception as e:
+            logger.exception(f"❌ Pipeline failed: {e}")
+
+        # 等一天再跑
+        time.sleep(24 * 60 * 60)
+
+
 # Startup event: 確保 Qdrant 啟動後再建立 collection
 @app.on_event("startup")
 async def startup_event():
@@ -50,3 +67,7 @@ async def startup_event():
             time.sleep(3)
     else:
         logger.error("❌ Failed to ensure Qdrant collection after multiple retries.")
+
+    # 啟動每天 pipeline 的 background thread
+    # threading.Thread(target=daily_pipeline_runner, daemon=True).start()
+    logger.info("🔹 Daily Arxiv pipeline runner started in background.")

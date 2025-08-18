@@ -1,15 +1,15 @@
 import io
 from prefect import task
 from qdrant_client import models
-from db.qdrant import qdrant_client
-from services.embedding import get_embedding
 from typing import List
-from services.schemas import ArxivPaper
-from config import COLLECTION_NAME
 import logging
-from db.minio import s3_client
-from services.pdf_parser import TextExtractor
-from config import MINIO_BUCKET
+
+from arxiv_ingestion.db.qdrant import qdrant_client
+from arxiv_ingestion.db.minio import s3_client
+from arxiv_ingestion.services.embedding import get_embedding
+from arxiv_ingestion.services.pdf_parser import TextExtractor
+from arxiv_ingestion.services.schemas import ArxivPaper
+from arxiv_ingestion.config import MINIO_BUCKET, COLLECTION_NAME
 
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,10 @@ logger = logging.getLogger(__name__)
 CHUNK_SIZE = 500  # token 或字數，根據你的 embedding 模型調整
 CHUNK_OVERLAP = 50
 
-def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> List[str]:
+
+def chunk_text(
+    text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP
+) -> List[str]:
     """
     將長文本切分成多個 chunk
     """
@@ -40,8 +43,6 @@ def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVE
     return chunks
 
 
-
-
 @task(name="Qdrant Index Task")
 def qdrant_index_task(papers: List[ArxivPaper]):
     """
@@ -51,30 +52,30 @@ def qdrant_index_task(papers: List[ArxivPaper]):
     idx = 0
 
     textExtractor = TextExtractor()
-    
+
     for paper in papers:
-    
+
         buffer = io.BytesIO()
         # 從 MinIO 下載 PDF 到記憶體
-        s3_client.download_fileobj(MINIO_BUCKET, f"{paper.arxiv_id}/{paper.arxiv_id}.pdf", buffer)
+        s3_client.download_fileobj(
+            MINIO_BUCKET, f"{paper.arxiv_id}/{paper.arxiv_id}.pdf", buffer
+        )
         buffer.seek(0)
         sections, all_text = textExtractor.extract(buffer)
-        
+
         text = "\n".join(all_text)
         print(f"{paper.arxiv_id} 抽取文字長度: {len(text)}")
-        
-        
+
         if not text:
             continue
 
-        
         metadata = {
             "arxiv_id": paper.arxiv_id,
             "abstract": paper.abstract,
             "title": paper.title,
             "authors": paper.authors,
             "categories": paper.categories,
-            "published_date": paper.published_date
+            "published_date": paper.published_date,
         }
 
         # 切分 chunk
@@ -82,11 +83,7 @@ def qdrant_index_task(papers: List[ArxivPaper]):
         for chunk_idx, chunk in enumerate(chunks):
             vector = get_embedding(chunk)
 
-            payload = {
-                **metadata,
-                "text": chunk,
-                "chunk_idx": chunk_idx
-            }
+            payload = {**metadata, "text": chunk, "chunk_idx": chunk_idx}
 
             points.append(models.PointStruct(id=idx, vector=vector, payload=payload))
             idx += 1

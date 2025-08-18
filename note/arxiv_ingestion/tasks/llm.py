@@ -1,5 +1,5 @@
 from prefect import task
-from services.langchain_client import llm_context
+from arxiv_ingestion.services.langchain_client import llm_context
 
 
 @task
