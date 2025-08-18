@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 # 召回 top k 相關分片
-def retrieval(query: str, top_k: int = 5, level='初學者'):
+def retrieval(query: str, top_k: int = 5, level="初學者"):
     # 中文分詞
     query_tokens = " ".join(jieba.cut(query))
 
@@ -31,10 +31,7 @@ def retrieval(query: str, top_k: int = 5, level='初學者'):
         query_vector=query_vec,
         query_filter=models.Filter(
             must=[
-                models.FieldCondition(
-                    key="level", 
-                    match=models.MatchValue(value=level)
-                )
+                models.FieldCondition(key="level", match=models.MatchValue(value=level))
             ]
         ),
         limit=top_k,
@@ -58,19 +55,6 @@ def build_prompt(query: str, retrieved_chunks: List[str]) -> str:
     context = "\n".join(retrieved_chunks[:3])  # 取前三段
     prompt = f"使用者問題: {query}\n相關內容:\n{context}\n請根據以上內容回答問題："
     return prompt
-
-
-def llm(prompt: str, model: str = MODEL_NAME):
-    response = requests.post(
-        f"{OLLAMA_API_URL}/api/generate",
-        json={
-            "model": model,
-            "prompt": prompt,
-            "stream": False,
-        },
-    )
-    response.raise_for_status()
-    return response.json()["response"]
 
 
 # === 完整 RAG 流程 ===
@@ -97,8 +81,8 @@ def rag(query: str, top_k: int = 5) -> str:
     logger.info(f"生成回答（前 200 字）：{answer[:200]}...")
     return answer
 
+
 if __name__ == "__main__":
     query = "初學者的課程有哪些?"
     answer = rag(query)
     print(answer)
-

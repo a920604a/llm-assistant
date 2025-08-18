@@ -1,4 +1,6 @@
 OLLAMA_API_URL = "http://ollama:11434"
+MODEL_NAME = "gpt-oss:20b"
+USER_LANGUAGE = "Traditional Chinese"  # "English"
 NOTE_API_URL = "http://noteserver:8000"
 SPEECH_API_URL = "http://imageserver:8000"
 IMAGE_API_URL = "http://speechserver:8000"

@@ -8,12 +8,6 @@ from services.aggregator import process_user_query
 router = APIRouter()
 
 
-# === MCP Client 範例（用 requests 模擬） ===
-def call_mcp_server(server_url: str, payload: dict):
-    resp = requests.post(server_url, json=payload)
-    return resp.json()
-
-
 @router.post("/api/ask")
 def ask_host(user: UserQuery):
     """

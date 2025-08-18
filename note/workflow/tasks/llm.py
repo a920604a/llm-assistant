@@ -1,15 +1,7 @@
-import requests
 from prefect import task
-from conf import OLLAMA_API_URL, MODEL_NAME
+from services.langchain_client import llm_context
+
 
 @task
-def llm(prompt: str, model: str = MODEL_NAME) -> str:
-    response = requests.post(
-        f"{OLLAMA_API_URL}/api/generate",
-        json={"model": model, "prompt": prompt, "stream": False},
-        # timeout=100
-    )
-    response.raise_for_status()
-    return response.json().get("response", "")
-
-
+def llm(context: str, prompt: str) -> str:
+    return llm_context(context, prompt)

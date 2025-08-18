@@ -32,29 +32,34 @@ restart:
 	$(DOCKER_COMPOSE) down
 	$(DOCKER_COMPOSE) up -d
 
-# 查看容器日誌（預設看 api）
+# 查看容器日誌（預設看 mcpclient）
 logs:
-	$(DOCKER_COMPOSE) logs -f api
+	$(DOCKER_COMPOSE) logs -f mcpclient
 
 # 查看所有容器日誌
 logs-all:
 	$(DOCKER_COMPOSE) logs -f
 
-# 重建 API 服務
-build-api:
-	$(DOCKER_COMPOSE) build api
+# 重建 mcpclient 服務
+build-mcpclient:
+	$(DOCKER_COMPOSE) build mcpclient
 
 # 重建全部服務
 build:
 	$(DOCKER_COMPOSE) build
 
-# 進入 API 容器
+# 進入 mcpclient 容器
 shell:
-	$(DOCKER_COMPOSE) exec api bash
+	$(DOCKER_COMPOSE) exec mcpclient bash
 
 # 測試 (需先裝 pytest)
 test:
-	$(DOCKER_COMPOSE) exec api pytest /test
+# 	$(DOCKER_COMPOSE) exec mcpclient /bin/sh -c "PYTHONPATH=/app pytest -v tests/"
+	$(DOCKER_COMPOSE) exec mcpclient /bin/sh -c "PYTHONPATH=/app python services/langchain_client.py"
+
+# test:
+# 	$(DOCKER_COMPOSE) exec mcpclient /bin/sh -c "PYTHONPATH=/app pytest -v tests"
+
 
 # 移除所有 volumes (⚠️會清除資料)
 clean:
@@ -82,3 +87,6 @@ ingest-arxiv:
 
 search-arxiv:
 	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app/arxiv_ingestion python /app/arxiv_ingestion/arxiv_rag_pipeline.py"
+
+
+.PHONY: test
