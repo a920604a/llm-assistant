@@ -1,13 +1,22 @@
 # .env 檔案會自動載入環境變數
 ENV_FILE=.env
-DOCKER_COMPOSE=docker compose -f docker-compose.dev.yml
-DEV_COMPOSE=docker compose -f docker-compose.monitor.dev.yml
+HAS_GPU := $(shell command -v nvidia-smi >/dev/null 2>&1 && echo 1 || echo 0)
+
+# 動態決定 docker compose 指令
+ifeq ($(HAS_GPU),1)
+  DOCKER_COMPOSE = docker compose -f docker-compose.dev.yml -f docker-compose.dev.gpu.yml
+else
+  DOCKER_COMPOSE = docker compose -f docker-compose.dev.yml
+endif
+
+MONITOR_COMPOSE = docker compose -f docker-compose.monitor.dev.yml
+
 
 
 # 啟動所有容器（背景執行）
 up:
 	$(DOCKER_COMPOSE) up -d
-	$(DEV_COMPOSE) up -d
+	$(MONITOR_COMPOSE) up -d
 
 
 up-front:
@@ -16,7 +25,7 @@ up-front:
 # 停止所有容器
 down:
 	$(DOCKER_COMPOSE) --env-file $(ENV_FILE) down
-	$(DEV_COMPOSE)  down
+	$(MONITOR_COMPOSE) down
 
 # 重啟所有容器
 restart:

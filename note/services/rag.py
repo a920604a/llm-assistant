@@ -1,4 +1,4 @@
-from note.workflow.rag_pipeline import retrieval, re_ranking, build_prompt, llm
+from workflow.rag_pipeline import retrieval, re_ranking, build_prompt, llm
 from logger import get_logger
 
 logger = get_logger(__name__)
