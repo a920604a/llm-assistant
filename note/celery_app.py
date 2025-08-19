@@ -7,7 +7,7 @@ celery_app = Celery(
     "tasks",
     broker="redis://redis:6379/0",
     backend="redis://redis:6379/1",
-    include=["tasks.upload", "tasks.ingest_arxiv"],  # 新增 pipeline task
+    include=["tasks.ingest_arxiv"],  # 新增 pipeline task
 )
 # 確保 Celery Worker 發送事件
 celery_app.conf.update(
