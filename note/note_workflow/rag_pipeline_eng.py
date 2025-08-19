@@ -1,16 +1,13 @@
 from typing import List
 from prefect import flow
 
-from workflow.tasks.retrieval import retrieval
-from workflow.tasks.rerank import re_ranking
-from workflow.tasks.prompt import build_prompt
-from workflow.tasks.llm import llm
+from note_workflow.tasks.retrieval import retrieval
+from note_workflow.tasks.rerank import re_ranking
+from note_workflow.tasks.prompt import build_prompt
+from note_workflow.tasks.llm import llm
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-
 
 
 # --- Full RAG pipeline ---

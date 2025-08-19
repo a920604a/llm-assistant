@@ -1,4 +1,4 @@
-from workflow.rag_pipeline import retrieval, re_ranking, build_prompt
+from note_workflow.rag_pipeline import retrieval, re_ranking, build_prompt
 from services.langchain_client import llm_context
 from logger import get_logger
 

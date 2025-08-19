@@ -10,7 +10,7 @@ Base = declarative_base()
 #     __tablename__ = "user_data"
 
 #     user_id = Column(String, primary_key=True, index=True)
-#     uploaded_notes = Column(Integer)
+#     uploaded_papers = Column(Integer)
 #     last_query_date = Column(Date)
 #     total_queries = Column(Integer)
 #     remaining_tokens = Column(Integer)

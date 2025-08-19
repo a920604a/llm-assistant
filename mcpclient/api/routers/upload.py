@@ -9,9 +9,6 @@ from api.verify_token import verify_token
 
 router = APIRouter()
 
-UPLOAD_DIR = "./uploaded_files"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-
 
 from logger import get_logger
 

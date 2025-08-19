@@ -3,7 +3,7 @@ import { BASE_URL } from "./conf";
 
 
 export type DashboardStats = {
-    uploaded_notes: number;
+    uploaded_papers: number;
     last_query_date: string;
     total_queries: number;
     remaining_tokens: number;

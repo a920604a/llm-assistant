@@ -43,11 +43,11 @@ def __get_user_notes_number(db, user_id: str) -> int:
 def get_info(user_id: str):
     with db_session() as db:
         user = get_or_create_user(db, user_id)
-        uploaded_notes = __get_user_notes_number(db, user_id)
+        uploaded_papers = __get_user_notes_number(db, user_id)
 
         return {
             "user_id": user.id,
-            "uploaded_notes": uploaded_notes,
+            "uploaded_papers": uploaded_papers,
             "last_query_date": user.last_query_date,
             "total_queries": user.total_queries,
             "remaining_tokens": user.remaining_tokens,

@@ -8,14 +8,13 @@ from qdrant_client import models
 from logger import get_logger
 from prefect import flow
 
-from workflow.tasks.translator import ollama_translate
-from workflow.tasks.metadata import ollama_generate_metadata
-from workflow.tasks.splitter import split_text
-from workflow.tasks.embedding import embed_text
-from workflow.tasks.qdrant_ops import upload_points
+from note_workflow.tasks.translator import ollama_translate
+from note_workflow.tasks.metadata import ollama_generate_metadata
+from note_workflow.tasks.splitter import split_text
+from note_workflow.tasks.embedding import embed_text
+from note_workflow.tasks.qdrant_ops import upload_points
 
 logger = get_logger(__name__)
-
 
 
 # ✅ 主流程：匯入筆記
@@ -25,27 +24,30 @@ def ingest_notes_pipeline(md_text_dict: dict):
     points = []
     idx = 0
 
-    for filename, md_text in tqdm(md_text_dict.items(), total=len(md_text_dict), desc="處理檔案"):
-            logger.info(f"➡️ 處理檔案：{filename}，字數: {len(md_text)}")
-            translated = ollama_translate.submit(md_text).result()
-            translated = md_text
+    for filename, md_text in tqdm(
+        md_text_dict.items(), total=len(md_text_dict), desc="處理檔案"
+    ):
+        logger.info(f"➡️ 處理檔案：{filename}，字數: {len(md_text)}")
+        translated = ollama_translate.submit(md_text).result()
+        translated = md_text
 
-            metadata = ollama_generate_metadata.submit(translated).result()
-            chunks = split_text.submit(translated).result()
+        metadata = ollama_generate_metadata.submit(translated).result()
+        chunks = split_text.submit(translated).result()
 
-            for chunk in chunks:
-                vector = embed_text.submit(chunk).result()
-                bm25_text = " ".join(jieba.cut(chunk))
-                payload = {
-                    "text": chunk,
-                    "bm25_text": bm25_text,
-                    "translated": True,
-                    **metadata,
-                }
-                points.append(models.PointStruct(id=idx, vector=vector, payload=payload))
-                idx += 1
+        for chunk in chunks:
+            vector = embed_text.submit(chunk).result()
+            bm25_text = " ".join(jieba.cut(chunk))
+            payload = {
+                "text": chunk,
+                "bm25_text": bm25_text,
+                "translated": True,
+                **metadata,
+            }
+            points.append(models.PointStruct(id=idx, vector=vector, payload=payload))
+            idx += 1
 
     upload_points(points)
+
 
 # ✅ CLI 介面使用 click
 @click.command()

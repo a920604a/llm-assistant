@@ -12,14 +12,13 @@ from logger import get_logger
 logger = get_logger(__name__)
 
 
-
 router = APIRouter()
 
 
 # 模擬資料庫 (實際應換成你的 DB 查詢)
 fake_db = {
     "user123": {
-        "uploaded_notes": 32,
+        "uploaded_papers": 32,
         "last_query_date": date(2025, 8, 7),
         "total_queries": 124,
         "remaining_tokens": 1000,
@@ -37,7 +36,7 @@ async def get_dashboard_stats(user_id: str = Depends(verify_firebase_token)):
         raise HTTPException(status_code=404, detail="User data not found")
 
     return DashboardStats(
-        uploaded_notes=user_data["uploaded_notes"],
+        uploaded_papers=user_data["uploaded_papers"],
         last_query_date=user_data["last_query_date"],
         total_queries=user_data["total_queries"],
         remaining_tokens=user_data["remaining_tokens"],

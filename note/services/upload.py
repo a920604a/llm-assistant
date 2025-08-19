@@ -4,7 +4,7 @@ import os
 from storage.minio import s3_client, create_bucket_if_not_exists, MINIO_BUCKET
 from storage.crud.user import get_user_notes_number
 from storage.crud.note import update_notes
-from tasks.upload import import_md_notes_task, import_single_md_task
+from tasks.upload import import_single_md_task
 from conf import UPLOAD_DIR
 from logger import get_logger
 
@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 
 async def upload_notes(files, user_id: str):
     logger.info("upload_notes")
-    uploaded_notes = get_user_notes_number(user_id)
+    uploaded_papers = get_user_notes_number(user_id)
 
     # 儲存檔案（本地或 MinIO）
     result = await upload_files(files, user_id, save_local=True, save_minio=True)

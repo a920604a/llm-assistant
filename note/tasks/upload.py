@@ -1,38 +1,14 @@
 # tasks/upload.py
 import traceback
 from celery_app import celery_app
-from workflow.ingest_pipeline import ingest_notes_pipeline
+from note_workflow.ingest_pipeline import ingest_notes_pipeline
 from storage.minio import s3_client, MINIO_BUCKET
 
 from logger import get_logger
 
 logger = get_logger(__name__)
 
-@celery_app.task(name="import_md_notes_task")
-def import_md_notes_task(payload: dict):
-    """
-    payload:
-        {
-            "user_id": "xxx",
-            "files": ["Chapter1.md", "Chapter2.md"]
-        }
-    """
-    try:
-        user_id = payload["user_id"]
-        files = payload["files"]
 
-        md_text_dict = {}
-        for filename in files:
-            # 從 MinIO 抓檔案
-            obj = s3_client.get_object(Bucket=MINIO_BUCKET, Key=filename)
-            content = obj["Body"].read().decode("utf-8")
-            md_text_dict[filename] = content
-
-        ingest_notes_pipeline(md_text_dict)
-        return f"處理 {len(md_text_dict)} 個 Markdown 檔案完成"
-
-    except Exception as e:
-        return {"error": str(e), "trace": traceback.format_exc()}
 
 
 # tasks/upload.py

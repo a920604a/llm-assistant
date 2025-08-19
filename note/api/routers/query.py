@@ -2,7 +2,9 @@
 import requests
 import logging
 from fastapi import APIRouter
-from services.rag import rag
+
+# from services.rag import rag
+from arxiv_ingestion.flows.arxiv_rag_pipeline import rag
 from api.schemas.query import Query
 from logger import get_logger
 

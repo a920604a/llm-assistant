@@ -73,13 +73,13 @@ up-dev:
 
 
 ingest:
-	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python workflow/ingest_pipeline.py --file /app/'第一章：可靠性、可伸縮性和可維護性.md'"
-# 	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python workflow/ingest_pipeline_eng.py"
+	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python note_workflow/ingest_pipeline.py --file /app/'第一章：可靠性、可伸縮性和可維護性.md'"
+# 	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python note_workflow/ingest_pipeline_eng.py"
 
 
 search:
-	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python workflow/rag_pipeline.py"
-# 	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python workflow/rag_pipeline_eng.py"
+	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python note_workflow/rag_pipeline.py"
+# 	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python note_workflow/rag_pipeline_eng.py"
 
 
 ingest-arxiv:

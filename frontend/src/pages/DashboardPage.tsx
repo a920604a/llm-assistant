@@ -25,7 +25,7 @@ const DashboardPage = () => {
         <div className="space-y-6">
             <h2 className="text-3xl font-bold">歡迎回來，小安 👋</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatsCard title="已上傳筆記" value={stats.uploaded_notes.toString()} />
+                <StatsCard title="論文筆數" value={stats.uploaded_papers.toString()} />
                 <StatsCard title="上次提問" value={stats.last_query_date} />
                 <StatsCard title="總提問次數" value={stats.total_queries.toString()} />
                 <StatsCard title="剩餘 Token" value={stats.remaining_tokens.toString()} />

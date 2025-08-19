@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 
 import MainLayout from './layouts/MainLayout'
 import DashboardPage from './pages/DashboardPage'
-import UploadPage from './pages/UploadPage'
-import NotesPage from './pages/NotesPage'
+// import UploadPage from './pages/UploadPage'
+// import NotesPage from './pages/NotesPage'
 import ChatPage from './pages/ChatPage'
 import HistoryPage from './pages/HistoryPage'
 import SettingsPage from './pages/SettingsPage'
@@ -32,8 +32,8 @@ function App() {
             }
           >
             <Route index element={<DashboardPage />} />
-            <Route path="upload" element={<UploadPage />} />
-            <Route path="notes" element={<NotesPage />} />
+            {/* <Route path="upload" element={<UploadPage />} /> */}
+            {/* <Route path="notes" element={<NotesPage />} /> */}
             <Route path="chat" element={<ChatPage />} />
             <Route path="history" element={<HistoryPage />} />
             <Route path="settings" element={<SettingsPage />} />

@@ -1,6 +1,7 @@
 # tasks/translate.py
 from prefect import task
-from workflow.tasks.llm import llm
+from note_workflow.tasks.llm import llm
+
 
 @task
 def ollama_translate(text: str) -> str:

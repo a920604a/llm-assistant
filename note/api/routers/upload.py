@@ -3,7 +3,6 @@ import os
 from fastapi import APIRouter, UploadFile, File, Form
 from services.upload import upload_notes
 
-UPLOAD_DIR = "/data/uploaded_files"
 router = APIRouter()
 
 

@@ -4,17 +4,18 @@ import requests
 from prefect import task
 from conf import OLLAMA_API_URL, MODEL_NAME
 from logger import get_logger
-from workflow.tasks.llm import llm
-
+from note_workflow.tasks.llm import llm
 
 
 logger = get_logger(__name__)
+
 
 def clean_json_string(s: str) -> str:
     s = s.strip()
     s = re.sub(r"^```json\s*", "", s)
     s = re.sub(r"\s*```$", "", s)
     return s
+
 
 @task
 def generate_metadata(text: str, model: str = MODEL_NAME) -> dict:
@@ -53,12 +54,17 @@ Please output in JSON format, for example:
             "keywords": (
                 data["keywords"]
                 if isinstance(data.get("keywords"), list)
-                else [kw.strip() for kw in str(data.get("keywords", "")).split(",") if kw.strip()]
+                else [
+                    kw.strip()
+                    for kw in str(data.get("keywords", "")).split(",")
+                    if kw.strip()
+                ]
             ),
         }
     except Exception as e:
         logger.error(f"Metadata generation failed: {e}")
         return {"title": "", "level": "", "keywords": []}
+
 
 @task
 def ollama_generate_metadata(text: str) -> dict:
