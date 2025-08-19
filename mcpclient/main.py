@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi import FastAPI
-from api.routers import query, upload, dashboard
+from api.routers import query, dashboard
 from logger import get_logger
 
 logger = get_logger(__name__)
@@ -30,5 +30,4 @@ app.add_middleware(
 )
 
 app.include_router(query.router, tags=["query"])
-app.include_router(upload.router, tags=["upload"])
 app.include_router(dashboard.router, tags=["dashboard"])

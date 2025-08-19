@@ -5,7 +5,7 @@ import threading
 import asyncio
 from datetime import datetime, timedelta
 from prometheus_fastapi_instrumentator import Instrumentator
-from api.routers import query, user, upload
+from api.routers import query, user
 from arxiv_ingestion.flows.arxiv_pipeline import arxiv_pipeline
 from storage.qdrant import create_qdrant_collection as create_note_collection
 from arxiv_ingestion.db.qdrant import (
@@ -37,7 +37,6 @@ app.add_middleware(
 
 app.include_router(query.router, tags=["query"])
 app.include_router(user.router, tags=["user"])
-app.include_router(upload.router, tags=["upload"])
 
 
 # Startup event: 確保 Qdrant 啟動後再建立 collection
