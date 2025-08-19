@@ -42,7 +42,7 @@ class ArxivSettings(DefaultSettings):
             "arxiv": "http://arxiv.org/schemas/atom",
         }
     )
-    rate_limit_delay: float = 3.0  # seconds between requests
+    rate_limit_delay: float = 4.0  # seconds between requests
     timeout_seconds: int = 30
     max_results: int = 100
     search_category: str = "cs.AI"  # 預設抓 cs.AI 分類

@@ -5,8 +5,10 @@ import threading
 from datetime import datetime, timedelta
 from prometheus_fastapi_instrumentator import Instrumentator
 from api.routers import query, user, upload
-from arxiv_ingestion.arxiv_pipeline import arxiv_pipeline
 from storage.qdrant import create_qdrant_collection
+from arxiv_ingestion.flows.arxiv_pipeline import arxiv_pipeline
+from arxiv_ingestion.db.qdrant import create_qdrant_collection
+from arxiv_ingestion.db.minio import create_bucket_if_not_exists
 
 from logger import get_logger
 
@@ -68,6 +70,17 @@ async def startup_event():
     else:
         logger.error("❌ Failed to ensure Qdrant collection after multiple retries.")
 
+    # 🔹 啟動時先跑一次 pipeline
+    create_qdrant_collection()
+    create_bucket_if_not_exists()
+    try:
+        target_date = (datetime.utcnow() - timedelta(days=10)).strftime("%Y%m%d")
+        logger.info("🔹 Running initial Arxiv pipeline at startup...")
+        arxiv_pipeline(target_date=target_date, max_results=10, process_pdfs=True)
+        logger.info("✅ Initial pipeline run completed.")
+    except Exception as e:
+        logger.exception(f"❌ Initial pipeline failed: {e}")
+
     # 啟動每天 pipeline 的 background thread
-    # threading.Thread(target=daily_pipeline_runner, daemon=True).start()
+    threading.Thread(target=daily_pipeline_runner, daemon=True).start()
     logger.info("🔹 Daily Arxiv pipeline runner started in background.")
