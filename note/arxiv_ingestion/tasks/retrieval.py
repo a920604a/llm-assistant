@@ -15,7 +15,7 @@ def retrieval(
     author: str = None,
     start_date: str = None,  # e.g. "2023-01-01"
     end_date: str = None,
-):
+) -> tuple[list, str]:
     # Step 1: embedding query
     query_vector = get_embedding(query)
 
@@ -61,6 +61,7 @@ def retrieval(
     )
 
     results = [hit.payload for hit in query_result]
+    # [ {'arxiv_id' : XXX, 'abstract': XXX, 'title': XXX, 'authors': XXX, 'categories': XXX, 'published_date': XXX, 'text': XXX, 'chunk_idx': XXX}, ]
 
     return (
         results,

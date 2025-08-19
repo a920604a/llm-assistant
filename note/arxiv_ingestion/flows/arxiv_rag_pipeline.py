@@ -5,36 +5,9 @@ from prefect import get_run_logger
 
 from arxiv_ingestion.tasks.retrieval import retrieval
 from arxiv_ingestion.tasks.rerank import re_ranking
+from arxiv_ingestion.tasks.evaluate import evaluate
 from arxiv_ingestion.tasks.prompt import build_prompt
 from arxiv_ingestion.tasks.llm import llm
-
-
-# ---------------- 評估函數 ----------------
-def ndcg_at_k(ranked_chunks: List[dict], ground_truth_ids: List[str], k: int = 5):
-    """
-    計算 NDCG@k
-    ranked_chunks: rerank 後的 chunks，每個 chunk 需有 'id' 欄位
-    ground_truth_ids: 真實相關 chunk id list
-    """
-    dcg = 0.0
-    for i, chunk in enumerate(ranked_chunks[:k]):
-        if chunk.get("id") in ground_truth_ids:
-            dcg += 1.0 / math.log2(i + 2)  # i 從 0 開始
-    # 計算理想 DCG
-    ideal_dcg = sum(
-        1.0 / math.log2(i + 2) for i in range(min(k, len(ground_truth_ids)))
-    )
-    return dcg / ideal_dcg if ideal_dcg > 0 else 0.0
-
-
-def mrr_at_k(ranked_chunks: List[dict], ground_truth_ids: List[str], k: int = 5):
-    """
-    計算 MRR@k
-    """
-    for i, chunk in enumerate(ranked_chunks[:k]):
-        if chunk.get("id") in ground_truth_ids:
-            return 1.0 / (i + 1)
-    return 0.0
 
 
 # --- Full RAG pipeline ---
@@ -47,15 +20,21 @@ def rag(query: str, top_k: int = 5) -> str:
     if retrieved_chunks:
         logger.info("Step 2: Re-ranking ")
         logger.info(msg)
+        logger.info(f"retrieved_chunks {retrieved_chunks[0].keys()}")
 
         reranked = re_ranking.submit(retrieved_chunks, query).result()
 
-        logger.info("Step 3: Build context ")
+        logger.info("Step 3: Evaluation")
+        eval_metrics = evaluate.submit(reranked, query, top_k=top_k).result()
+        logger.info(f"Evaluation metrics: {eval_metrics}")
+
+        logger.info("Step 4: Build context ")
         context = build_prompt.submit(query, reranked).result()
     else:
         logger.warning("No chunks retrieved, fallback to query as prompt")
-        prompt = query
+
         context = ""
+    prompt = query
 
     logger.info("Step 4: LLM generation")
     answer = llm.submit(context, prompt).result()
@@ -65,6 +44,6 @@ def rag(query: str, top_k: int = 5) -> str:
 
 
 if __name__ == "__main__":
-    query = "What is Planning Agents on an Ego-Trip"
+    query = "What is Circuit Localization ?"
     answer = rag(query)
     print(answer)

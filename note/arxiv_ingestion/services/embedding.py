@@ -9,11 +9,10 @@ from sentence_transformers import SentenceTransformer
 model = SentenceTransformer("all-mpnet-base-v2")
 
 
-
-
 def get_embedding(text: str, use_sentence_transformers: bool = True) -> List[float]:
-    if use_sentence_transformers:  # 輸出向量維度是 768，文本（論文摘要、段落）上表現更好
-        
-        vector = model.encode(text)  
+    if (
+        use_sentence_transformers
+    ):  # 輸出向量維度是 768，文本（論文摘要、段落）上表現更好
+
+        vector = model.encode(text)
         return vector.tolist()
-    
