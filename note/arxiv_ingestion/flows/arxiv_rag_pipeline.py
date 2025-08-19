@@ -28,7 +28,7 @@ def rag(query: str, top_k: int = 5) -> str:
         eval_metrics = evaluate.submit(reranked, query, top_k=top_k).result()
         logger.info(f"Evaluation metrics: {eval_metrics}")
 
-        logger.info("Step 4: Build context ")
+        logger.info("Step 4: Build context")
         context = build_prompt.submit(query, reranked).result()
     else:
         logger.warning("No chunks retrieved, fallback to query as prompt")
@@ -36,7 +36,7 @@ def rag(query: str, top_k: int = 5) -> str:
         context = ""
     prompt = query
 
-    logger.info("Step 4: LLM generation")
+    logger.info(f"Step 5: LLM generation with context = {context}")
     answer = llm.submit(context, prompt).result()
 
     logger.info(f"Answer generated: {answer[:200]}...")
