@@ -32,6 +32,8 @@ services:
       - ./mcpclient:/app
     ports:
       - "8011:8000"
+    depends_on:
+      - noteserver
 
   noteserver:
     build:
@@ -40,6 +42,7 @@ services:
     container_name: note
     volumes:
       - ./note:/app
+      - ./data/noteserver:/data
 
     ports:
       - "8022:8000"
@@ -47,6 +50,10 @@ services:
       - ./.env # <- 指定要讀的環境變數檔
     depends_on:
       - note-qdrant
+      - note-db
+      - note-storage
+      - redis
+      - worker
 
   note-qdrant:
     image: qdrant/qdrant
@@ -91,9 +98,7 @@ services:
       dockerfile: ./services/celeryworker/Dockerfile.worker
     container_name: note-worker
     command: celery -A celery_app.celery_app worker --concurrency=4 -Q notes -n worker.import_md@%h --loglevel=info
-
     depends_on:
-      - noteserver
       - redis
       - note-db
       - note-qdrant

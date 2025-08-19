@@ -64,7 +64,7 @@ test:
 # 移除所有 volumes (⚠️會清除資料)
 clean:
 	$(MAKE) down
-	sudo rm -rf ./data ./note/data
+	sudo rm -rf ./data
 
 
 up-dev:

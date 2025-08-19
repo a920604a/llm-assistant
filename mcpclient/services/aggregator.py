@@ -6,7 +6,7 @@ from logger import get_logger
 logger = get_logger(__name__)
 
 
-def process_user_query(query: str, shortcut=True):
+def process_user_query(query: str, shortcut=False):
     # Step 1: 呼叫 Ollama LLM（主要語言理解與生成）
     if shortcut:
         llm_reply = llm(query)
