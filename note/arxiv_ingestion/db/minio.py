@@ -1,8 +1,14 @@
 import os
 import boto3
 from botocore.client import Config
-from config import MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_BUCKET
 import logging
+
+from arxiv_ingestion.config import (
+    MINIO_ENDPOINT,
+    MINIO_ACCESS_KEY,
+    MINIO_SECRET_KEY,
+    MINIO_BUCKET,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +28,7 @@ def create_bucket_if_not_exists():
     logger.info(f"MINIO_ENDPOINT {MINIO_ENDPOINT}")
     logger.info(f"MINIO_ACCESS_KEY {MINIO_ACCESS_KEY}")
     logger.info(f"MINIO_SECRET_KEY {MINIO_SECRET_KEY}")
-    
+
     buckets = [b["Name"] for b in s3_client.list_buckets()["Buckets"]]
     logger.info(f"buckets {buckets}")
     if MINIO_BUCKET not in buckets:

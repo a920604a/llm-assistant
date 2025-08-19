@@ -64,7 +64,7 @@ test:
 # 移除所有 volumes (⚠️會清除資料)
 clean:
 	$(MAKE) down
-	sudo rm -rf ./data
+	sudo rm -rf ./data ./note/data
 
 
 up-dev:
@@ -83,10 +83,10 @@ search:
 
 
 ingest-arxiv:
-	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app/arxiv_ingestion python /app/arxiv_ingestion/arxiv_pipeline.py"
+	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python /app/arxiv_ingestion/flows/arxiv_pipeline.py"
 
 search-arxiv:
-	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app/arxiv_ingestion python /app/arxiv_ingestion/arxiv_rag_pipeline.py"
+	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python /app/arxiv_ingestion/flows/arxiv_rag_pipeline.py"
 
 
 .PHONY: test

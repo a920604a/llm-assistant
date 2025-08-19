@@ -1,6 +1,7 @@
 from qdrant_client import QdrantClient, models
-from config import QDRANT_URL, COLLECTION_NAME
 from qdrant_client.http.exceptions import UnexpectedResponse
+
+from arxiv_ingestion.config import QDRANT_URL, COLLECTION_NAME
 
 import logging
 

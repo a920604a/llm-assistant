@@ -4,13 +4,14 @@ from typing import Any, Dict, List, Optional
 from datetime import datetime
 from pathlib import Path
 from dateutil import parser
-from services.arxiv_client import ArxivClient
-from services.pdf_parser import PDFParserService
-from db.models import Paper  # SQLAlchemy ORM model
-from services.schemas import ArxivPaper, ParsedPaper, ArxivMetadata
-from db.factory import make_database
+from arxiv_ingestion.services.arxiv_client import ArxivClient
+from arxiv_ingestion.services.pdf_parser import PDFParserService
+from arxiv_ingestion.db.models import Paper  # SQLAlchemy ORM model
+from arxiv_ingestion.services.schemas import ArxivPaper, ParsedPaper, ArxivMetadata
+from arxiv_ingestion.db.factory import make_database
 
 logger = logging.getLogger(__name__)
+
 
 class MetadataFetcher:
     def __init__(self, arxiv_client: ArxivClient, pdf_parser: PDFParserService):
@@ -23,16 +24,19 @@ class MetadataFetcher:
     # ------------------------------
     # Stage 1: Fetch metadata
     # ------------------------------
-    async def fetch_papers(self, target_date: str, max_results: int = 5) -> List[ArxivPaper]:
-        papers = await self.arxiv_client.fetch_papers(max_results=max_results, from_date=target_date,
-    to_date=target_date)
+    async def fetch_papers(
+        self, target_date: str, max_results: int = 5
+    ) -> List[ArxivPaper]:
+        papers = await self.arxiv_client.fetch_papers(
+            max_results=max_results, from_date=target_date, to_date=target_date
+        )
         logger.info(f"[fetch_papers] Fetched {len(papers)} papers from arXiv")
         return papers
 
     # ------------------------------
     # Stage 2: Download & parse PDF
     # ------------------------------
-   
+
     async def process_pdfs_batch(self, papers: List[ArxivPaper]) -> Dict[str, Any]:
         results = {
             "downloaded": 0,
@@ -41,7 +45,7 @@ class MetadataFetcher:
             "errors": [],
             "download_failures": [],
             "parse_failures": [],
-            "updated_papers": papers 
+            "updated_papers": papers,
         }
 
         logger.info(f"Starting async pipeline for {len(papers)} PDFs...")
@@ -55,17 +59,18 @@ class MetadataFetcher:
         # Start all download+parse pipelines concurrently
         # pipeline_tasks = [self._download_and_parse_pipeline(paper, download_semaphore, parse_semaphore) for paper in papers]
         pipeline_tasks = [
-            self._download_and_parse_pipeline(idx, paper, download_semaphore, parse_semaphore)
+            self._download_and_parse_pipeline(
+                idx, paper, download_semaphore, parse_semaphore
+            )
             for idx, paper in enumerate(papers)
         ]
-
 
         # Wait for all pipelines to complete
         pipeline_results = await asyncio.gather(*pipeline_tasks, return_exceptions=True)
 
         # Process results with detailed error tracking
         for paper, result in zip(papers, pipeline_results):
-            
+
             if isinstance(result, Exception):
                 error_msg = f"Pipeline error for {paper.arxiv_id}: {str(result)}"
                 logger.error(error_msg)
@@ -73,7 +78,7 @@ class MetadataFetcher:
             elif result:
                 # Result is tuple: (download_success, parsed_paper)
                 idx, download_success, parsed_success, pdf_path, parsed_paper = result
-                
+
                 paper = papers[idx]  # 用 idx 確保對應正確
                 paper.pdf_cached_path = pdf_path
                 paper.pdf_downloaded = download_success
@@ -96,7 +101,9 @@ class MetadataFetcher:
                 results["download_failures"].append(paper.arxiv_id)
 
         # Simple processing summary
-        logger.info(f"PDF processing: {results['downloaded']}/{len(papers)} downloaded, {results['parsed']} parsed")
+        logger.info(
+            f"PDF processing: {results['downloaded']}/{len(papers)} downloaded, {results['parsed']} parsed"
+        )
 
         if results["download_failures"]:
             logger.warning(f"Download failures: {len(results['download_failures'])}")
@@ -106,17 +113,30 @@ class MetadataFetcher:
 
         # Add specific failure info to general errors list for backward compatibility
         if results["download_failures"]:
-            results["errors"].extend([f"Download failed: {arxiv_id}" for arxiv_id in results["download_failures"]])
+            results["errors"].extend(
+                [
+                    f"Download failed: {arxiv_id}"
+                    for arxiv_id in results["download_failures"]
+                ]
+            )
         if results["parse_failures"]:
-            results["errors"].extend([f"PDF parse failed: {arxiv_id}" for arxiv_id in results["parse_failures"]])
+            results["errors"].extend(
+                [
+                    f"PDF parse failed: {arxiv_id}"
+                    for arxiv_id in results["parse_failures"]
+                ]
+            )
 
         return results
 
     async def _download_and_parse_pipeline(
-        self, idx:int, paper: ArxivPaper, download_semaphore: asyncio.Semaphore, parse_semaphore: asyncio.Semaphore
+        self,
+        idx: int,
+        paper: ArxivPaper,
+        download_semaphore: asyncio.Semaphore,
+        parse_semaphore: asyncio.Semaphore,
     ) -> tuple[int, bool, bool, Optional[str], Optional[ParsedPaper]]:
 
-        
         download_success = False
         parsed_success = False
         parsed_paper = None
@@ -126,7 +146,9 @@ class MetadataFetcher:
             # Step 1: Download PDF with download concurrency control
             async with download_semaphore:
                 logger.info(f"Starting download: {paper.arxiv_id}")
-                pdf_path = await self.arxiv_client.download_pdf(paper, force_download= False)
+                pdf_path = await self.arxiv_client.download_pdf(
+                    paper, force_download=False
+                )
 
                 if pdf_path:
                     download_success = True
@@ -155,29 +177,35 @@ class MetadataFetcher:
                     )
 
                     # Combine into ParsedPaper
-                    parsed_paper = ParsedPaper(arxiv_metadata=arxiv_metadata, pdf_content=pdf_content)
-                    logger.debug(f"Parse complete: {paper.arxiv_id} - {len(pdf_content.raw_text)} chars extracted")
+                    parsed_paper = ParsedPaper(
+                        arxiv_metadata=arxiv_metadata, pdf_content=pdf_content
+                    )
+                    logger.debug(
+                        f"Parse complete: {paper.arxiv_id} - {len(pdf_content.raw_text)} chars extracted"
+                    )
                 else:
                     # PDF parsing failed, but this is not critical - we can continue with metadata only
-                    logger.warning(f"PDF parsing failed for {paper.arxiv_id}, continuing with metadata only")
+                    logger.warning(
+                        f"PDF parsing failed for {paper.arxiv_id}, continuing with metadata only"
+                    )
 
         except Exception as e:
             logger.error(f"Pipeline error for {paper.arxiv_id}: {e}")
-        return (idx, download_success, parsed_success , pdf_path, parsed_paper)
+        return (idx, download_success, parsed_success, pdf_path, parsed_paper)
 
- 
     # ------------------------------
     # Stage 3: Store to DB
     # ------------------------------
     def store_to_db(self, papers: List[ArxivPaper]) -> int:
-        
-    
+
         stored_count = 0
         with self.database.get_session() as session:
             for paper in papers:
                 try:
                     # 用 ORM 建立或更新
-                    obj = session.query(Paper).filter_by(arxiv_id=paper.arxiv_id).first()
+                    obj = (
+                        session.query(Paper).filter_by(arxiv_id=paper.arxiv_id).first()
+                    )
                     if not obj:
                         obj = Paper(arxiv_id=paper.arxiv_id)
                         session.add(obj)
@@ -187,16 +215,26 @@ class MetadataFetcher:
                     obj.authors = paper.authors or []
                     obj.abstract = paper.abstract
                     obj.categories = paper.categories or []
-                    
+
                     # str -> date
-        
-                    obj.published_date = parser.isoparse(paper.published_date).date() if paper.published_date else None
-                    obj.updated_date = parser.isoparse(paper.updated_date).date() if paper.updated_date else None
+
+                    obj.published_date = (
+                        parser.isoparse(paper.published_date).date()
+                        if paper.published_date
+                        else None
+                    )
+                    obj.updated_date = (
+                        parser.isoparse(paper.updated_date).date()
+                        if paper.updated_date
+                        else None
+                    )
 
                     obj.pdf_url = paper.pdf_url
-                    
+
                     # Path -> str
-                    obj.pdf_cached_path = str(paper.pdf_cached_path) if paper.pdf_cached_path else None
+                    obj.pdf_cached_path = (
+                        str(paper.pdf_cached_path) if paper.pdf_cached_path else None
+                    )
 
                     obj.pdf_downloaded = paper.pdf_downloaded or False
                     obj.pdf_parsed = paper.pdf_parsed or False

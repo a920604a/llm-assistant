@@ -31,6 +31,12 @@ arxiv_ingestion/
 
 ```
 
+- 感謝 arXiv 提供其開放存取服務
+- 每次請求間隔 ≥ 3 秒，僅一連線
+- 每分鐘最多 1 個 request
+
+
+
 ```mermaid
 flowchart TD
     %% === Ingestion Pipeline ===
