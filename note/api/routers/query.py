@@ -1,7 +1,6 @@
 # REST API routers
 from fastapi import APIRouter
 
-from arxiv_ingestion.flows.arxiv_rag_pipeline import rag
 from api.schemas.query import Query
 from logger import get_logger
 
@@ -14,7 +13,6 @@ router = APIRouter()
 def ask_host(query: Query):
     q = query.text.strip()
     logger.info("ask_host %s", q)
+    from arxiv_ingestion.flows.arxiv_rag_pipeline import rag  # <- lazy import
 
-    return rag(
-        query=query.text.strip(), top_k=query.top_k, user_language=query.user_language
-    )
+    return rag(query=q, top_k=query.top_k, user_language=query.user_language)

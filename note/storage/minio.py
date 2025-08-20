@@ -16,7 +16,7 @@ s3_client = boto3.client(
 
 
 # 建立 bucket（若不存在）
-def create_bucket_if_not_exists():
+def create_note_bucket():
     buckets = [b["Name"] for b in s3_client.list_buckets()["Buckets"]]
     if MINIO_BUCKET not in buckets:
         s3_client.create_bucket(Bucket=MINIO_BUCKET)

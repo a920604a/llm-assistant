@@ -1,8 +1,5 @@
 # routers/setting.py
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from typing import Optional
+from fastapi import APIRouter
 from services.system_setting import get_setting, post_setting
 from logger import get_logger
 
