@@ -16,8 +16,8 @@ router = APIRouter()
 
 
 @router.get("/api/user/settings", response_model=SystemSettings)
-# async def get_user_settings(user_id: str = Depends(verify_firebase_token)):
-async def get_user_settings(user_id: str):
+async def get_user_settings(user_id: str = Depends(verify_firebase_token)):
+    # async def get_user_settings(user_id: str):
     # user_settings = get_user_data(user_id).get("settings")
     # if not user_settings:
     #     logger.info(f"User {user_id} uses default settings")
@@ -32,10 +32,10 @@ async def get_user_settings(user_id: str):
 # 更新使用者設定
 # ---------------------------
 @router.post("/api/user/settings", response_model=dict)
-# async def put_settings(
-#     settings: SystemSettings, user_id: str = Depends(verify_firebase_token)
-# ):
-async def post_settings(settings: SystemSettings, user_id: str):
+async def post_settings(
+    settings: SystemSettings, user_id: str = Depends(verify_firebase_token)
+):
+    # async def post_settings(settings: SystemSettings, user_id: str):
     # success = update_user_settings(user_id, settings.dict())
     # if not success:
     #     raise HTTPException(status_code=500, detail="Failed to update settings")

@@ -21,3 +21,8 @@ DEFAULT_SETTINGS = SystemSettings(
     subscribe_email=False,
     reranker_enabled=True,
 )
+
+
+class PostSettingsRequest(BaseModel):
+    user_id: str
+    new_settings: SystemSettings

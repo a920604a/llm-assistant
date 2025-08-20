@@ -19,9 +19,10 @@ def get_setting(user_id: str) -> SystemSettings:
 
 def post_setting(user_id: str, settings: SystemSettings) -> dict:
     # Update user settings in the database or any other source
+    payload = {"user_id": user_id, "new_settings": settings.dict()}
     resp = requests.post(
-        f"{NOTE_API_URL}/api/setting",
-        json={"user_id": user_id, **settings.dict()},
+        f"{NOTE_API_URL}/api/settings",
+        json=payload,
     )
     if resp.status_code == 200:
         return {"status": True, "message": "Settings updated successfully"}

@@ -24,50 +24,72 @@ export const DEFAULT_SETTINGS: SystemSettings = {
     reranker_enabled: true,
 };
 
+
+// 包裝 fetch + timeout
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+        clearTimeout(id);
+    }
+}
+
 // 取得使用者設定
-export async function getSystemSettings(): Promise<SystemSettings> {
+export async function getSystemSettings(timeoutMs = 10000): Promise<SystemSettings> {
     if (!auth.currentUser) return DEFAULT_SETTINGS;
 
     const token = await auth.currentUser.getIdToken();
     console.log(`${BASE_URL}/user/settings`);
+
     try {
-        const res = await fetch(`${BASE_URL}/user/settings`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
+        const res = await fetchWithTimeout(`${BASE_URL}/user/settings`, {
+            headers: { Authorization: `Bearer ${token}` },
+        }, timeoutMs);
 
         if (!res.ok) return DEFAULT_SETTINGS;
 
         const data = await res.json();
         return { ...DEFAULT_SETTINGS, ...data };
-    } catch (err) {
-        console.error("取得系統設定失敗", err);
+    } catch (err: any) {
+        if (err.name === "AbortError") {
+            console.error(`取得系統設定超時 (${timeoutMs} ms)`);
+        } else {
+            console.error("取得系統設定失敗", err);
+        }
         return DEFAULT_SETTINGS;
     }
 }
 
-
 // 更新使用者設定
-export async function updateSystemSettings(settings: Partial<SystemSettings>) {
+export async function updateSystemSettings(
+    settings: Partial<SystemSettings>,
+    timeoutMs = 10000
+) {
     if (!auth.currentUser) return false;
 
     const token = await auth.currentUser.getIdToken();
 
     try {
-        const res = await fetch(`${BASE_URL}/user/settings`, {
+        const res = await fetchWithTimeout(`${BASE_URL}/user/settings`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(settings),
-        });
+        }, timeoutMs);
+        const data = await res.json();
+        console.log("更新系統", data)
 
-        return await res.json();
-    } catch (err) {
-        console.error("更新系統設定失敗", err);
+        return data
+    } catch (err: any) {
+        if (err.name === "AbortError") {
+            console.error(`更新系統設定超時 (${timeoutMs} ms)`);
+        } else {
+            console.error("更新系統設定失敗", err);
+        }
         return false;
     }
-
 }
