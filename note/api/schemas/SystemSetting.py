@@ -10,6 +10,7 @@ class SystemSettings(BaseModel):
     use_rag: bool
     subscribe_email: bool
     reranker_enabled: bool
+    temperature: float = 0.6  # LLM temperature, default to 0.6
 
 
 DEFAULT_SETTINGS = SystemSettings(
@@ -20,6 +21,7 @@ DEFAULT_SETTINGS = SystemSettings(
     use_rag=True,
     subscribe_email=False,
     reranker_enabled=True,
+    temperature=0.6,  # Default temperature for LLM responses
 )
 
 

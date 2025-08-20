@@ -3,6 +3,8 @@ from fastapi import APIRouter
 
 from api.schemas.query import Query
 from logger import get_logger
+from storage.redis_client import redis_client
+
 
 logger = get_logger(__name__)
 
@@ -15,4 +17,6 @@ def ask_host(query: Query):
     logger.info("ask_host %s", q)
     from arxiv_ingestion.flows.arxiv_rag_pipeline import rag  # <- lazy import
 
-    return rag(query=q, top_k=query.top_k, user_language=query.user_language)
+    top = redis_client.get(f"{query.user_id}-top_k")
+    lang = redis_client.get(f"{query.user_id}-user_language")
+    return rag(query=q, top_k=top, user_language=lang)

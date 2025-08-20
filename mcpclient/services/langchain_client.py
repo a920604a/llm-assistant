@@ -1,30 +1,49 @@
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
-from conf import MODEL_NAME, USER_LANGUAGE, OLLAMA_API_URL
+from conf import MODEL_NAME, OLLAMA_API_URL
 
 
-def llm(query: str):
+def llm(query: str, isTranslate: bool, user_language: str = "English") -> str:
     chat_model = ChatOllama(model=MODEL_NAME, temperature=0.6, base_url=OLLAMA_API_URL)
 
-    prompt = ChatPromptTemplate.from_template(
+    if isTranslate:
+
+        # 使用 user_language 指定語言
+        prompt_template = """
+        You are a helpful assistant.
+
+        Question:
+        {question}
+
+        Answer in {user_language}, concise and clear.
         """
-    You are a helpful assistant.
-    
-    Question:
-    {question}
+        prompt = ChatPromptTemplate.from_template(prompt_template)
+        chain = prompt | chat_model
+        resp = chain.invoke({"question": query, "user_language": user_language})
+    else:
+        # 不翻譯，使用預設語言
+        prompt_template = """
+        You are a helpful assistant.
 
-    Answer in {USER_LANGUAGE}, concise and clear.
-    """
-    )
+        Question:
+        {question}
 
-    chain = prompt | chat_model
-
-    resp = chain.invoke({"question": query, "USER_LANGUAGE": USER_LANGUAGE})
+        Answer concise and clear.
+        """
+        prompt = ChatPromptTemplate.from_template(prompt_template)
+        chain = prompt | chat_model
+        resp = chain.invoke({"question": query})
 
     return resp.content
 
 
 if __name__ == "__main__":
     query = "什麼是 LangChain？"
-    result = llm(query)
+
+    # 使用翻譯
+    result = llm(query, isTranslate=True, user_language="Traditional Chinese")
     print(result)
+
+    # 不翻譯
+    result2 = llm(query, isTranslate=False)
+    print(result2)

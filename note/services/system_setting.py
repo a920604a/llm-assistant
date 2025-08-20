@@ -1,8 +1,10 @@
 # services/system_setting.py
+import json
 from api.schemas.SystemSetting import SystemSettings, DEFAULT_SETTINGS
 from storage.crud.setting import get, update
 from typing import Optional
 from logger import get_logger
+from storage.redis_client import update_redis_system_setting
 
 
 logger = get_logger(__name__)
@@ -19,4 +21,7 @@ def get_setting(user_id: str) -> Optional[SystemSettings]:
 
 def post_setting(user_id: str, settings: SystemSettings) -> bool:
     logger.info(f"Updating settings for user {user_id}: {settings.dict()}")
+    # save to redis
+    update_redis_system_setting(user_id, settings)
+
     return update(user_id, settings.dict(exclude_unset=True))

@@ -8,7 +8,7 @@ from logger import get_logger
 logger = get_logger(__name__)
 
 
-@celery_app.task(name="run_daily_arxiv_pipeline")
+@celery_app.task(name="run_daily_arxiv_pipeline", queue="notes")
 def run_daily_pipeline(max_results=10, process_pdfs=True):
     logger.info("🚀 Worker started, triggering  Arxiv pipeline...")
     target_date = (datetime.utcnow() - timedelta(days=10)).strftime("%Y%m%d")

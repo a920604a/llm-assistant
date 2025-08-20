@@ -1,15 +1,16 @@
 # REST API routers
 import requests
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from api.schemas.user import UserQuery
 from services.aggregator import process_user_query
+from api.verify_token import verify_firebase_token  # 解析 Firebase token
 
 router = APIRouter()
 
 
 @router.post("/api/ask")
-def ask_host(user_query: UserQuery):
+def ask_host(user_query: UserQuery, user_id: str = Depends(verify_firebase_token)):
     """
     Host API 入口：
     1. 接收使用者 query
@@ -22,5 +23,5 @@ def ask_host(user_query: UserQuery):
     if not query:
         return {"error": "Query 不可為空"}
 
-    result = process_user_query(user_query)
+    result = process_user_query(user_query, user_id=user_id)
     return {"reply": result}

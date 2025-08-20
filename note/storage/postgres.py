@@ -10,6 +10,7 @@ from sqlalchemy import (
     func,
     ForeignKey,
     ARRAY,
+    Float,
 )
 
 from sqlalchemy.orm import relationship, declarative_base
@@ -43,6 +44,7 @@ class UserSetting(Base):
     use_rag = Column(Boolean, nullable=False, default=True)
     subscribe_email = Column(Boolean, nullable=False, default=False)
     reranker_enabled = Column(Boolean, nullable=False, default=True)
+    temperature = Column(Float, nullable=False, default=0.6)  # LLM temperature
 
     user = relationship("User", back_populates="setting")
 

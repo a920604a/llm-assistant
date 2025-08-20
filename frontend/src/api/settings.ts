@@ -12,6 +12,7 @@ export interface SystemSettings {
     use_rag: boolean;           // 是否啟用 RAG
     subscribe_email: boolean;   // 是否訂閱每日 Email
     reranker_enabled: boolean;  // 是否啟用 reranker
+    temperature: number;        // LLM 溫度
 }
 
 export const DEFAULT_SETTINGS: SystemSettings = {
@@ -22,6 +23,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
     use_rag: true,
     subscribe_email: false,
     reranker_enabled: true,
+    temperature: 0.6,
 };
 
 

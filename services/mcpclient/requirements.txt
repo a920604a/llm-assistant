@@ -49,3 +49,4 @@ click
 pytest
 tqdm
 firebase-admin
+redis

@@ -7,6 +7,7 @@ export default function SettingsPage() {
 
     useEffect(() => {
         getSystemSettings().then((s) => {
+            console.log("Fetched settings:", s);
             setSettings(s);
             setLoading(false);
         });
@@ -43,8 +44,8 @@ export default function SettingsPage() {
                         onChange={e => handleChange("user_language", e.target.value)}
                         className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                     >
-                        <option value="en">English</option>
-                        <option value="zh">中文</option>
+                        <option value="English">English</option>
+                        <option value="Traditional Chinese">中文</option>
                     </select>
                 </div>
 
@@ -77,6 +78,29 @@ export default function SettingsPage() {
                         className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                     />
                 </div>
+
+                <div className="flex flex-col">
+                    <label className="mb-1 font-medium text-gray-700">
+                        LLM Temperature
+                        <span className="ml-2 text-sm text-gray-500">(0 ~ 1，越高越有創造性)</span>
+                    </label>
+
+                    <div className="flex items-center gap-3">
+                        <input
+                            type="range"
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            value={typeof settings.temperature === "number" ? settings.temperature : 0.7}
+                            onChange={e => handleChange("temperature", parseFloat(e.target.value))}
+                            className="w-full"
+                        />
+                        <span className="w-12 text-right tabular-nums">
+                            {(typeof settings.temperature === "number" ? settings.temperature : 0.7).toFixed(2)}
+                        </span>
+                    </div>
+                </div>
+
 
                 <div className="flex items-center justify-between p-2 border rounded hover:bg-gray-100">
                     <span>使用 RAG</span>
