@@ -9,7 +9,7 @@ router = APIRouter()
 
 
 @router.post("/api/ask")
-def ask_host(user: UserQuery):
+def ask_host(user_query: UserQuery):
     """
     Host API 入口：
     1. 接收使用者 query
@@ -17,10 +17,10 @@ def ask_host(user: UserQuery):
     3. 呼叫指定的 MCP Server 處理子任務（此例為 Note Service）
     4. 將結果回傳前端
     """
-    query = user.query.strip()
+    query = user_query.query.strip()
 
     if not query:
         return {"error": "Query 不可為空"}
 
-    result = process_user_query(query)
+    result = process_user_query(user_query)
     return {"reply": result}

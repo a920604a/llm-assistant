@@ -8,7 +8,6 @@ load_dotenv()
 
 OLLAMA_API_URL = "http://ollama:11434"
 MODEL_NAME = "gpt-oss:20b"
-USER_LANGUAGE = "Traditional Chinese"  # "English"
 
 
 PDF_CACHE_DIR = "/data/arxiv_pdfs"

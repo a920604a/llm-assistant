@@ -6,7 +6,6 @@ load_dotenv()
 
 
 MODEL_NAME = "gpt-oss:20b"
-USER_LANGUAGE = "Traditional Chinese"  # "English"
 
 UPLOAD_DIR = "/data/uploaded_files"
 # === 基本設定 ===

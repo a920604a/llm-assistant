@@ -25,7 +25,7 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(secur
 
 
 def verify_firebase_token(authorization: Optional[str] = Header(None)) -> str:
-    # logger.info(f"authorization {authorization}")
+    logger.info(f"authorization {authorization}")
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(
             status_code=401, detail="Missing or invalid authorization header"

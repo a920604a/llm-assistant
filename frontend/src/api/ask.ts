@@ -1,26 +1,52 @@
 import { auth } from "../firebase";
 import { BASE_URL } from "./conf";
+import { getSystemSettings } from "./settings";
 
 const DEV_BASE_URL = "http://localhost:8022/api"
 
-export async function ask(query: string): Promise<{ reply: string } | null> {
+export async function ask(query: string, timeoutMs = 15000): Promise<{ reply: string } | null> {
     if (!auth.currentUser) return null;
+    const settings = await getSystemSettings();
+
 
     const token = await auth.currentUser.getIdToken();
 
-    const res = await fetch(`${BASE_URL}/ask`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ query }),
-    });
+    const payload = {
+        query,
+        top_k: settings.top_k,
+        user_language: settings.user_language,
+    };
 
-    if (!res.ok) {
-        console.error("取得 LLM 回應失敗", await res.text())
+
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+
+        const res = await fetch(`${BASE_URL}/ask`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+        });
+
+        if (!res.ok) {
+            console.error("取得 LLM 回應失敗", await res.text())
+            return null;
+        }
+
+        return await res.json();
+    } catch (err: any) {
+        if (err.name === "AbortError") {
+            console.error(`Request 超時 (${timeoutMs} ms)`);
+        } else {
+            console.error("Fetch 發生錯誤:", err);
+        }
         return null;
+    } finally {
+        clearTimeout(id);
     }
-
-    return await res.json();
 }

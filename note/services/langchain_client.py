@@ -1,9 +1,9 @@
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
-from conf import MODEL_NAME, USER_LANGUAGE, OLLAMA_API_URL
+from arxiv_ingestion.config import MODEL_NAME, OLLAMA_API_URL
 
 
-def llm_context(context: str, query: str):
+def llm_context(context: str, query: str, user_language: str = "Traditional Chinese"):
 
     chat_model = ChatOllama(model=MODEL_NAME, temperature=0.6, base_url=OLLAMA_API_URL)
 
@@ -17,13 +17,14 @@ def llm_context(context: str, query: str):
     Question:
     {question}
 
-    Answer in Traditional Chinese, list format.
+    Answer in {user_language}, list format.
     """
     )
+
     chain = prompt | chat_model
 
     resp = chain.invoke(
-        {"context": context, "question": query, "USER_LANGUAGE": USER_LANGUAGE}
+        {"context": context, "question": query, "user_language": user_language}
     )
 
     return resp.content

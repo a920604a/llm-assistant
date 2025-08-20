@@ -9,22 +9,38 @@ export type DashboardStats = {
     remaining_tokens: number;
 };
 
-export async function fetchDashboardStats(): Promise<DashboardStats | null> {
+export async function fetchDashboardStats(timeoutMs = 10000): Promise<DashboardStats | null> {
     if (!auth.currentUser) return null;
 
     const token = await auth.currentUser.getIdToken();
+    console.log(`${BASE_URL}/dashboard/stats`);
 
-    const res = await fetch(`${BASE_URL}/dashboard/stats`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
 
-    if (!res.ok) {
-        console.error("取得 Dashboard 統計失敗", await res.text());
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const res = await fetch(`${BASE_URL}/dashboard/stats`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            signal: controller.signal,
+        });
+
+        if (!res.ok) {
+            console.error("取得 Dashboard 統計失敗", await res.text());
+            return null;
+        }
+
+        const data = await res.json();
+        return data as DashboardStats;
+    } catch (err: any) {
+        if (err.name === "AbortError") {
+            console.error(`Dashboard 統計請求超時 (${timeoutMs} ms)`);
+        } else {
+            console.error("Fetch 發生錯誤:", err);
+        }
         return null;
+    } finally {
+        clearTimeout(id);
     }
-
-    const data = await res.json();
-    return data as DashboardStats;
 }

@@ -27,13 +27,16 @@ fake_db = {
 
 
 @router.get("/api/dashboard/stats", response_model=DashboardStats)
-# async def get_dashboard_stats(user_id: str):
-async def get_dashboard_stats(user_id: str = Depends(verify_firebase_token)):
+async def get_dashboard_stats(user_id: str):
+    # async def get_dashboard_stats(user_id: str = Depends(verify_firebase_token)):
 
     # user_data = fake_db.get("user123")
     user_data = get_user_data(user_id)
     if not user_data:
         raise HTTPException(status_code=404, detail="User data not found")
+
+    print(f"user_data {user_data}")
+    logger.info(f"User {user_id} dashboard stats retrieved: {user_data}")
 
     return DashboardStats(
         uploaded_papers=user_data["uploaded_papers"],

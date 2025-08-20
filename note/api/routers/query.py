@@ -17,4 +17,6 @@ def ask_host(query: Query):
     q = query.text.strip()
     logger.info("ask_host %s", q)
 
-    return rag(q)
+    return rag(
+        query=query.text.strip(), top_k=query.top_k, user_language=query.user_language
+    )

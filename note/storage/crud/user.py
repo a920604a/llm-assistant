@@ -1,6 +1,9 @@
 from storage import db_session
 from storage.postgres import User, Paper
 from datetime import date
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def get_or_create_user(db, user_id):
@@ -27,6 +30,7 @@ def __get_all_papers_number(db) -> int:
 def get_info(user_id: str):
     with db_session() as db:
         user = get_or_create_user(db, user_id)
+        logger.info(f"User {user_id} info retrieved: {user}")
         uploaded_papers = __get_all_papers_number(db)
 
         return {

@@ -12,7 +12,7 @@ from arxiv_ingestion.tasks.llm import llm
 
 # --- Full RAG pipeline ---
 @flow(name="Arxiv Paper RAG Pipeline")
-def rag(query: str, top_k: int = 5) -> str:
+def rag(query: str, top_k: int = 5, user_language: str = "Traditional Chinese") -> str:
     logger = get_run_logger()
     logger.info("Step 1: Retrieval")
     retrieved_chunks, msg = retrieval.submit(query, top_k=top_k).result()
@@ -37,7 +37,7 @@ def rag(query: str, top_k: int = 5) -> str:
     prompt = query
 
     logger.info(f"Step 5: LLM generation with context = {context}")
-    answer = llm.submit(context, prompt).result()
+    answer = llm.submit(context, prompt, user_language=user_language).result()
 
     logger.info(f"Answer generated: {answer[:200]}...")
     return answer
@@ -45,5 +45,5 @@ def rag(query: str, top_k: int = 5) -> str:
 
 if __name__ == "__main__":
     query = "What is Circuit Localization ?"
-    answer = rag(query)
+    answer = rag(query, user_language="Traditional Chinese")
     print(answer)
