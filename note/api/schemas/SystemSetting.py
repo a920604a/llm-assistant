@@ -13,7 +13,7 @@ class SystemSettings(BaseModel):
 
 
 DEFAULT_SETTINGS = SystemSettings(
-    user_language="English",
+    user_language="Traditional Chinese",
     translate=False,
     system_prompt="",
     top_k=5,

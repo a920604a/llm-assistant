@@ -32,6 +32,7 @@ export async function fetchDashboardStats(timeoutMs = 10000): Promise<DashboardS
         }
 
         const data = await res.json();
+        console.log("Dashboard 統計資料:", data);
         return data as DashboardStats;
     } catch (err: any) {
         if (err.name === "AbortError") {

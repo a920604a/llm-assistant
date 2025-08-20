@@ -14,16 +14,12 @@ Instrumentator().instrument(app).expose(app)
 
 origins = [
     "http://localhost",
-    "http://localhost:5173",  # 如果前端跑在 5173 port
-    "*",
-    # 其他允許的來源
+    "http://localhost:5173",
 ]
 
-
-# 設定允許的來源
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # 先允許所有,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

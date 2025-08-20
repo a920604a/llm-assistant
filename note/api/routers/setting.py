@@ -13,6 +13,7 @@ router = APIRouter()
 @router.get("/api/setting", response_model=SystemSettings)
 async def get_user_settings(user_id: str):
     user_settings = get_setting(user_id)
+    logger.info("get_user_settings %s", user_settings)
     return SystemSettings(**user_settings) if user_settings else DEFAULT_SETTINGS
 
 

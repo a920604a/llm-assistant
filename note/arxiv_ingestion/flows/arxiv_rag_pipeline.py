@@ -43,7 +43,7 @@ def rag(query: str, top_k: int = 5, user_language: str = "Traditional Chinese") 
     return answer
 
 
-# if __name__ == "__main__":
-#     query = "What is Circuit Localization ?"
-#     answer = rag(query, user_language="Traditional Chinese")
-#     print(answer)
+if __name__ == "__main__":
+    query = "What is RAG?"
+    answer = rag(query, user_language="Traditional Chinese")
+    print(answer)

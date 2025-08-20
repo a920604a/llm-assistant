@@ -25,7 +25,8 @@ add_prometheus_option(celery_app)
 celery_app.conf.beat_schedule = {
     "daily-arxiv-pipeline": {
         "task": "run_daily_arxiv_pipeline",
-        "schedule": crontab(hour=0, minute=0),
-        "args": (10, True),  # 傳入 task 的參數 (max_results=10, process_pdfs=True)
+        # "schedule": crontab(hour=0, minute=0),
+        "schedule": crontab(minute="*/5"),
+        "args": (2, True),  # 傳入 task 的參數 (max_results=10, process_pdfs=True)
     }
 }
