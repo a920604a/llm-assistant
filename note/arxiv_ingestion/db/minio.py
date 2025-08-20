@@ -24,7 +24,7 @@ s3_client = boto3.client(
 
 
 # 建立 bucket（若不存在）
-def create_bucket_if_not_exists():
+def create_note_bucket():
     logger.info(f"MINIO_ENDPOINT {MINIO_ENDPOINT}")
     logger.info(f"MINIO_ACCESS_KEY {MINIO_ACCESS_KEY}")
     logger.info(f"MINIO_SECRET_KEY {MINIO_SECRET_KEY}")

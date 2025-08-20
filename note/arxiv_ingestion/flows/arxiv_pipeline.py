@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from prefect import flow
 from arxiv_ingestion.db.qdrant import create_qdrant_collection
-from arxiv_ingestion.db.minio import create_bucket_if_not_exists
+from arxiv_ingestion.db.minio import create_note_bucket
 from arxiv_ingestion.tasks.fetch_papers import fetch_papers_task
 from arxiv_ingestion.tasks.process_pdfs import process_pdfs_task
 from arxiv_ingestion.tasks.store_papers import store_papers_task
@@ -51,7 +51,7 @@ def arxiv_pipeline(target_date: str, max_results: int = 10, process_pdfs: bool =
 
 if __name__ == "__main__":
     create_qdrant_collection()
-    create_bucket_if_not_exists()
+    create_note_bucket()
 
     target_date = (datetime.utcnow() - timedelta(days=10)).strftime("%Y%m%d")
     arxiv_pipeline(target_date=target_date, max_results=1, process_pdfs=True)

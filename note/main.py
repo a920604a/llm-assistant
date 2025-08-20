@@ -11,7 +11,7 @@ from storage.qdrant import create_qdrant_collection as create_note_collection
 from arxiv_ingestion.db.qdrant import (
     create_qdrant_collection as create_arxiv_collection,
 )
-from arxiv_ingestion.db.minio import create_bucket_if_not_exists
+from arxiv_ingestion.db.minio import create_note_bucket
 
 from logger import get_logger
 
@@ -44,4 +44,4 @@ app.include_router(user.router, tags=["user"])
 async def startup_event():
     create_note_collection()
     create_arxiv_collection()
-    create_bucket_if_not_exists()
+    create_note_bucket()

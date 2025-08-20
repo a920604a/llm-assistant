@@ -93,6 +93,7 @@ services:
     ports:
       - "6379:6379"
   worker:
+    # Celery Worker → 負責執行任務
     build:
       context: .
       dockerfile: ./services/celeryworker/Dockerfile.worker
@@ -106,6 +107,21 @@ services:
       - ./note:/app
     env_file:
       - ./.env # <- 指定要讀的環境變數檔
+
+  beat:
+    # Celery Beat → 負責發送定時任務給 Worker
+    build:
+      context: .
+      dockerfile: ./services/celeryworker/Dockerfile.worker
+    container_name: note-beat
+    command: celery -A celery_app.celery_app beat --loglevel=info
+    depends_on:
+      - redis
+      - worker
+    volumes:
+      - ./note:/app
+    env_file:
+      - ./.env
 
   flower:
     image: mher/flower:0.9.7
