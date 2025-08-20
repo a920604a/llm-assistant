@@ -1,9 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import logging
 from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi import FastAPI
-from api.routers import query, dashboard
+from api.routers import query, dashboard, setting
 from logger import get_logger
 
 logger = get_logger(__name__)
@@ -16,6 +15,7 @@ Instrumentator().instrument(app).expose(app)
 origins = [
     "http://localhost",
     "http://localhost:5173",  # 如果前端跑在 5173 port
+    "*",
     # 其他允許的來源
 ]
 
@@ -31,3 +31,4 @@ app.add_middleware(
 
 app.include_router(query.router, tags=["query"])
 app.include_router(dashboard.router, tags=["dashboard"])
+app.include_router(setting.router, tags=["setting"])

@@ -23,10 +23,28 @@ class User(Base):
     __tablename__ = "users"
     id = Column(String, primary_key=True, index=True)
     last_query_date = Column(Date)
-    total_queries = Column(Integer)
-    remaining_tokens = Column(Integer)
+    total_queries = Column(Integer, default=0, nullable=False)
+    remaining_tokens = Column(Integer, default=1000, nullable=False)
 
     notes = relationship("Note", back_populates="owner")
+    setting = relationship("UserSetting", back_populates="user", uselist=False)
+
+
+class UserSetting(Base):
+    __tablename__ = "user_setting"
+
+    user_id = Column(
+        String(255), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_language = Column(String(255), nullable=False, default="English")
+    translate = Column(Boolean, nullable=False, default=False)
+    system_prompt = Column(String, nullable=False, default="")
+    top_k = Column(Integer, nullable=False, default=5)
+    use_rag = Column(Boolean, nullable=False, default=True)
+    subscribe_email = Column(Boolean, nullable=False, default=False)
+    reranker_enabled = Column(Boolean, nullable=False, default=True)
+
+    user = relationship("User", back_populates="setting")
 
 
 class Note(Base):

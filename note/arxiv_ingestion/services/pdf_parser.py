@@ -1,4 +1,3 @@
-import logging
 import asyncio
 from pathlib import Path
 from typing import Optional
@@ -18,8 +17,9 @@ from arxiv_ingestion.services.schemas import (
 )
 from typing import List
 
+from logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class TextExtractor:

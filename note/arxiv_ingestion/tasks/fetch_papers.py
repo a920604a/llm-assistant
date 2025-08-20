@@ -1,11 +1,12 @@
-import logging
 from typing import List, Tuple
 from prefect import task
 from arxiv_ingestion.services.arxiv_client import ArxivClient
 from arxiv_ingestion.services.schemas import ArxivPaper
 from arxiv_ingestion.config import ArxivSettings
 
-logger = logging.getLogger(__name__)
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 
 @task(retries=3, retry_delay_seconds=10)

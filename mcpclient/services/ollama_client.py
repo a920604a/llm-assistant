@@ -1,5 +1,4 @@
 import requests
-import logging
 from conf import OLLAMA_API_URL, MODEL_NAME
 from utils import clean_json_string
 from logger import get_logger

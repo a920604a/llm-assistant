@@ -1,4 +1,3 @@
-import logging
 import asyncio
 from typing import Any, Dict, List, Optional
 from datetime import datetime
@@ -10,7 +9,9 @@ from arxiv_ingestion.db.models import Paper  # SQLAlchemy ORM model
 from arxiv_ingestion.services.schemas import ArxivPaper, ParsedPaper, ArxivMetadata
 from arxiv_ingestion.db.factory import make_database
 
-logger = logging.getLogger(__name__)
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class MetadataFetcher:

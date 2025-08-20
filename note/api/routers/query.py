@@ -1,6 +1,4 @@
 # REST API routers
-import requests
-import logging
 from fastapi import APIRouter
 
 from arxiv_ingestion.flows.arxiv_rag_pipeline import rag

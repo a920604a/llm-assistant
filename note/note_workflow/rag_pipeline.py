@@ -6,9 +6,10 @@ from conf import COLLECTION_NAME, OLLAMA_API_URL
 from services.embedding import get_embedding
 from qdrant_client import models
 from conf import MODEL_NAME
-import logging
+from logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
+gging.getLogger(__name__)
 
 
 # 召回 top k 相關分片

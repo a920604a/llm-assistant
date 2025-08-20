@@ -1,6 +1,6 @@
 # services/arxiv_client.py
 import asyncio
-import logging
+
 import time
 from pathlib import Path
 from dateutil import parser
@@ -15,8 +15,9 @@ from arxiv_ingestion.config import ArxivSettings
 from arxiv_ingestion.db.minio import s3_client
 from arxiv_ingestion.config import MINIO_BUCKET
 from arxiv_ingestion.services.schemas import ArxivPaper
+from logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ArxivClient:

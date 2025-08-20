@@ -2,7 +2,7 @@ import io
 from prefect import task
 from qdrant_client import models
 from typing import List
-import logging
+
 
 from arxiv_ingestion.db.qdrant import qdrant_client
 from arxiv_ingestion.db.minio import s3_client
@@ -11,8 +11,10 @@ from arxiv_ingestion.services.pdf_parser import TextExtractor
 from arxiv_ingestion.services.schemas import ArxivPaper
 from arxiv_ingestion.config import MINIO_BUCKET, COLLECTION_NAME
 
+from logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
+
 
 # 可以依需要調整 chunk_size 與 overlap
 CHUNK_SIZE = 500  # token 或字數，根據你的 embedding 模型調整

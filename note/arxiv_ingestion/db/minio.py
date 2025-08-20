@@ -1,7 +1,8 @@
-import os
 import boto3
 from botocore.client import Config
-import logging
+
+from logger import get_logger
+
 
 from arxiv_ingestion.config import (
     MINIO_ENDPOINT,
@@ -10,7 +11,8 @@ from arxiv_ingestion.config import (
     MINIO_BUCKET,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
+
 
 # 初始化 MinIO (S3) 客戶端
 s3_client = boto3.client(

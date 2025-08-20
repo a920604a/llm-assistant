@@ -30,7 +30,7 @@ def process_user_query(user_query: UserQuery, shortcut=False):
                 "user_language": user_query.user_language,
             },
         )
-        logger.info(f"note_result {note_result}")
+        logger.info(f"note_result {note_result[:200]}")
 
         # Step 3: 整合結果
         return note_result

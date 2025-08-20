@@ -1,9 +1,10 @@
-import logging
 from prefect import task
 
 from arxiv_ingestion.services.metadata_fetcher import MetadataFetcher
 
-logger = logging.getLogger(__name__)
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 
 @task

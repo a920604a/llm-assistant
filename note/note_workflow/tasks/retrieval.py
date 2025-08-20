@@ -3,9 +3,10 @@ from qdrant_client import models
 from storage.qdrant import qdrant_client
 from services.embedding import get_embedding
 from conf import COLLECTION_NAME
-import logging
+from logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
+
 
 @task
 def retrieval(query: str, top_k: int = 5, course: str = "data-engineering-zoomcamp"):
@@ -19,13 +20,12 @@ def retrieval(query: str, top_k: int = 5, course: str = "data-engineering-zoomca
         query_filter=models.Filter(
             must=[
                 models.FieldCondition(
-                    key="course",
-                    match=models.MatchValue(value=course)
+                    key="course", match=models.MatchValue(value=course)
                 )
             ]
         ),
         limit=top_k,
-        with_payload=True
+        with_payload=True,
     )
 
     results = [hit.payload for hit in query_result]

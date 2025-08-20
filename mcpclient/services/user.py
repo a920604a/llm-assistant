@@ -11,3 +11,7 @@ def get_user_data(user_id: str):
 
     resp.raise_for_status()
     return resp.json()
+
+
+def update_user_settings(user_id: str):
+    pass

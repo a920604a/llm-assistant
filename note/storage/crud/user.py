@@ -27,7 +27,7 @@ def __get_all_papers_number(db) -> int:
     return db.query(Paper).count()
 
 
-def get_info(user_id: str):
+def get(user_id: str):
     with db_session() as db:
         user = get_or_create_user(db, user_id)
         logger.info(f"User {user_id} info retrieved: {user}")

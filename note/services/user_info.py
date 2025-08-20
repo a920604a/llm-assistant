@@ -1,5 +1,5 @@
-from storage.crud.user import get_info
+from storage.crud.user import get
 
 
-def get_user_info(user_id: str):
-    return get_info(user_id=user_id)
+def get_info(user_id: str):
+    return get(user_id=user_id)
