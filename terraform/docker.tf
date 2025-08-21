@@ -12,7 +12,9 @@ resource "docker_container" "nginx" {
     internal = 80
     external = 80
   }
-
+  depends_on = [
+    docker_container.mcpclient
+  ]
 
 }
 
