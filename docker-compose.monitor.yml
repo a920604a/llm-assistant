@@ -1,0 +1,84 @@
+services:
+  prometheus:
+    image: prom/prometheus
+    user: "1000"
+    volumes:
+      - ./services/monitor/prometheus:/etc/config
+      - ./data/prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    command:
+      - "--config.file=/etc/config/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+    networks:
+      - monitor-net
+
+  grafana:
+    image: grafana/grafana-enterprise
+    user: "472"
+    ports:
+      - "127.0.0.1:3002:3000"
+    volumes:
+      - ./services/monitor/dashboards:/var/lib/grafana/dashboards # dashboard JSON
+      - ./services/monitor/provisioning:/etc/grafana/provisioning # provisioning 設定
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_SECURITY_ADMIN_PASSWORD=admin12345 # 可設定 Grafana admin 密碼
+      - GF_INSTALL_PLUGINS=vertamedia-clickhouse-datasource
+    restart: always
+    networks:
+      - monitor-net
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    ports:
+      - "127.0.0.1:9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - monitor-net
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - monitor-net
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter
+    container_name: blackbox-exporter
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./services/monitor/blackbox:/config
+    command:
+      - "--config.file=/config/blackbox.yml"
+    networks:
+      - monitor-net
+
+  celery_exporter:
+    # 新增的 Celery Prometheus Exporter 服務
+    image: ghcr.io/danihodovic/celery-exporter:latest # 使用預構建的 Docker 鏡像
+    container_name: celery_exporter
+    ports:
+      - "9540:9540" # 將容器的 8000 端口映射到主機的 8000 端口
+    environment:
+      - CE_BROKER_URL=redis://redis:6379/0 # 連接到 Celery broker (Redis 服務)
+      - CE_LISTEN_PORT=8000 # Exporter 監聽的端口
+      - CE_ENABLE_EVENTS=true # 啟用事件監聽
+    networks:
+      - monitor-net
+
+networks:
+  monitor-net:
+    driver: bridge

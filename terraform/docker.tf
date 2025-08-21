@@ -15,6 +15,10 @@ resource "docker_container" "nginx" {
   depends_on = [
     docker_container.mcpclient
   ]
+  volumes {
+    host_path      = abspath("${path.module}/../services/frontend/nginx.conf") # 修正路徑
+    container_path = "/etc/nginx/nginx.conf"
+  }
 
 }
 
