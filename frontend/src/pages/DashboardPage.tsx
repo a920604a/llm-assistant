@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { fetchDashboardStats, DashboardStats } from "../api/dashboard";
+import { useEffect, useState } from "react";
+import { fetchDashboardStats, type DashboardStats } from "../api/dashboard";
+
 
 const StatsCard = ({ title, value }: { title: string; value: string }) => (
     <div className="bg-white p-4 rounded shadow">

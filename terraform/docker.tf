@@ -224,6 +224,31 @@ resource "docker_container" "worker" {
   ]
 }
 
+resource "docker_container" "beat" {
+  name  = "beat"
+  image = "beat:latest" # TODO , because custom docker image
+  networks_advanced {
+    name = docker_network.llm_network.name
+  }
+
+  command = ["celery", "-A", "celery_app.celery_app", "beat", "--loglevel=info"]
+
+  volumes {
+    host_path      = abspath("${path.module}/../note")
+    container_path = "/app"
+  }
+
+  env = [
+    for line in split("\n", file("${path.module}/../.env")) : line if length(trimspace(line)) > 0
+  ]
+
+  depends_on = [
+    docker_container.noteserver,
+    docker_container.redis,
+    docker_container.note_db
+  ]
+}
+
 resource "docker_container" "flower" {
   name  = "flower"
   image = "mher/flower:0.9.7"

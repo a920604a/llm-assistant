@@ -1,4 +1,3 @@
-import React from 'react'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 
 import MainLayout from './layouts/MainLayout'
@@ -10,7 +9,6 @@ import SettingsPage from './pages/SettingsPage'
 import LoginPage from './pages/LoginPage'  // 你需要建立這個登入頁面
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './context/ProtectedRoute'
-import Auth from './components/Auth'  // 預計放在 MainLayout 的 header 裡
 
 function App() {
   return (

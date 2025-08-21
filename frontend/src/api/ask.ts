@@ -1,12 +1,9 @@
 import { auth } from "../firebase";
 import { BASE_URL } from "./conf";
-import { getSystemSettings } from "./settings";
 
-const DEV_BASE_URL = "http://localhost:8022/api"
 
 export async function ask(query: string, timeoutMs = 100000): Promise<{ reply: string } | null> {
     if (!auth.currentUser) return null;
-    const settings = await getSystemSettings();
 
 
     const token = await auth.currentUser.getIdToken();

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getSystemSettings, updateSystemSettings, SystemSettings } from "../api/settings";
+import { getSystemSettings, updateSystemSettings, type SystemSettings } from "../api/settings";
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState<SystemSettings | null>(null);
