@@ -1,10 +1,7 @@
-import React from 'react'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 
 import MainLayout from './layouts/MainLayout'
 import DashboardPage from './pages/DashboardPage'
-import UploadPage from './pages/UploadPage'
-import NotesPage from './pages/NotesPage'
 import ChatPage from './pages/ChatPage'
 import HistoryPage from './pages/HistoryPage'
 import SettingsPage from './pages/SettingsPage'
@@ -12,7 +9,6 @@ import SettingsPage from './pages/SettingsPage'
 import LoginPage from './pages/LoginPage'  // 你需要建立這個登入頁面
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './context/ProtectedRoute'
-import Auth from './components/Auth'  // 預計放在 MainLayout 的 header 裡
 
 function App() {
   return (
@@ -32,8 +28,6 @@ function App() {
             }
           >
             <Route index element={<DashboardPage />} />
-            <Route path="upload" element={<UploadPage />} />
-            <Route path="notes" element={<NotesPage />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="history" element={<HistoryPage />} />
             <Route path="settings" element={<SettingsPage />} />

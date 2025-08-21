@@ -1,15 +1,14 @@
-from mcpclient.services.langchain_client import (
+from services.langchain_client import (  # 假設 llm 在 your_module.py，換成實際檔案名稱
     llm,
-)  # 假設 llm 在 your_module.py，換成實際檔案名稱
+)
 
 
 def test_llm_basic():
     """測試 llm() 能否正常呼叫 ChatOllama 並回傳內容"""
 
-    context = "LangChain 是一個用於構建 LLM 應用的框架。"
     query = "什麼是 LangChain？"
 
-    result = llm(context, query)
+    result = llm(query, "Traditional Chinese")
 
     # 確認有輸出字串
     assert isinstance(result, str)

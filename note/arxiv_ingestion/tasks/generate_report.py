@@ -1,5 +1,7 @@
-from prefect import task
 from datetime import datetime
+
+from prefect import task
+
 
 @task
 def generate_report_task(result_summary: dict) -> str:

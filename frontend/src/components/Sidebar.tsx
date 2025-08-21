@@ -1,10 +1,7 @@
-import React from 'react'
 import { NavLink } from 'react-router-dom'
 
 const navItems = [
     { to: '/', label: 'Dashboard' },
-    { to: '/upload', label: '上傳筆記' },
-    { to: '/notes', label: '我的筆記' },
     { to: '/chat', label: 'Chat 機器人' },
     { to: '/history', label: '歷史紀錄' },
     { to: '/settings', label: '設定' },

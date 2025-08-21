@@ -16,7 +16,6 @@
 
 | 方法       | 路徑                           | 描述                                                            |
 | -------- | ---------------------------- | ------------------------------------------------------------- |
-| `POST`   | `/notes/upload`              | 上傳 Markdown / PDF / 資料夾（支援多檔）並進行預處理（chunk、embedding、metadata） |
 | `GET`    | `/notes`                     | 取得目前使用者所有已上傳的筆記清單（含 metadata）                                 |
 | `GET`    | `/notes/{note_id}`           | 查看單一筆記內容（可加上 includeChunks=true 取得分段內容）                       |
 | `DELETE` | `/notes/{note_id}`           | 刪除某筆筆記與其對應的 chunks / 向量資料                                     |
@@ -72,7 +71,6 @@
 | 頁面 Component    | 對應 API                                               |
 | --------------- | ---------------------------------------------------- |
 | `LoginPage`     | `/auth/verify-token`                                 |
-| `UploadPage`    | `/notes/upload`、`/notes`                             |
 | `NotesPage`     | `/notes`、`/notes/{note_id}`、`/notes/{id}/reprocess`  |
 | `ChatPage`      | `/query`、`/query/history`、`/query/{id}`              |
 | `HistoryPage`   | `/query/history`、`/query/{id}`、`/query/{id}`（DELETE） |

@@ -1,10 +1,10 @@
-import logging
-from prefect import task
-from arxiv_ingestion.services.pdf_parser import PDFParserService
 from arxiv_ingestion.services.arxiv_client import ArxivClient
 from arxiv_ingestion.services.metadata_fetcher import MetadataFetcher
+from arxiv_ingestion.services.pdf_parser import PDFParserService
+from logger import get_logger
+from prefect import task
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @task(retries=2)

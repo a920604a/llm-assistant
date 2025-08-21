@@ -1,9 +1,7 @@
 import requests
-import logging
-from conf import OLLAMA_API_URL, MODEL_NAME
-from utils import clean_json_string
+from conf import MODEL_NAME, OLLAMA_API_URL
 from logger import get_logger
-
+from utils import clean_json_string
 
 logger = get_logger(__name__)
 

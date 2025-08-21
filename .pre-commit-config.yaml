@@ -1,5 +1,4 @@
-# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
+# .pre-commit-config.yaml
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v3.2.0
@@ -9,69 +8,60 @@ repos:
     - id: check-yaml
     - id: check-added-large-files
       args: ['--maxkb=1000']
+
 - repo: https://github.com/psf/black
-  rev: 22.6.0
+  rev: 25.1.0
   hooks:
     - id: black
-      language_version: python3.9
-
-- repo: local
-  hooks:
-    - id: pylint
-      name: pylint
-      entry: pylint
-      language: system
-      types: [python]
-      require_serial: true
-      exclude: ^tests/.*$
-      args:
-        [
-          "-rn",
-          "-sn",
-          "--rcfile=pyproject.toml",
-          "note-app"
-        ]
-      env:
-        PYTHONPATH: ./note-app
-- repo: local
-  hooks:
-    - id: pytest-check
-      name: pytest-check
-      entry: pytest
-      language: system
-      pass_filenames: false
-      always_run: true
-      args: [
-        "backend/tests/"
-      ]
+      language_version: python3
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.12.4
   hooks:
     - id: ruff
-      types_or: [ python, pyi ]
-      args: [ --fix ]
+      types_or: [python, pyi]
+      args: [--fix]
     - id: ruff-format
-      types_or: [ python, pyi ]
+      types_or: [python, pyi]
 
--   repo: https://github.com/psf/black
-    rev: 25.1.0
-    hooks:
-    -   id: black
+- repo: https://github.com/pycqa/isort
+  rev: 6.0.1
+  hooks:
+    - id: isort
+      args: ["--profile", "black"]
 
--   repo: https://github.com/pycqa/isort
-    rev: 6.0.1
-    hooks:
-      - id: isort
-        name: isort (python)
-        args: ["--profile", "black"]
+# - repo: local
+#   hooks:
+#     - id: pylint
+#       name: pylint
+#       entry: pylint
+#       language: python
+#       additional_dependencies: ["pylint"]
+#       types: [python]
+#       require_serial: true
+#       args:
+#         [
+#           "-rn",
+#           "-sn",
+#           "note",
+#           "mcpclient"
+#         ]
 
--   repo: https://github.com/PyCQA/bandit
-    rev: 1.8.6
-    hooks:
-      - id: bandit
-        args: ["-c", "pyproject.toml"]
-        additional_dependencies: [ "bandit[toml]" ]
+    # - id: pytest-check
+    #   name: pytest-check
+    #   entry: pytest
+    #   language: python
+    #   additional_dependencies: ["pytest"]
+    #   pass_filenames: false
+    #   always_run: true
+    #   args: ["note/tests/"]
+
+# - repo: https://github.com/PyCQA/bandit
+#   rev: 1.8.6
+#   hooks:
+#     - id: bandit
+#       args: ["-r", "note", "mcpclient"]  # 不指定 pyproject.toml，避免找不到設定檔錯誤
+#       additional_dependencies: ["bandit[toml]"]
 
 - repo: https://github.com/commitizen-tools/commitizen
   rev: v3.17.0

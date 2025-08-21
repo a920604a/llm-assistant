@@ -8,3 +8,6 @@ ollama_models
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
+uploaded_files/
+
+logs

@@ -5,6 +5,18 @@ CREATE TABLE users (
     remaining_tokens INTEGER NOT NULL DEFAULT 1000
 );
 
+CREATE TABLE user_setting (
+    user_id VARCHAR(255) PRIMARY KEY,
+    user_language VARCHAR(255) NOT NULL,
+    translate BOOLEAN NOT NULL DEFAULT FALSE,
+    system_prompt TEXT NOT NULL DEFAULT '',
+    top_k INTEGER NOT NULL DEFAULT 5,
+    use_rag BOOLEAN NOT NULL DEFAULT TRUE,
+    subscribe_email BOOLEAN NOT NULL DEFAULT FALSE,
+    reranker_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    temperature FLOAT NOT NULL DEFAULT 0.6, -- LLM temperature
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
 
 CREATE TABLE notes (
     id SERIAL PRIMARY KEY,
@@ -12,10 +24,7 @@ CREATE TABLE notes (
     s3_key VARCHAR(512) NOT NULL,
     upload_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     user_id VARCHAR(255) NOT NULL,
-    CONSTRAINT fk_user
-        FOREIGN KEY(user_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE papers (
@@ -36,5 +45,6 @@ CREATE TABLE papers (
 );
 
 -- 可加索引，加速查詢
-CREATE INDEX idx_papers_published_date ON papers(published_date);
+CREATE INDEX idx_papers_published_date ON papers (published_date);
+
 CREATE INDEX idx_papers_categories ON papers USING GIN (categories);

@@ -5,6 +5,8 @@
 docker build -t mcpclient:latest ./ -f ./services/mcpclient/Dockerfile.mcpclient && \
 docker build -t noteserver:latest ./ -f ./services/noteservice/Dockerfile.noteserver && \
 docker build -t worker:latest ./ -f ./services/celeryworker/Dockerfile.worker && \
+docker build -t beat:latest ./ -f ./services/celeryworker/Dockerfile.worker && \
+docker build -t nginx:latest ./ -f ./services/frontend/Dockerfile.nginx && \
 
 
 
@@ -29,7 +31,7 @@ terraform apply
 echo "🔍 檢查 container 狀態..."
 
 # 要檢查的 container 名稱
-containers=("mcpclient" "noteserver" "worker" "open-webui" "note-db" "note-qdrant" "redis" "flower")
+containers=("mcpclient" "noteserver" "worker" "beat" "open-webui" "note-db" "note-qdrant" "redis" "flower")
 
 for name in "${containers[@]}"; do
     status=$(docker inspect -f '{{.State.Status}}' "$name" 2>/dev/null || echo "not found")

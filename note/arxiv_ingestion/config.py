@@ -1,17 +1,15 @@
-from pydantic import BaseSettings, Field
-from dotenv import load_dotenv
-
 import os
 
+from dotenv import load_dotenv
+from pydantic import BaseSettings, Field
 
 load_dotenv()
 
 OLLAMA_API_URL = "http://ollama:11434"
 MODEL_NAME = "gpt-oss:20b"
-USER_LANGUAGE = "Traditional Chinese"  # "English"
 
 
-PDF_CACHE_DIR = "./data/arxiv_pdfs"
+PDF_CACHE_DIR = "/data/arxiv_pdfs"
 COLLECTION_NAME = "arxiv_collection"
 QDRANT_URL = "http://note-qdrant:6333"
 

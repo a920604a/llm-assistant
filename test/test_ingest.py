@@ -1,12 +1,7 @@
-from datetime import datetime
 from unittest.mock import MagicMock, patch
 
-import numpy as np
-import pandas as pd
 import pytest
-
-from ingest.ingest import get_embedding  
-
+from ingest.ingest import get_embedding
 
 
 @pytest.mark.parametrize("use_st", [True, False])

@@ -1,11 +1,8 @@
-from typing import List
-from prefect import task
-from sentence_transformers import SentenceTransformer, util
-from arxiv_ingestion.db.qdrant import qdrant_client
-
-from arxiv_ingestion.services.embedding import get_embedding
-from arxiv_ingestion.services.metrics import ndcg_at_k, mrr_at_k, hit_rate
 from arxiv_ingestion.config import COLLECTION_NAME
+from arxiv_ingestion.db.qdrant import qdrant_client
+from arxiv_ingestion.services.embedding import get_embedding
+from arxiv_ingestion.services.metrics import hit_rate, mrr_at_k, ndcg_at_k
+from prefect import task
 
 
 def generate_pseudo_ground_truth(query: str, top_n: int = 5):

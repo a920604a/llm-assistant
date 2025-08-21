@@ -1,8 +1,6 @@
-import os
 import boto3
 from botocore.client import Config
-from conf import MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_BUCKET
-
+from conf import MINIO_ACCESS_KEY, MINIO_BUCKET, MINIO_ENDPOINT, MINIO_SECRET_KEY
 
 # 初始化 MinIO (S3) 客戶端
 s3_client = boto3.client(
@@ -16,7 +14,7 @@ s3_client = boto3.client(
 
 
 # 建立 bucket（若不存在）
-def create_bucket_if_not_exists():
+def create_note_bucket():
     buckets = [b["Name"] for b in s3_client.list_buckets()["Buckets"]]
     if MINIO_BUCKET not in buckets:
         s3_client.create_bucket(Bucket=MINIO_BUCKET)

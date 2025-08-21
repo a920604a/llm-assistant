@@ -1,8 +1,8 @@
-from storage.crud.note import get_notes
+from storage.crud.note import get_note
 
 
 def get_notes(user_id: str):
-    notes = get_notes(user_id=user_id)
+    notes = get_note(user_id=user_id)
     return [
         {
             "filename": note.filename,

@@ -1,5 +1,5 @@
 // ChatPage.tsx
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { ask } from "../api/ask"
 
 const ChatPage = () => {

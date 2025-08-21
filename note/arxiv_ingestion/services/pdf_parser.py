@@ -1,25 +1,23 @@
-import logging
 import asyncio
-from pathlib import Path
-from typing import Optional
-import pdfplumber
-import fitz  # PyMuPDF
 import io
-from PIL import Image
+from pathlib import Path
+from typing import List, Optional
 
-from arxiv_ingestion.config import PDF_CACHE_DIR, MINIO_BUCKET
+import fitz  # PyMuPDF
+import pdfplumber
+from arxiv_ingestion.config import MINIO_BUCKET, PDF_CACHE_DIR
 from arxiv_ingestion.db.minio import s3_client
 from arxiv_ingestion.services.schemas import (
-    PdfContent,
+    PaperFigure,
     PaperSection,
     PaperTable,
-    PaperFigure,
     ParserType,
+    PdfContent,
 )
-from typing import List
+from logger import get_logger
+from PIL import Image
 
-
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class TextExtractor:
@@ -66,7 +64,7 @@ class TableExtractor:
 
 
 class FigureExtractor:
-    def __init__(self, image_dir: str = "./data/arxiv_images"):
+    def __init__(self, image_dir: str = "/data/arxiv_images"):
         self.image_dir = Path(image_dir)
         self.image_dir.mkdir(parents=True, exist_ok=True)
 
@@ -82,7 +80,7 @@ class FigureExtractor:
                 image_ext = base_image["ext"]
 
                 # object name (for MinIO and local)
-                object_name = f"{pdf_filename}/p{page_idx+1}-img{img_idx}.{image_ext}"
+                object_name = f"{pdf_filename}/p{page_idx + 1}-img{img_idx}.{image_ext}"
                 image_path = self.image_dir / object_name
                 image_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -100,7 +98,7 @@ class FigureExtractor:
                 # metadata
                 figures.append(
                     PaperFigure(
-                        caption=f"Page {page_idx+1} Image {img_idx}",
+                        caption=f"Page {page_idx + 1} Image {img_idx}",
                         id=f"s3://{MINIO_BUCKET}/{object_name}",
                     )
                 )
@@ -117,7 +115,7 @@ class PDFParserService:
     """PDF 解析服務：抽文字、表格與圖片"""
 
     def __init__(
-        self, cache_dir: str = PDF_CACHE_DIR, image_dir: str = "./data/arxiv_images"
+        self, cache_dir: str = PDF_CACHE_DIR, image_dir: str = "/data/arxiv_images"
     ):
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)

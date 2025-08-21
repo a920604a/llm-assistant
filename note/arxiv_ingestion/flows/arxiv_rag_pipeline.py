@@ -1,18 +1,14 @@
-import math
-from typing import List
-from prefect import flow
-from prefect import get_run_logger
-
-from arxiv_ingestion.tasks.retrieval import retrieval
-from arxiv_ingestion.tasks.rerank import re_ranking
 from arxiv_ingestion.tasks.evaluate import evaluate
-from arxiv_ingestion.tasks.prompt import build_prompt
 from arxiv_ingestion.tasks.llm import llm
+from arxiv_ingestion.tasks.prompt import build_prompt
+from arxiv_ingestion.tasks.rerank import re_ranking
+from arxiv_ingestion.tasks.retrieval import retrieval
+from prefect import flow, get_run_logger
 
 
 # --- Full RAG pipeline ---
 @flow(name="Arxiv Paper RAG Pipeline")
-def rag(query: str, top_k: int = 5) -> str:
+def rag(query: str, top_k: int = 5, user_language: str = "Traditional Chinese") -> str:
     logger = get_run_logger()
     logger.info("Step 1: Retrieval")
     retrieved_chunks, msg = retrieval.submit(query, top_k=top_k).result()
@@ -28,7 +24,7 @@ def rag(query: str, top_k: int = 5) -> str:
         eval_metrics = evaluate.submit(reranked, query, top_k=top_k).result()
         logger.info(f"Evaluation metrics: {eval_metrics}")
 
-        logger.info("Step 4: Build context ")
+        logger.info("Step 4: Build context")
         context = build_prompt.submit(query, reranked).result()
     else:
         logger.warning("No chunks retrieved, fallback to query as prompt")
@@ -36,14 +32,14 @@ def rag(query: str, top_k: int = 5) -> str:
         context = ""
     prompt = query
 
-    logger.info("Step 4: LLM generation")
-    answer = llm.submit(context, prompt).result()
+    logger.info(f"Step 5: LLM generation with context = {context}")
+    answer = llm.submit(context, prompt, user_language=user_language).result()
 
     logger.info(f"Answer generated: {answer[:200]}...")
     return answer
 
 
 if __name__ == "__main__":
-    query = "What is Circuit Localization ?"
-    answer = rag(query)
+    query = "What is RAG?"
+    answer = rag(query, user_language="Traditional Chinese")
     print(answer)

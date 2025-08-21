@@ -1,9 +1,8 @@
-from firebase_admin import auth as firebase_auth
-from fastapi import FastAPI, Depends, HTTPException, Header
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi import Depends, HTTPException, status, APIRouter
-from firebase_admin import auth as firebase_auth
 from typing import Optional
+
+from fastapi import Depends, Header, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from firebase_admin import auth as firebase_auth
 from logger import get_logger
 
 logger = get_logger(__name__)
@@ -31,7 +30,7 @@ def verify_firebase_token(authorization: Optional[str] = Header(None)) -> str:
             status_code=401, detail="Missing or invalid authorization header"
         )
     id_token = authorization.split(" ")[1]
-    logger.info(f"id_token {id_token}")
+    # logger.info(f"id_token {id_token}")
 
     try:
         decoded_token = firebase_auth.verify_id_token(id_token)

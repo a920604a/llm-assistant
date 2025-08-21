@@ -1,21 +1,18 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 import logging
-from prometheus_fastapi_instrumentator import Instrumentator
-from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import JSONResponse
 import os
-from utils import read_imagefile, load_yolo, load_deeplab, pil_to_bgr_np, segmentation_overlay
-import numpy as np
 import uuid
 
-
+from fastapi import FastAPI, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from prometheus_fastapi_instrumentator import Instrumentator
+from utils import load_deeplab, load_yolo, read_imagefile, segmentation_overlay
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-app = FastAPI(title='Multi-arch Vision Service')
+app = FastAPI(title="Multi-arch Vision Service")
 
 Instrumentator().instrument(app).expose(app)
 
@@ -38,15 +35,15 @@ app.add_middleware(
 # REST API routers
 
 
-
 # 全域載入模型（啟動時）
-YOLO_MODEL = load_yolo('yolov8n.pt')
-DEEPLAB = load_deeplab(device='cpu')
+YOLO_MODEL = load_yolo("yolov8n.pt")
+DEEPLAB = load_deeplab(device="cpu")
 
-OUT_DIR = '/tmp/out'
+OUT_DIR = "/tmp/out"
 os.makedirs(OUT_DIR, exist_ok=True)
 
-@app.post('/detect')
+
+@app.post("/detect")
 async def detect(file: UploadFile = File(...)):
     content = await file.read()
     img = read_imagefile(content)
@@ -59,26 +56,32 @@ async def detect(file: UploadFile = File(...)):
         b = box.xyxy[0].cpu().numpy().tolist()
         conf = float(box.conf[0].cpu().numpy())
         cls = int(box.cls[0].cpu().numpy())
-        boxes.append({'xyxy': b, 'conf': conf, 'class': cls})
+        boxes.append({"xyxy": b, "conf": conf, "class": cls})
     # 儲存帶框圖
     vis = r.plot()
     out_path = os.path.join(OUT_DIR, f"detect_{uuid.uuid4().hex}.jpg")
     vis.save(out_path)
-    return JSONResponse({'boxes': boxes, 'image': out_path})
+    return JSONResponse({"boxes": boxes, "image": out_path})
 
-@app.post('/segment')
+
+@app.post("/segment")
 async def segment(file: UploadFile = File(...)):
     content = await file.read()
     pil = read_imagefile(content)
     # preprocess
-    transform = __import__('torch').nn.Identity()
     import torchvision.transforms as T
-    tr = T.Compose([T.ToTensor(), T.Normalize(mean=[0.485,0.456,0.406], std=[0.229,0.224,0.225])])
+
+    tr = T.Compose(
+        [
+            T.ToTensor(),
+            T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
     input_tensor = tr(pil).unsqueeze(0)
-    with __import__('torch').no_grad():
-        out = DEEPLAB(input_tensor)['out'][0]
+    with __import__("torch").no_grad():
+        out = DEEPLAB(input_tensor)["out"][0]
         pred = out.argmax(0).byte().cpu().numpy()
     overlay = segmentation_overlay(pil, pred)
     out_path = os.path.join(OUT_DIR, f"seg_{uuid.uuid4().hex}.jpg")
     overlay.save(out_path)
-    return JSONResponse({'mask_image': out_path})
+    return JSONResponse({"mask_image": out_path})

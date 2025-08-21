@@ -10,8 +10,10 @@ else
 endif
 
 MONITOR_COMPOSE = docker compose -f docker-compose.monitor.dev.yml
+PY_DIRS = note mcpclient
 
 
+.PHONY: test
 
 # 啟動所有容器（背景執行）
 up:
@@ -60,26 +62,19 @@ test:
 # test:
 # 	$(DOCKER_COMPOSE) exec mcpclient /bin/sh -c "PYTHONPATH=/app pytest -v tests"
 
+# integration_test:
+# 	$(DOCKER_COMPOSE) exec mcpclient /bin/sh -c "PYTHONPATH=/app pytest -v tests/integration"
 
 # 移除所有 volumes (⚠️會清除資料)
 clean:
 	$(MAKE) down
-	sudo rm -rf ./data ./note/data
+	sudo rm -rf ./data
 
 
 up-dev:
 	$(DOCKER_COMPOSE) up -d note-qdrant noteserver
 
 
-
-ingest:
-	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python workflow/ingest_pipeline.py --file /app/'第一章：可靠性、可伸縮性和可維護性.md'"
-# 	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python workflow/ingest_pipeline_eng.py"
-
-
-search:
-	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python workflow/rag_pipeline.py"
-# 	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python workflow/rag_pipeline_eng.py"
 
 
 ingest-arxiv:
@@ -89,4 +84,19 @@ search-arxiv:
 	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python /app/arxiv_ingestion/flows/arxiv_rag_pipeline.py"
 
 
-.PHONY: test
+
+
+# 1️⃣ 一鍵檢查品質
+quality_checks: format lint
+
+# 2️⃣ 格式化程式碼
+format:
+	isort $(PY_DIRS)
+	black $(PY_DIRS)
+	python -m ruff check $(PY_DIRS) --fix
+
+
+# 3️⃣ 代碼檢查
+lint:
+	pylint $(PY_DIRS) || true
+	python -m bandit -r $(PY_DIRS) || true

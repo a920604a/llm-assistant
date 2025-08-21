@@ -1,28 +1,24 @@
 # services/arxiv_client.py
 import asyncio
-import logging
 import time
-from pathlib import Path
-from dateutil import parser
-from typing import List, Optional
-from datetime import datetime
-from urllib.parse import quote, urlencode
-import httpx
 import xml.etree.ElementTree as ET
+from datetime import datetime
+from pathlib import Path
+from typing import List, Optional
+from urllib.parse import quote, urlencode
 
-from arxiv_ingestion.exceptions import ArxivAPIException, ArxivAPITimeoutError
-from arxiv_ingestion.config import ArxivSettings
+import httpx
+from arxiv_ingestion.config import MINIO_BUCKET, ArxivSettings
 from arxiv_ingestion.db.minio import s3_client
-from arxiv_ingestion.config import MINIO_BUCKET
+from arxiv_ingestion.exceptions import ArxivAPIException, ArxivAPITimeoutError
 from arxiv_ingestion.services.schemas import ArxivPaper
+from logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ArxivClient:
-
     def __init__(self, settings: ArxivSettings):
-
         self.pdf_cache_dir = Path(settings.pdf_cache_dir)
         self.pdf_cache_dir.mkdir(parents=True, exist_ok=True)
 

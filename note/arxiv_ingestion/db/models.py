@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, Date, TIMESTAMP, func
+from sqlalchemy import TIMESTAMP, Boolean, Column, Date, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
+
 
 class Paper(Base):
     __tablename__ = "papers"

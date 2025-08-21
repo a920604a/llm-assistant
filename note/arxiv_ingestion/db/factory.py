@@ -1,13 +1,13 @@
-import logging
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session as SessionType, declarative_base
-from typing import Generator, Optional
-from arxiv_ingestion.config import DATABASE_URL
 from contextlib import contextmanager
+from typing import Generator, Optional
 
-logger = logging.getLogger(__name__)
+from arxiv_ingestion.config import DATABASE_URL
+from logger import get_logger
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session as SessionType
+from sqlalchemy.orm import sessionmaker
 
-Base = declarative_base()
+logger = get_logger(__name__)
 
 
 class Database:

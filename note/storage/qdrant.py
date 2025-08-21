@@ -1,16 +1,15 @@
-from qdrant_client import QdrantClient, models
-from conf import QDRANT_URL, COLLECTION_NAME
-from qdrant_client.http.exceptions import UnexpectedResponse
-
+from conf import COLLECTION_NAME, QDRANT_URL
 from logger import get_logger
+from qdrant_client import QdrantClient, models
+from qdrant_client.http.exceptions import UnexpectedResponse
 
 logger = get_logger(__name__)
 
 # Qdrant client，請確認連線設定
 qdrant_client = QdrantClient(
     url=QDRANT_URL,
-    timeout=60,  # 總 timeout
-)
+    timeout=60,
+)  # 總 timeout
 
 
 # ✅ 建立 Collection（若尚未建立）

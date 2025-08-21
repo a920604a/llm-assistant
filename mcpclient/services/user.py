@@ -3,7 +3,7 @@ from conf import NOTE_API_URL
 
 
 def get_user_data(user_id: str):
-    # uploaded_notes: int
+    # uploaded_papers: int
     # last_query_date: date
     # total_queries: int
     # remaining_tokens: int
@@ -11,3 +11,7 @@ def get_user_data(user_id: str):
 
     resp.raise_for_status()
     return resp.json()
+
+
+def update_user_settings(user_id: str):
+    pass

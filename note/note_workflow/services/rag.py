@@ -1,6 +1,6 @@
-from workflow.rag_pipeline import retrieval, re_ranking, build_prompt
-from services.langchain_client import llm_context
 from logger import get_logger
+from note_workflow.rag_pipeline import build_prompt, re_ranking, retrieval
+from services.langchain_client import llm_context
 
 logger = get_logger(__name__)
 
@@ -11,7 +11,6 @@ def rag(query: str):
     logger.error("Step R: Retrieval %s", retrieved)
 
     if retrieved:
-
         # Step NR: Re-ranking
         reranked = re_ranking(retrieved, query)
         logger.error("Step NR: Re-ranking %s", reranked)

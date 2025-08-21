@@ -1,4 +1,11 @@
 services:
+  nginx:
+    build:
+      context: .
+      dockerfile: ./services/frontend/Dockerfile.nginx
+    container_name: nginx
+    ports:
+      - "80:80"
   ollama:
     image: ollama/ollama
     container_name: mcphost-ollama
@@ -32,6 +39,8 @@ services:
       - ./mcpclient:/app
     ports:
       - "8011:8000"
+    depends_on:
+      - noteserver
 
   noteserver:
     build:
@@ -40,6 +49,7 @@ services:
     container_name: note
     volumes:
       - ./note:/app
+      - ./data/noteserver:/data
 
     ports:
       - "8022:8000"
@@ -47,6 +57,10 @@ services:
       - ./.env # <- 指定要讀的環境變數檔
     depends_on:
       - note-qdrant
+      - note-db
+      - note-storage
+      - redis
+      - worker
 
   note-qdrant:
     image: qdrant/qdrant
@@ -86,14 +100,13 @@ services:
     ports:
       - "6379:6379"
   worker:
+    # Celery Worker → 負責執行任務
     build:
       context: .
       dockerfile: ./services/celeryworker/Dockerfile.worker
     container_name: note-worker
     command: celery -A celery_app.celery_app worker --concurrency=4 -Q notes -n worker.import_md@%h --loglevel=info
-
     depends_on:
-      - noteserver
       - redis
       - note-db
       - note-qdrant
@@ -101,6 +114,21 @@ services:
       - ./note:/app
     env_file:
       - ./.env # <- 指定要讀的環境變數檔
+
+  beat:
+    # Celery Beat → 負責發送定時任務給 Worker
+    build:
+      context: .
+      dockerfile: ./services/celeryworker/Dockerfile.worker
+    container_name: note-beat
+    command: celery -A celery_app.celery_app beat --loglevel=info
+    depends_on:
+      - redis
+      - worker
+    volumes:
+      - ./note:/app
+    env_file:
+      - ./.env
 
   flower:
     image: mher/flower:0.9.7
