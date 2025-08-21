@@ -1,26 +1,6 @@
-明白了，你希望把 Arxiv Knowledge Assistant 的 README 改寫成這種 **課程專案 / MLOps 專案風格**，包含：
-
-* 🎯 Course Project / Objective
-* 🧩 Problem Statement
-* 🚀 Technologies Used
-* 🏗️ Project Structure
-* 🧪 Model Lifecycle
-* 🖥️ System Architecture (Mermaid)
-* 📈 Evaluation Checklist
-* 📦 Installation Guide
-* 🔍 Dataset / 資料來源
-* 🔗 Useful Resources
-* 📜 License
-
-我可以依照你的原始內容重整成這個格式，並把 Firebase Service Account、Docker Compose 視覺圖、未完成功能（CICD、test）完整呈現。
-
-下面是一個初步潤飾版（依你的風格整理）：
-
----
 
 # Arxiv Knowledge Assistant (Beta)
 
-[English](./readme_en.md)
 
 ## 🎯 Course Project
 
@@ -233,9 +213,3 @@ flowchart LR
 ## 📜 License
 
 MIT License
-
----
-
-如果你願意，我可以幫你再做 **更完整的 Mermaid 系統圖**，把 **arXiv ingestion → RAG → LLM → Dashboard → Email** 流程都標出，讓 CI/CD 與測試未完成部分也能視覺化。
-
-你希望我幫你做這個圖嗎？
