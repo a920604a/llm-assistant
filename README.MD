@@ -204,7 +204,6 @@ flowchart LR
 
 * [Firebase Authentication](https://firebase.google.com/docs/auth)
 * [Qdrant](https://qdrant.tech/documentation/)
-* [MLflow](https://mlflow.org/)
 * [Prefect 2](https://docs.prefect.io/)
 * [Grafana](https://grafana.com/)
 
