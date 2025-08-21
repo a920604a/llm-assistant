@@ -1,6 +1,6 @@
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
-from arxiv_ingestion.config import MODEL_NAME, OLLAMA_API_URL
+from conf import MODEL_NAME, OLLAMA_API_URL
 
 
 def llm_context(context: str, query: str, user_language: str = "Traditional Chinese"):

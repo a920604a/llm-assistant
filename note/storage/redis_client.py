@@ -47,18 +47,17 @@ def get_redis_system_setting(user_id: str) -> SystemSettings:
         return None  # 或回傳 default
 
     # Redis 取出的都是 bytes，要 decode 並轉型
-    decoded = {k.decode(): v.decode() for k, v in data.items()}
 
     # boolean / int / float 需要轉型
     casted = {
-        "user_language": decoded.get("user_language", "en"),
-        "translate": decoded.get("translate", "False") == "True",
-        "system_prompt": decoded.get("system_prompt", ""),
-        "top_k": int(decoded.get("top_k", "5")),
-        "use_rag": decoded.get("use_rag", "False") == "True",
-        "subscribe_email": decoded.get("subscribe_email", "False") == "True",
-        "reranker_enabled": decoded.get("reranker_enabled", "False") == "True",
-        "temperature": float(decoded.get("temperature", "0.6")),
+        "user_language": data.get("user_language", "en"),
+        "translate": data.get("translate", "False") == "True",
+        "system_prompt": data.get("system_prompt", ""),
+        "top_k": int(data.get("top_k", "5")),
+        "use_rag": data.get("use_rag", "False") == "True",
+        "subscribe_email": data.get("subscribe_email", "False") == "True",
+        "reranker_enabled": data.get("reranker_enabled", "False") == "True",
+        "temperature": float(data.get("temperature", "0.6")),
     }
 
     return SystemSettings(**casted)

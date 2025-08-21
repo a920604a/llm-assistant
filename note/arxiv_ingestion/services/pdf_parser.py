@@ -66,7 +66,7 @@ class TableExtractor:
 
 
 class FigureExtractor:
-    def __init__(self, image_dir: str = "./data/arxiv_images"):
+    def __init__(self, image_dir: str = "/data/arxiv_images"):
         self.image_dir = Path(image_dir)
         self.image_dir.mkdir(parents=True, exist_ok=True)
 
@@ -117,7 +117,7 @@ class PDFParserService:
     """PDF 解析服務：抽文字、表格與圖片"""
 
     def __init__(
-        self, cache_dir: str = PDF_CACHE_DIR, image_dir: str = "./data/arxiv_images"
+        self, cache_dir: str = PDF_CACHE_DIR, image_dir: str = "/data/arxiv_images"
     ):
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)

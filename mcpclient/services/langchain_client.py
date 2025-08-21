@@ -37,6 +37,26 @@ def llm(query: str, isTranslate: bool, user_language: str = "English") -> str:
     return resp.content
 
 
+def rewrite_query(query):
+    chat_model = ChatOllama(model=MODEL_NAME, temperature=0.6, base_url=OLLAMA_API_URL)
+
+    prompt_template = """
+    You are a professional query rewriting assistant.
+
+    Original Question:
+    {question}
+
+    Rewrite the question clearly and concisely for information retrieval.
+    Only output the rewritten query, do not answer it.
+    """
+
+    prompt = ChatPromptTemplate.from_template(prompt_template)
+    chain = prompt | chat_model
+    resp = chain.invoke({"question": query})
+
+    return resp.content
+
+
 if __name__ == "__main__":
     query = "什麼是 LangChain？"
 
