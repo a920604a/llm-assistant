@@ -1,6 +1,21 @@
 resource "docker_network" "llm_network" {
   name = "llm-network"
 }
+resource "docker_container" "nginx" {
+  name  = "nginx"
+  image = "nginx:latest"
+
+  networks_advanced {
+    name = docker_network.llm_network.name
+  }
+  ports {
+    internal = 80
+    external = 80
+  }
+
+
+}
+
 
 resource "docker_container" "ollama" {
   name  = "mcphost-ollama"
