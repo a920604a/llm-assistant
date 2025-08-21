@@ -1,9 +1,9 @@
-from prefect import task
-from qdrant_client import models
-from storage.qdrant import qdrant_client
-from services.embedding import get_embedding
 from conf import COLLECTION_NAME
 from logger import get_logger
+from prefect import task
+from qdrant_client import models
+from services.embedding import get_embedding
+from storage.qdrant import qdrant_client
 
 logger = get_logger(__name__)
 

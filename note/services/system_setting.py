@@ -1,11 +1,10 @@
 # services/system_setting.py
-import json
-from api.schemas.SystemSetting import SystemSettings, DEFAULT_SETTINGS
-from storage.crud.setting import get, update
 from typing import Optional
-from logger import get_logger
-from storage.redis_client import update_redis_system_setting
 
+from api.schemas.SystemSetting import SystemSettings
+from logger import get_logger
+from storage.crud.setting import get, update
+from storage.redis_client import update_redis_system_setting
 
 logger = get_logger(__name__)
 

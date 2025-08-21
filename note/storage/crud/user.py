@@ -1,7 +1,8 @@
-from storage import db_session
-from storage.postgres import User, Paper
 from datetime import date
+
 from logger import get_logger
+from storage import db_session
+from storage.postgres import Paper, User
 
 logger = get_logger(__name__)
 

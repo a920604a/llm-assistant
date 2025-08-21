@@ -1,8 +1,8 @@
 # tasks/ingest_arxiv.py
-from celery_app import celery_app
-from arxiv_ingestion.flows.arxiv_pipeline import arxiv_pipeline
 from datetime import datetime, timedelta
 
+from arxiv_ingestion.flows.arxiv_pipeline import arxiv_pipeline
+from celery_app import celery_app
 from logger import get_logger
 
 logger = get_logger(__name__)

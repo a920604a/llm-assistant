@@ -1,6 +1,6 @@
-from services.langchain_client import (
+from services.langchain_client import (  # 假設 llm 在 your_module.py，換成實際檔案名稱
     llm,
-)  # 假設 llm 在 your_module.py，換成實際檔案名稱
+)
 
 
 def test_llm_basic():

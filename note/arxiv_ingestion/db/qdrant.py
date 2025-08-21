@@ -1,10 +1,7 @@
+from arxiv_ingestion.config import COLLECTION_NAME, QDRANT_URL
+from logger import get_logger
 from qdrant_client import QdrantClient, models
 from qdrant_client.http.exceptions import UnexpectedResponse
-
-from arxiv_ingestion.config import QDRANT_URL, COLLECTION_NAME
-
-from logger import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -12,8 +9,8 @@ logger = get_logger(__name__)
 # Qdrant client，請確認連線設定
 qdrant_client = QdrantClient(
     url=QDRANT_URL,
-    timeout=60,  # 總 timeout
-)
+    timeout=60,
+)  # 總 timeout
 
 
 # ✅ 建立 Collection（若尚未建立）

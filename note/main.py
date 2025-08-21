@@ -1,17 +1,14 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from prometheus_fastapi_instrumentator import Instrumentator
-from api.routers import query, user, setting
-from starlette.concurrency import run_in_threadpool
-
-from storage.qdrant import create_qdrant_collection as create_note_collection
+from api.routers import query, setting, user
 from arxiv_ingestion.db.qdrant import (
     create_qdrant_collection as create_arxiv_collection,
 )
-
-from storage.minio import create_note_bucket
-
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from logger import get_logger
+from prometheus_fastapi_instrumentator import Instrumentator
+from starlette.concurrency import run_in_threadpool
+from storage.minio import create_note_bucket
+from storage.qdrant import create_qdrant_collection as create_note_collection
 
 logger = get_logger(__name__)
 

@@ -1,6 +1,6 @@
 # tasks/translate.py
-from prefect import task
 from note_workflow.tasks.llm import llm
+from prefect import task
 
 
 @task

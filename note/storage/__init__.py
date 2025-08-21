@@ -1,9 +1,8 @@
+from contextlib import contextmanager
+
+from conf import DATABASE_URL
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
-from contextlib import contextmanager
-from conf import DATABASE_URL
 
 engine = create_engine(DATABASE_URL, echo=False)
 

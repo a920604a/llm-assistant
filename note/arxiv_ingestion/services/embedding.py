@@ -1,5 +1,5 @@
 from typing import List
-from fastembed import TextEmbedding
+
 from sentence_transformers import SentenceTransformer
 
 # {"all-MiniLM-L6-v2":"384 維，速度快，效果佳，社群最常用。CHUNK_SIZE = 200~400 字 , overlap = 50~100",
@@ -13,6 +13,5 @@ def get_embedding(text: str, use_sentence_transformers: bool = True) -> List[flo
     if (
         use_sentence_transformers
     ):  # 輸出向量維度是 768，文本（論文摘要、段落）上表現更好
-
         vector = model.encode(text)
         return vector.tolist()

@@ -1,9 +1,8 @@
-from firebase_admin import auth as firebase_auth
-from fastapi import FastAPI, Depends, HTTPException, Header
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi import Depends, HTTPException, status, APIRouter
-from firebase_admin import auth as firebase_auth
 from typing import Optional
+
+from fastapi import Depends, Header, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from firebase_admin import auth as firebase_auth
 from logger import get_logger
 
 logger = get_logger(__name__)

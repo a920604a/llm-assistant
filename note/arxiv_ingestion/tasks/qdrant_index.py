@@ -1,17 +1,15 @@
 import io
-from prefect import task
-from qdrant_client import models
 from typing import List
 
-
-from arxiv_ingestion.db.qdrant import qdrant_client
+from arxiv_ingestion.config import COLLECTION_NAME, MINIO_BUCKET
 from arxiv_ingestion.db.minio import s3_client
+from arxiv_ingestion.db.qdrant import qdrant_client
 from arxiv_ingestion.services.embedding import get_embedding
 from arxiv_ingestion.services.pdf_parser import TextExtractor
 from arxiv_ingestion.services.schemas import ArxivPaper
-from arxiv_ingestion.config import MINIO_BUCKET, COLLECTION_NAME
-
 from logger import get_logger
+from prefect import task
+from qdrant_client import models
 
 logger = get_logger(__name__)
 
@@ -56,7 +54,6 @@ def qdrant_index_task(papers: List[ArxivPaper]):
     textExtractor = TextExtractor()
 
     for paper in papers:
-
         buffer = io.BytesIO()
         # 從 MinIO 下載 PDF 到記憶體
         s3_client.download_fileobj(

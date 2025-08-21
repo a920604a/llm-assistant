@@ -1,13 +1,12 @@
-from datetime import date, datetime
+from datetime import datetime
 from typing import List
+
 from storage import db_session
-from storage.postgres import User, Note
-from datetime import date
 from storage.crud.user import get_or_create_user
+from storage.postgres import Note, User
 
 
 def update_notes(user_id: str, saved_files: List[str]):
-
     # save postgres: 寫入 notes table
     with db_session() as db:
         user = db.query(User).filter(User.id == user_id).first()
@@ -25,7 +24,7 @@ def update_notes(user_id: str, saved_files: List[str]):
         db.commit()
 
 
-def get_notes(user_id: str):
+def get_note(user_id: str):
     with db_session() as db:
         notes = db.query(Note).filter(Note.user_id == user_id).all()
         return notes

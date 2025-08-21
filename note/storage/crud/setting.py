@@ -1,9 +1,7 @@
-from datetime import date, datetime
-from typing import List
-from storage import db_session
-from storage.postgres import UserSetting
 from datetime import date
-from storage.postgres import User
+
+from storage import db_session
+from storage.postgres import User, UserSetting
 
 
 def get(user_id: str):

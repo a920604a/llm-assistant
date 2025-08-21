@@ -1,6 +1,6 @@
-import re
 import json
-from typing import List, Dict
+import re
+from typing import Dict, List
 
 
 def llm_text_to_json(llm_text: str) -> List[Dict]:

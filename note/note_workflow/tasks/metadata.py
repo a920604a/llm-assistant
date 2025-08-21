@@ -1,11 +1,10 @@
 import json
 import re
-import requests
-from prefect import task
-from conf import OLLAMA_API_URL, MODEL_NAME
+
+from conf import MODEL_NAME
 from logger import get_logger
 from note_workflow.tasks.llm import llm
-
+from prefect import task
 
 logger = get_logger(__name__)
 

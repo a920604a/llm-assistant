@@ -1,4 +1,11 @@
 services:
+  nginx:
+    build:
+      context: .
+      dockerfile: ./services/frontend/Dockerfile.nginx
+    container_name: nginx
+    ports:
+      - "80:80"
   ollama:
     image: ollama/ollama
     container_name: mcphost-ollama

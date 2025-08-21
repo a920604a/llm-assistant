@@ -1,22 +1,22 @@
 from datetime import datetime, timedelta
-from prefect import flow
-from arxiv_ingestion.db.qdrant import create_qdrant_collection
+
 from arxiv_ingestion.db.minio import create_note_bucket
+from arxiv_ingestion.db.qdrant import create_qdrant_collection
 from arxiv_ingestion.tasks.fetch_papers import fetch_papers_task
-from arxiv_ingestion.tasks.process_pdfs import process_pdfs_task
-from arxiv_ingestion.tasks.store_papers import store_papers_task
 from arxiv_ingestion.tasks.generate_report import generate_report_task
+from arxiv_ingestion.tasks.process_pdfs import process_pdfs_task
 from arxiv_ingestion.tasks.qdrant_index import qdrant_index_task
+from arxiv_ingestion.tasks.store_papers import store_papers_task
 
 # from prefect import get_run_logger
 from logger import get_logger
+from prefect import flow
 
 logger = get_logger()
 
 
 @flow(name="Arxiv Paper Ingestion Pipeline")
 def arxiv_pipeline(target_date: str, max_results: int = 10, process_pdfs: bool = True):
-
     # logger = get_run_logger()
 
     client, papers = fetch_papers_task(target_date, max_results)

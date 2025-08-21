@@ -1,14 +1,12 @@
 import asyncio
 from typing import Any, Dict, List, Optional
-from datetime import datetime
-from pathlib import Path
-from dateutil import parser
+
+from arxiv_ingestion.db.factory import make_database
+from arxiv_ingestion.db.models import Paper  # SQLAlchemy ORM model
 from arxiv_ingestion.services.arxiv_client import ArxivClient
 from arxiv_ingestion.services.pdf_parser import PDFParserService
-from arxiv_ingestion.db.models import Paper  # SQLAlchemy ORM model
-from arxiv_ingestion.services.schemas import ArxivPaper, ParsedPaper, ArxivMetadata
-from arxiv_ingestion.db.factory import make_database
-
+from arxiv_ingestion.services.schemas import ArxivMetadata, ArxivPaper, ParsedPaper
+from dateutil import parser
 from logger import get_logger
 
 logger = get_logger(__name__)
@@ -71,7 +69,6 @@ class MetadataFetcher:
 
         # Process results with detailed error tracking
         for paper, result in zip(papers, pipeline_results):
-
             if isinstance(result, Exception):
                 error_msg = f"Pipeline error for {paper.arxiv_id}: {str(result)}"
                 logger.error(error_msg)
@@ -137,7 +134,6 @@ class MetadataFetcher:
         download_semaphore: asyncio.Semaphore,
         parse_semaphore: asyncio.Semaphore,
     ) -> tuple[int, bool, bool, Optional[str], Optional[ParsedPaper]]:
-
         download_success = False
         parsed_success = False
         parsed_paper = None
@@ -198,7 +194,6 @@ class MetadataFetcher:
     # Stage 3: Store to DB
     # ------------------------------
     def store_to_db(self, papers: List[ArxivPaper]) -> int:
-
         stored_count = 0
         with self.database.get_session() as session:
             for paper in papers:

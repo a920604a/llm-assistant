@@ -1,23 +1,21 @@
 import asyncio
-from pathlib import Path
-from typing import Optional
-import pdfplumber
-import fitz  # PyMuPDF
 import io
-from PIL import Image
+from pathlib import Path
+from typing import List, Optional
 
-from arxiv_ingestion.config import PDF_CACHE_DIR, MINIO_BUCKET
+import fitz  # PyMuPDF
+import pdfplumber
+from arxiv_ingestion.config import MINIO_BUCKET, PDF_CACHE_DIR
 from arxiv_ingestion.db.minio import s3_client
 from arxiv_ingestion.services.schemas import (
-    PdfContent,
+    PaperFigure,
     PaperSection,
     PaperTable,
-    PaperFigure,
     ParserType,
+    PdfContent,
 )
-from typing import List
-
 from logger import get_logger
+from PIL import Image
 
 logger = get_logger(__name__)
 
@@ -82,7 +80,7 @@ class FigureExtractor:
                 image_ext = base_image["ext"]
 
                 # object name (for MinIO and local)
-                object_name = f"{pdf_filename}/p{page_idx+1}-img{img_idx}.{image_ext}"
+                object_name = f"{pdf_filename}/p{page_idx + 1}-img{img_idx}.{image_ext}"
                 image_path = self.image_dir / object_name
                 image_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -100,7 +98,7 @@ class FigureExtractor:
                 # metadata
                 figures.append(
                     PaperFigure(
-                        caption=f"Page {page_idx+1} Image {img_idx}",
+                        caption=f"Page {page_idx + 1} Image {img_idx}",
                         id=f"s3://{MINIO_BUCKET}/{object_name}",
                     )
                 )

@@ -1,12 +1,16 @@
-from prefect import task
 import jieba
+from prefect import task
 from rank_bm25 import BM25Okapi
 
+
 @task(name="Hybrid Reranking Task")
-def re_ranking(chunks: list, query: str,
-                        vector_weight: float = 0.6,
-                        bm25_weight: float = 0.3,
-                        field_weights: dict = None):
+def re_ranking(
+    chunks: list,
+    query: str,
+    vector_weight: float = 0.6,
+    bm25_weight: float = 0.3,
+    field_weights: dict = None,
+):
     """
     Hybrid reranking: vector similarity + BM25 text matching + 欄位加權
     chunks: list of payload dict，需包含 text/title/abstract 與向量相似度 score

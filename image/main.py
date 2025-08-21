@@ -1,20 +1,12 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 import logging
-from prometheus_fastapi_instrumentator import Instrumentator
-from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import JSONResponse
 import os
-from utils import (
-    read_imagefile,
-    load_yolo,
-    load_deeplab,
-    pil_to_bgr_np,
-    segmentation_overlay,
-)
-import numpy as np
 import uuid
 
+from fastapi import FastAPI, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from prometheus_fastapi_instrumentator import Instrumentator
+from utils import load_deeplab, load_yolo, read_imagefile, segmentation_overlay
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -77,7 +69,6 @@ async def segment(file: UploadFile = File(...)):
     content = await file.read()
     pil = read_imagefile(content)
     # preprocess
-    transform = __import__("torch").nn.Identity()
     import torchvision.transforms as T
 
     tr = T.Compose(

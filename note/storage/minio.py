@@ -1,8 +1,6 @@
-import os
 import boto3
 from botocore.client import Config
-from conf import MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_BUCKET
-
+from conf import MINIO_ACCESS_KEY, MINIO_BUCKET, MINIO_ENDPOINT, MINIO_SECRET_KEY
 
 # 初始化 MinIO (S3) 客戶端
 s3_client = boto3.client(

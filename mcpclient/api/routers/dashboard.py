@@ -1,13 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException, Header
-from pydantic import BaseModel
-from firebase_admin import auth as firebase_auth
 from datetime import date
-from typing import Optional
+
 from api.schemas.DashboardStats import DashboardStats
-from fastapi import APIRouter, HTTPException, status
 from api.verify_token import verify_firebase_token
-from services.user import get_user_data
+from fastapi import APIRouter, Depends, HTTPException
 from logger import get_logger
+from services.user import get_user_data
 
 logger = get_logger(__name__)
 
@@ -29,7 +26,6 @@ fake_db = {
 @router.get("/api/dashboard/stats", response_model=DashboardStats)
 # async def get_dashboard_stats(user_id: str):
 async def get_dashboard_stats(user_id: str = Depends(verify_firebase_token)):
-
     # user_data = fake_db.get("user123")
     print(f"user_data {user_id}")
 

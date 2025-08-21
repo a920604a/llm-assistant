@@ -1,10 +1,9 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import logging
-from prometheus_fastapi_instrumentator import Instrumentator
-
-
 from faster_whisper import WhisperModel
+from prometheus_fastapi_instrumentator import Instrumentator
 from TTS.api import TTS
 
 logger = logging.getLogger(__name__)
@@ -34,7 +33,10 @@ app.add_middleware(
 
 
 asr_model = WhisperModel("base", device="cpu")
-tts_model = TTS(model_name="tts_models/en/ljspeech/glow-tts", progress_bar=False, gpu=False)
+tts_model = TTS(
+    model_name="tts_models/en/ljspeech/glow-tts", progress_bar=False, gpu=False
+)
+
 
 @app.post("/asr")
 async def asr():
@@ -42,8 +44,8 @@ async def asr():
     text = " ".join([seg.text for seg in segments])
     return {"text": text}
 
+
 @app.post("/tts")
 async def tts():
-
     tts_model.tts_to_file(text="Hello world", file_path="out.wav")
     return {"audio_file": "out.wav"}

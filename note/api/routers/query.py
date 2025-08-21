@@ -1,10 +1,8 @@
 # REST API routers
-from fastapi import APIRouter
-
 from api.schemas.query import Query
+from fastapi import APIRouter
 from logger import get_logger
 from storage.redis_client import get_redis_system_setting
-
 
 logger = get_logger(__name__)
 

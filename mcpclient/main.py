@@ -1,9 +1,8 @@
+from api.routers import dashboard, query, setting
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from prometheus_fastapi_instrumentator import Instrumentator
-from fastapi import FastAPI
-from api.routers import query, dashboard, setting
 from logger import get_logger
+from prometheus_fastapi_instrumentator import Instrumentator
 
 logger = get_logger(__name__)
 

@@ -10,8 +10,10 @@ else
 endif
 
 MONITOR_COMPOSE = docker compose -f docker-compose.monitor.dev.yml
+PY_DIRS = note mcpclient
 
 
+.PHONY: test
 
 # 啟動所有容器（背景執行）
 up:
@@ -60,6 +62,8 @@ test:
 # test:
 # 	$(DOCKER_COMPOSE) exec mcpclient /bin/sh -c "PYTHONPATH=/app pytest -v tests"
 
+# integration_test:
+# 	$(DOCKER_COMPOSE) exec mcpclient /bin/sh -c "PYTHONPATH=/app pytest -v tests/integration"
 
 # 移除所有 volumes (⚠️會清除資料)
 clean:
@@ -80,4 +84,19 @@ search-arxiv:
 	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python /app/arxiv_ingestion/flows/arxiv_rag_pipeline.py"
 
 
-.PHONY: test
+
+
+# 1️⃣ 一鍵檢查品質
+quality_checks: format lint
+
+# 2️⃣ 格式化程式碼
+format:
+	isort $(PY_DIRS)
+	black $(PY_DIRS)
+	python -m ruff check $(PY_DIRS) --fix
+
+
+# 3️⃣ 代碼檢查
+lint:
+	pylint $(PY_DIRS) || true
+	python -m bandit -r $(PY_DIRS) || true

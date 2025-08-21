@@ -1,10 +1,8 @@
 # REST API routers
-import requests
-from fastapi import APIRouter, Depends
-
 from api.schemas.user import UserQuery
-from services.aggregator import process_user_query
 from api.verify_token import verify_firebase_token  # 解析 Firebase token
+from fastapi import APIRouter, Depends
+from services.aggregator import process_user_query
 
 router = APIRouter()
 

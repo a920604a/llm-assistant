@@ -1,10 +1,10 @@
 from typing import List, Tuple
-from prefect import task
+
+from arxiv_ingestion.config import ArxivSettings
 from arxiv_ingestion.services.arxiv_client import ArxivClient
 from arxiv_ingestion.services.schemas import ArxivPaper
-from arxiv_ingestion.config import ArxivSettings
-
 from logger import get_logger
+from prefect import task
 
 logger = get_logger(__name__)
 

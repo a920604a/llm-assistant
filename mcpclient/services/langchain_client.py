@@ -1,13 +1,12 @@
-from langchain_ollama import ChatOllama
-from langchain_core.prompts import ChatPromptTemplate
 from conf import MODEL_NAME, OLLAMA_API_URL
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_ollama import ChatOllama
 
 
 def llm(query: str, isTranslate: bool, user_language: str = "English") -> str:
     chat_model = ChatOllama(model=MODEL_NAME, temperature=0.6, base_url=OLLAMA_API_URL)
 
     if isTranslate:
-
         # 使用 user_language 指定語言
         prompt_template = """
         You are a helpful assistant.

@@ -1,13 +1,12 @@
 # routers/setting.py
-from fastapi import APIRouter
-from services.system_setting import get_setting, post_setting
-from logger import get_logger
-
 from api.schemas.SystemSetting import (
-    SystemSettings,
     DEFAULT_SETTINGS,
     PostSettingsRequest,
+    SystemSettings,
 )
+from fastapi import APIRouter
+from logger import get_logger
+from services.system_setting import get_setting, post_setting
 
 logger = get_logger(__name__)
 

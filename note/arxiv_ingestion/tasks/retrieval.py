@@ -1,9 +1,8 @@
-from prefect import task
-from qdrant_client import models
-
+from arxiv_ingestion.config import COLLECTION_NAME
 from arxiv_ingestion.db.qdrant import qdrant_client
 from arxiv_ingestion.services.embedding import get_embedding
-from arxiv_ingestion.config import COLLECTION_NAME
+from prefect import task
+from qdrant_client import models
 
 
 @task

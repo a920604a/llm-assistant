@@ -1,6 +1,6 @@
 from celery import Celery
-from celery_prometheus import add_prometheus_option  # 新增導入
 from celery.schedules import crontab
+from celery_prometheus import add_prometheus_option  # 新增導入
 from conf import CELERY_BROKER_URL, CELERY_RESULT_BACKEND
 
 celery_app = Celery(

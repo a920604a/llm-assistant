@@ -1,10 +1,9 @@
-from langchain_ollama import ChatOllama
-from langchain_core.prompts import ChatPromptTemplate
 from conf import MODEL_NAME, OLLAMA_API_URL
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_ollama import ChatOllama
 
 
 def llm_context(context: str, query: str, user_language: str = "Traditional Chinese"):
-
     chat_model = ChatOllama(model=MODEL_NAME, temperature=0.6, base_url=OLLAMA_API_URL)
 
     prompt = ChatPromptTemplate.from_template(

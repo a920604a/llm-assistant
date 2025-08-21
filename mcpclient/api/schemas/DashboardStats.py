@@ -1,5 +1,6 @@
-from pydantic import BaseModel
 from datetime import date
+
+from pydantic import BaseModel
 
 
 # 回傳格式定義

@@ -1,10 +1,10 @@
-from prefect import task
-from qdrant_client import models
-from storage.qdrant import qdrant_client
 from conf import COLLECTION_NAME
 from logger import get_logger
+from prefect import task
+from storage.qdrant import qdrant_client
 
 logger = get_logger(__name__)
+
 
 @task
 def upload_points(points: list):

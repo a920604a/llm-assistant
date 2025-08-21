@@ -1,7 +1,8 @@
-import redis
 from typing import Any
-from conf import REDIS_URL
+
+import redis
 from api.schemas.SystemSetting import SystemSettings
+from conf import REDIS_URL
 
 redis_client = redis.from_url(REDIS_URL, decode_responses=True)  # 回傳字串
 

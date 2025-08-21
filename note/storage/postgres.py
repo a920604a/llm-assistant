@@ -1,21 +1,20 @@
+from datetime import datetime
+
 from sqlalchemy import (
+    ARRAY,
+    TIMESTAMP,
+    Boolean,
     Column,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
     Integer,
     String,
     Text,
-    Boolean,
-    Date,
-    DateTime,
-    TIMESTAMP,
     func,
-    ForeignKey,
-    ARRAY,
-    Float,
 )
-
-from sqlalchemy.orm import relationship, declarative_base
-from datetime import datetime, date
-
+from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 

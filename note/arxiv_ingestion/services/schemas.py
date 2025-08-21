@@ -1,10 +1,9 @@
 # services/schemas.py
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
-from datetime import date
-from pydantic import BaseModel, Field
 from enum import Enum
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class ParserType(str, Enum):
@@ -25,7 +24,7 @@ class ArxivPaper(BaseModel):
     pdf_cached_path: Optional[Path] = None
     pdf_downloaded: Optional[bool] = False
     pdf_parsed: Optional[bool] = False
-    
+
 
 class ArxivMetadata(BaseModel):
     """Paper metadata from arXiv API."""
@@ -38,7 +37,7 @@ class ArxivMetadata(BaseModel):
     published_date: str = Field(..., description="Publication date")
     pdf_url: str = Field(..., description="PDF download URL")
 
-    
+
 class PaperSection(BaseModel):
     """Represents a section of a paper."""
 
@@ -61,23 +60,26 @@ class PaperTable(BaseModel):
     id: str = Field(..., description="Table identifier")
 
 
-    
-
 class PdfContent(BaseModel):
     """PDF-specific content extracted by parsers like Docling."""
 
-    sections: List[PaperSection] = Field(default_factory=list, description="Paper sections")
+    sections: List[PaperSection] = Field(
+        default_factory=list, description="Paper sections"
+    )
     figures: List[PaperFigure] = Field(default_factory=list, description="Figures")
     tables: List[PaperTable] = Field(default_factory=list, description="Tables")
     raw_text: str = Field(..., description="Full extracted text")
     references: List[str] = Field(default_factory=list, description="References")
     parser_used: ParserType = Field(..., description="Parser used for extraction")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Parser metadata")
-
+    metadata: Dict[str, Any] = Field(
+        default_factory=dict, description="Parser metadata"
+    )
 
 
 class ParsedPaper(BaseModel):
     """Complete paper data combining arXiv metadata and PDF content."""
 
     arxiv_metadata: ArxivMetadata = Field(..., description="Metadata from arXiv API")
-    pdf_content: Optional[PdfContent] = Field(None, description="Content extracted from PDF")
+    pdf_content: Optional[PdfContent] = Field(
+        None, description="Content extracted from PDF"
+    )

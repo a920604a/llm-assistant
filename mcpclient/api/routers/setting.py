@@ -1,14 +1,10 @@
 # routers/setting.py
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from typing import Optional
+
+from api.schemas.SystemSetting import DEFAULT_SETTINGS, SystemSettings
 from api.verify_token import verify_firebase_token  # 解析 Firebase token
-from services.system_setting import get_setting, post_setting
-
-from api.schemas.SystemSetting import SystemSettings, DEFAULT_SETTINGS
+from fastapi import APIRouter, Depends
 from logger import get_logger
-
+from services.system_setting import get_setting, post_setting
 
 logger = get_logger(__name__)
 
