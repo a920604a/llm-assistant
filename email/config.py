@@ -9,7 +9,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@note-db:543
 
 
 # Firebase Key
-FIREBASE_KEY_PATH: str = Field(default="/app", env="FIREBASE_KEY_PATH")
+FIREBASE_KEY_PATH = "/app"
 
 
 class Settings(BaseSettings):
