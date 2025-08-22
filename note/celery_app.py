@@ -29,6 +29,6 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(hour=0, minute=0),  # for production
         # "schedule": crontab(minute="*/5"),  # for test
         # "schedule": crontab(minute=15),  # 或者每天每小時第 15 分鐘
-        "args": (3, True),  # 傳入 task 的參數 (max_results=10, process_pdfs=True)
+        "args": (10, True),  # 傳入 task 的參數 (max_results=10, process_pdfs=True)
     }
 }
