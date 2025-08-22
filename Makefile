@@ -13,7 +13,7 @@ MONITOR_DEV_COMPOSE = docker compose -f docker-compose.monitor.dev.yml
 MONITOR_COMPOSE = docker compose -f docker-compose.monitor.yml
 PY_DIRS = note mcpclient
 
-NETWORK_NAME              = monitor-net
+NETWORK_NAME = monitor-net app-net
 
 .PHONY: test
 

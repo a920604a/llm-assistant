@@ -46,9 +46,15 @@ pandas==2.0.3
 pydantic>=1.10.16,<2.0.0
 prefect>=2.16.3
 
+
 # === Monitoring ===
 prometheus-fastapi-instrumentator
 prometheus_client
+
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-instrumentation-fastapi
+langfuse
 
 # === Utility ===
 python-dotenv==1.0.0
