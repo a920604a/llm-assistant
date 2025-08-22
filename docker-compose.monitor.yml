@@ -3,7 +3,7 @@ services:
     image: prom/prometheus
     user: "1000"
     volumes:
-      - ./services/monitor/prometheus:/etc/config
+      - ./monitor/prometheus:/etc/config
       - ./data/prometheus_data:/prometheus
     ports:
       - "127.0.0.1:9090:9090"
@@ -21,8 +21,8 @@ services:
     ports:
       - "127.0.0.1:3002:3000"
     volumes:
-      - ./services/monitor/dashboards:/var/lib/grafana/dashboards # dashboard JSON
-      - ./services/monitor/provisioning:/etc/grafana/provisioning # provisioning 設定
+      - ./monitor/dashboards:/var/lib/grafana/dashboards # dashboard JSON
+      - ./monitor/provisioning:/etc/grafana/provisioning # provisioning 設定
     environment:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       - GF_SECURITY_ADMIN_PASSWORD=admin12345 # 可設定 Grafana admin 密碼
@@ -60,7 +60,7 @@ services:
     ports:
       - "9115:9115"
     volumes:
-      - ./services/monitor/blackbox:/config
+      - ./monitor/blackbox:/config
     command:
       - "--config.file=/config/blackbox.yml"
     networks:

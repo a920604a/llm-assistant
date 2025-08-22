@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/2")
+REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/2")  # for user cache
 NOTE_API_URL = os.getenv("NOTE_API_URL", "http://noteserver:8000")
 SPEECH_API_URL = os.getenv("SPEECH_API_URL", "http://imageserver:8000")
 IMAGE_API_URL = os.getenv("IMAGE_API_URL", "http://speechserver:8000")

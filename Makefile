@@ -31,7 +31,7 @@ up:
 	$(MAKE) net-create
 	$(DOCKER_COMPOSE) up -d
 	$(MONITOR_DEV_COMPOSE) up -d
-	$(MONITOR_COMPOSE) up -d
+# 	$(MONITOR_COMPOSE) up -d
 
 
 up-front:
@@ -41,7 +41,7 @@ up-front:
 down:
 	$(DOCKER_COMPOSE) --env-file $(ENV_FILE) down
 	$(MONITOR_DEV_COMPOSE) down
-	$(MONITOR_COMPOSE) down
+# 	$(MONITOR_COMPOSE) down
 
 # 重啟所有容器
 restart:

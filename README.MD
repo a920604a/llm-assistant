@@ -165,11 +165,13 @@ flowchart LR
 1. 前往 [Firebase Console](https://console.firebase.google.com/) 建立專案
 2. 啟用 **Authentication**（Google 登入）
 3. 建立 Service Account 並下載 `serviceAccountKey.json`
-4. 放置於 `mcpclient/serviceAccountKey.json`
+4. 放置於 `mcpclient/serviceAccountKey.json` `email/serviceAccountKey.json`
 
 > 若未提供 Key，系統將無法驗證使用者，也無法存取 Firebase 資料。
 
-
+1. 前往  [App 密碼頁面](https://myaccount.google.com/apppasswords) 建立專案
+2. 複製密應用程式密碼
+3.
 
 ---
 

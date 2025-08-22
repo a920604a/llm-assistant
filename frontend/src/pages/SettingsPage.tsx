@@ -121,7 +121,7 @@ export default function SettingsPage() {
                         className="h-5 w-5"
                     />
                 </div>
-
+                {/*
                 <div className="flex items-center justify-between p-2 border rounded hover:bg-gray-100">
                     <span>Reranker</span>
                     <input
@@ -130,7 +130,7 @@ export default function SettingsPage() {
                         onChange={e => handleChange("reranker_enabled", e.target.checked)}
                         className="h-5 w-5"
                     />
-                </div>
+                </div> */}
             </div>
 
             <div className="mt-6 flex justify-end">

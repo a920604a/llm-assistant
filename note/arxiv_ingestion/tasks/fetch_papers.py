@@ -11,12 +11,12 @@ logger = get_logger(__name__)
 
 @task(retries=3, retry_delay_seconds=10)
 async def fetch_papers_task(
-    target_date: str, max_results: int = 5
+    date_from: str, date_to: str, max_results: int = 5
 ) -> Tuple[ArxivClient, List[ArxivPaper]]:
     settings = ArxivSettings()
     client = ArxivClient(settings)
     papers = await client.fetch_papers(
-        from_date=target_date, to_date=target_date, max_results=max_results
+        from_date=date_from, to_date=date_to, max_results=max_results
     )
-    logger.info(f"Fetched {len(papers)} papers for date {target_date}")
+    logger.info(f"Fetched {len(papers)} papers from {date_from} to {date_to}")
     return client, papers

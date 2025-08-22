@@ -105,7 +105,7 @@ services:
       context: .
       dockerfile: ./services/celeryworker/Dockerfile.worker
     container_name: note-worker
-    command: celery -A celery_app.celery_app worker --concurrency=4 -Q notes -n worker.import_md@%h --loglevel=info
+    command: celery -A celery_app.celery_app worker --concurrency=4 --queues notes -n worker.ingest_argix@%h --loglevel=info
     depends_on:
       - redis
       - note-db
@@ -129,6 +129,53 @@ services:
       - ./note:/app
     env_file:
       - ./.env
+
+  # email-api:
+  #   build:
+  #     context: .
+  #     dockerfile: ./services/emailservice/Dockerfile.email
+  #   container_name: email-api
+  #   command: uvicorn app.main:app --host 0.0.0.0 --port 8100
+  #   ports:
+  #     - "8100:8100"
+  #   env_file:
+  #     - ./.env
+  #   depends_on:
+  #     - redis
+  #     - note-db
+  #     - note-qdrant
+  #     - note-storage
+
+  email-worker:
+    build:
+      context: .
+      dockerfile: ./services/emailservice/Dockerfile.email
+    container_name: email-worker
+    command: celery -A celery_app.celery_app worker --concurrency=4 --queues email -n worker.email_alarm@%h --loglevel=info
+    env_file:
+      - ./.env
+    depends_on:
+      - redis
+      - note-db
+      - note-qdrant
+      - note-storage
+    volumes:
+      - ./email:/app
+    working_dir: /app # <-- 加上這行
+
+  email-beat:
+    build:
+      context: .
+      dockerfile: ./services/emailservice/Dockerfile.email
+    container_name: email-beat
+    command: celery -A celery_app.celery_app beat --loglevel=info
+    env_file:
+      - ./.env
+    depends_on:
+      - redis
+      - email-worker
+    volumes:
+      - ./email:/app
 
   flower:
     image: mher/flower:0.9.7

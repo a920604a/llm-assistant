@@ -16,10 +16,12 @@ logger = get_logger()
 
 
 @flow(name="Arxiv Paper Ingestion Pipeline")
-def arxiv_pipeline(target_date: str, max_results: int = 10, process_pdfs: bool = True):
+def arxiv_pipeline(
+    date_from: str, date_to: str, max_results: int = 10, process_pdfs: bool = True
+):
     # logger = get_run_logger()
 
-    client, papers = fetch_papers_task(target_date, max_results)
+    client, papers = fetch_papers_task(date_from, date_to, max_results)
 
     if process_pdfs and papers:
         pdf_results = process_pdfs_task(client, papers)
