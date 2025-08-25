@@ -29,14 +29,16 @@ class MetadataFetcher:
         papers = await self.arxiv_client.fetch_papers(
             max_results=max_results, from_date=target_date, to_date=target_date
         )
-        logger.info(f"[fetch_papers] Fetched {len(papers)} papers from arXiv")
+        print(f"[fetch_papers] Fetched {len(papers)} papers from arXiv")
         return papers
 
     # ------------------------------
     # Stage 2: Download & parse PDF
     # ------------------------------
 
-    async def process_pdfs_batch(self, papers: List[ArxivPaper]) -> Dict[str, Any]:
+    async def process_pdfs_batch(
+        self, papers: List[ArxivPaper], download_pdfs: bool
+    ) -> Dict[str, Any]:
         results = {
             "downloaded": 0,
             "parsed": 0,
@@ -47,9 +49,9 @@ class MetadataFetcher:
             "updated_papers": papers,
         }
 
-        logger.info(f"Starting async pipeline for {len(papers)} PDFs...")
-        logger.info(f"Concurrent downloads: {self.max_concurrent_downloads}")
-        logger.info(f"Concurrent parsing: {self.max_concurrent_parsing}")
+        print(f"Starting async pipeline for {len(papers)} PDFs...")
+        print(f"Concurrent downloads: {self.max_concurrent_downloads}")
+        print(f"Concurrent parsing: {self.max_concurrent_parsing}")
 
         # Create semaphores for controlled concurrency
         download_semaphore = asyncio.Semaphore(self.max_concurrent_downloads)
@@ -59,7 +61,7 @@ class MetadataFetcher:
         # pipeline_tasks = [self._download_and_parse_pipeline(paper, download_semaphore, parse_semaphore) for paper in papers]
         pipeline_tasks = [
             self._download_and_parse_pipeline(
-                idx, paper, download_semaphore, parse_semaphore
+                idx, paper, download_semaphore, parse_semaphore, download_pdfs
             )
             for idx, paper in enumerate(papers)
         ]
@@ -99,7 +101,7 @@ class MetadataFetcher:
                 results["download_failures"].append(paper.arxiv_id)
 
         # Simple processing summary
-        logger.info(
+        print(
             f"PDF processing: {results['downloaded']}/{len(papers)} downloaded, {results['parsed']} parsed"
         )
 
@@ -133,6 +135,7 @@ class MetadataFetcher:
         paper: ArxivPaper,
         download_semaphore: asyncio.Semaphore,
         parse_semaphore: asyncio.Semaphore,
+        download_pdfs: bool,
     ) -> tuple[int, bool, bool, Optional[str], Optional[ParsedPaper]]:
         download_success = False
         parsed_success = False
@@ -142,14 +145,14 @@ class MetadataFetcher:
         try:
             # Step 1: Download PDF with download concurrency control
             async with download_semaphore:
-                logger.info(f"Starting download: {paper.arxiv_id}")
+                print(f"Starting download: {paper.arxiv_id} with {download_pdfs} ")
                 pdf_path = await self.arxiv_client.download_pdf(
-                    paper, force_download=False
+                    paper, force_download=download_pdfs
                 )
 
                 if pdf_path:
                     download_success = True
-                    logger.info(f"Download complete: {paper.arxiv_id} in {pdf_path}")
+                    print(f"Download complete: {paper.arxiv_id} in {pdf_path}")
                 else:
                     logger.error(f"Download failed: {paper.arxiv_id}")
                     return (idx, False, False, None, None)
@@ -158,7 +161,9 @@ class MetadataFetcher:
             # This allows other downloads to continue while this PDF is being parsed
             async with parse_semaphore:
                 logger.debug(f"Starting parse: {paper.arxiv_id}")
-                pdf_content = await self.pdf_parser.parse_pdf(pdf_path)
+                pdf_content = await self.pdf_parser.parse_pdf(
+                    paper.arxiv_id, save_img_local=download_pdfs
+                )
 
                 if pdf_content:
                     parsed_success = True
@@ -240,5 +245,5 @@ class MetadataFetcher:
                     logger.error(f"Failed to store {paper.arxiv_id} in DB: {e}")
 
             session.commit()
-            logger.info(f"[store_to_db] Stored {stored_count} papers to DB")
+            print(f"[store_to_db] Stored {stored_count} papers to DB")
             return stored_count

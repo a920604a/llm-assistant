@@ -11,3 +11,6 @@ ollama_models
 uploaded_files/
 
 logs
+celerybeat-schedule
+
+docker_cache

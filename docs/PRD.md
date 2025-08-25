@@ -134,7 +134,7 @@ MVP 以 **穩定資料管線、清楚檢索體驗與可信賴引用** 為優先�
 
 ```mermaid
 flowchart LR
-  S[Scheduler (Beat/Prefect)] --> J{拉取 arXiv 清單}
+  S[Scheduler Beat/Prefect] --> J{拉取 arXiv 清單}
   J --> D[下載 PDF]
   D --> E[抽取文字/頁碼]
   E --> T[可選 翻譯 EN->ZH]
@@ -179,12 +179,12 @@ sequenceDiagram
 ```mermaid
 flowchart LR
   S[每日排程] --> F[篩選用戶訂閱主題]
-  F --> G[抽取關聯圖(實體/關係)]
+  F --> G[抽取關聯圖 實體/關係]
   G --> H[社群偵測/主題聚合]
   H --> R[生成每群落摘要]
   R --> E[渲染 HTML Email]
   E --> M[寄送]
-  M --> L[寫回成效(開信/點擊/退信)]
+  M --> L[寫回成效 開信/點擊/退信]
 ```
 
 ---

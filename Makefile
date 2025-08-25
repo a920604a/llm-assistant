@@ -9,16 +9,29 @@ else
   DOCKER_COMPOSE = docker compose -f docker-compose.dev.yml
 endif
 
-MONITOR_COMPOSE = docker compose -f docker-compose.monitor.dev.yml
+MONITOR_DEV_COMPOSE = docker compose -f docker-compose.monitor.dev.yml
+MONITOR_COMPOSE = docker compose -f docker-compose.monitor.yml
 PY_DIRS = note mcpclient
 
+NETWORK_NAME = monitor-net app-net
 
 .PHONY: test
 
+
+net-create: ## 建立共用 Docker network（若不存在）
+	@echo "🔌 檢查/建立 network $(NETWORK_NAME)"
+	@if ! docker network inspect $(NETWORK_NAME) >/dev/null 2>&1; then \
+		docker network create $(NETWORK_NAME) --driver bridge; \
+		echo "✅ 建立 $(NETWORK_NAME) 完成"; \
+	else \
+		echo "✅ $(NETWORK_NAME) 已存在"; \
+	fi
 # 啟動所有容器（背景執行）
 up:
+	$(MAKE) net-create
 	$(DOCKER_COMPOSE) up -d
-	$(MONITOR_COMPOSE) up -d
+	$(MONITOR_DEV_COMPOSE) up -d
+# 	$(MONITOR_COMPOSE) up -d
 
 
 up-front:
@@ -27,7 +40,8 @@ up-front:
 # 停止所有容器
 down:
 	$(DOCKER_COMPOSE) --env-file $(ENV_FILE) down
-	$(MONITOR_COMPOSE) down
+	$(MONITOR_DEV_COMPOSE) down
+# 	$(MONITOR_COMPOSE) down
 
 # 重啟所有容器
 restart:
@@ -82,6 +96,9 @@ ingest-arxiv:
 
 search-arxiv:
 	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python /app/arxiv_ingestion/flows/arxiv_rag_pipeline.py"
+
+email-alert:
+	$(DOCKER_COMPOSE) exec email-worker /bin/sh -c "PYTHONPATH=/app python /app/pipeline.py"
 
 
 

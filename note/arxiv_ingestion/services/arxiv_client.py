@@ -184,7 +184,10 @@ class ArxivClient:
         return papers
 
     async def download_pdf(
-        self, paper: ArxivPaper, force_download: bool = False, max_retries: int = 3
+        self,
+        paper: ArxivPaper,
+        force_download: bool = False,  # 是否存本地
+        max_retries: int = 3,
     ) -> Optional[Path]:
         if not paper.pdf_url:
             logger.error(f"No PDF URL for paper {paper.arxiv_id}")
@@ -195,7 +198,7 @@ class ArxivClient:
         object_name = f"{paper.arxiv_id}/{paper.arxiv_id}.pdf"
 
         # 若已有快取且不強制下載，直接回傳
-        if pdf_path.exists() and not force_download:
+        if pdf_path.exists():
             logger.info(f"Using cached PDF: {pdf_path.name}")
             return pdf_path
 
@@ -209,14 +212,24 @@ class ArxivClient:
                 ) as client:
                     async with client.stream("GET", paper.pdf_url) as response:
                         response.raise_for_status()
-                        with open(pdf_path, "wb") as f:
-                            async for chunk in response.aiter_bytes():
-                                f.write(chunk)
+                        from io import BytesIO
 
-                # 確認檔案存在後再上傳 MinIO
-                if pdf_path.exists():
-                    with open(pdf_path, "rb") as f:
-                        s3_client.upload_fileobj(f, MINIO_BUCKET, object_name)
+                        pdf_bytes = BytesIO()
+                        async for chunk in response.aiter_bytes():
+                            pdf_bytes.write(chunk)
+                        pdf_bytes.seek(0)
+
+                # 存本地（可選）
+                if force_download:
+                    with open(pdf_path, "wb") as f:
+                        f.write(pdf_bytes.getbuffer())
+
+                # # 確認檔案存在後再上傳 MinIO
+                # if pdf_path.exists():
+                #     with open(pdf_path, "rb") as f:
+                #         s3_client.upload_fileobj(f, MINIO_BUCKET, object_name)
+                # 一定上傳 MinIO
+                s3_client.upload_fileobj(pdf_bytes, MINIO_BUCKET, object_name)
 
                 logger.info(
                     f"Successfully downloaded PDF: {pdf_path.name} in {pdf_path}"

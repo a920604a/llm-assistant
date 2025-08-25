@@ -9,5 +9,5 @@ logger = get_logger(__name__)
 def store_papers_task(papers):
     metadata_fetcher = MetadataFetcher(None, None)
     stored_count = metadata_fetcher.store_to_db(papers)
-    logger.info(f"Stored {stored_count} papers in DB")
+    print(f"Stored {stored_count} papers in DB")
     return stored_count
