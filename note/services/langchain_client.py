@@ -1,4 +1,4 @@
-from conf import MODEL_NAME, OLLAMA_API_URL
+from config import MODEL_NAME, OLLAMA_API_URL
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 
@@ -8,7 +8,10 @@ def llm_context(context: str, query: str, user_language: str = "Traditional Chin
 
     prompt = ChatPromptTemplate.from_template(
         """
-    You are a note organizer. Please organize your answers based on the following:
+    You are an expert note organizer and Markdown formatter.
+    Please read the following context and question, and provide a well-structured answer
+    using headings, subheadings, bullet points, and numbering where appropriate.
+
 
     Context:
     {context}
@@ -16,7 +19,7 @@ def llm_context(context: str, query: str, user_language: str = "Traditional Chin
     Question:
     {question}
 
-    Answer in {user_language}, list format.
+    Translate the summary to {user_language}. Output ONLY in {user_language}, formatted clearly for readability with headings, bullet points, and numbering.
     """
     )
 

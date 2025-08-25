@@ -1,5 +1,5 @@
 from api.schemas.user import UserQuery
-from conf import NOTE_API_URL
+from config import NOTE_API_URL
 from logger import get_logger
 from redis_client import get_redis_system_setting
 from services.langchain_client import llm, rewrite_query

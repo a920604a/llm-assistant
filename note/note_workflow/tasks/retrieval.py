@@ -1,4 +1,4 @@
-from conf import COLLECTION_NAME
+from config import COLLECTION_NAME
 from logger import get_logger
 from prefect import task
 from qdrant_client import models

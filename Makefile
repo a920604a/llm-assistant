@@ -90,19 +90,6 @@ up-dev:
 
 
 
-
-ingest-arxiv:
-	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python /app/arxiv_ingestion/flows/arxiv_pipeline.py"
-
-search-arxiv:
-	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python /app/arxiv_ingestion/flows/arxiv_rag_pipeline.py"
-
-email-alert:
-	$(DOCKER_COMPOSE) exec email-worker /bin/sh -c "PYTHONPATH=/app python /app/pipeline.py"
-
-
-
-
 # 1️⃣ 一鍵檢查品質
 quality_checks: format lint
 

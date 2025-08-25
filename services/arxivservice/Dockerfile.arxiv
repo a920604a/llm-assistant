@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY services/celeryworker/requirements.txt ./requirements.txt
+COPY services/arxivservice/requirements.txt ./requirements.txt
 
 COPY ./note /app
 
@@ -16,4 +16,4 @@ RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 
-CMD ["celery", "-A", "celery_app.celery_app", "worker", "--queues", "notes", "-n", "worker.import_md@%h", "--loglevel=info"]
+CMD ["celery", "-A", "celery_app.celery_app", "worker", "--queues", "email", "-n", "worker.email_alarm@%h", "--loglevel=info"]

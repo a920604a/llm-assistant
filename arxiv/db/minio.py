@@ -1,11 +1,11 @@
 import boto3
-from arxiv_ingestion.config import (
+from botocore.client import Config
+from config import (
     MINIO_ACCESS_KEY,
     MINIO_BUCKET,
     MINIO_ENDPOINT,
     MINIO_SECRET_KEY,
 )
-from botocore.client import Config
 from logger import get_logger
 
 logger = get_logger(__name__)

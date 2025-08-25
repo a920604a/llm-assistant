@@ -1,7 +1,4 @@
 from api.routers import query, setting, user
-from arxiv_ingestion.db.qdrant import (
-    create_qdrant_collection as create_arxiv_collection,
-)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from logger import get_logger
@@ -41,7 +38,5 @@ async def startup_event():
     logger.info("🚀 startup_event triggered")
     await run_in_threadpool(create_note_collection)
     logger.info("✅ note_collection ready")
-    await run_in_threadpool(create_arxiv_collection)
-    logger.info("✅ arxiv_collection ready")
     await run_in_threadpool(create_note_bucket)
     logger.info("✅ note_bucket ready")

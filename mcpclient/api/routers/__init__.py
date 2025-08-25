@@ -1,5 +1,5 @@
 import firebase_admin
-from conf import FIRBASE_KEY_PATH
+from config import FIRBASE_KEY_PATH
 from firebase_admin import credentials
 
 cred = credentials.Certificate(f"{FIRBASE_KEY_PATH}/serviceAccountKey.json")

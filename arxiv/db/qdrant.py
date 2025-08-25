@@ -5,6 +5,7 @@ from qdrant_client.http.exceptions import UnexpectedResponse
 
 logger = get_logger(__name__)
 
+
 # Qdrant client，請確認連線設定
 qdrant_client = QdrantClient(
     url=QDRANT_URL,
@@ -18,7 +19,7 @@ def create_qdrant_collection():
         qdrant_client.create_collection(
             collection_name=COLLECTION_NAME,
             vectors_config=models.VectorParams(
-                size=384, distance=models.Distance.COSINE
+                size=768, distance=models.Distance.COSINE
             ),
         )
         print(f"✅ Qdrant collection `{COLLECTION_NAME}` created successfully.")

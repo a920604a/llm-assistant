@@ -1,5 +1,5 @@
 import requests
-from conf import NOTE_API_URL
+from config import NOTE_API_URL
 
 
 def get_user_data(user_id: str):

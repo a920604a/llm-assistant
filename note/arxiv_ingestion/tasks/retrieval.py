@@ -12,6 +12,7 @@ def retrieval(
     top_k: int = 5,
     category: str = None,
     author: str = None,
+    title: str = None,
     start_date: str = None,  # e.g. "2023-01-01"
     end_date: str = None,
 ) -> tuple[list, str]:
@@ -30,6 +31,13 @@ def retrieval(
         must_conditions.append(
             models.FieldCondition(key="authors", match=models.MatchValue(value=author))
         )
+    if title:
+        must_conditions.append(
+            models.FieldCondition(
+                key="title",
+                match=models.MatchValue(value=title),
+            )
+        )
     if start_date or end_date:
         # published_date 篩選
         date_range = {}
@@ -47,22 +55,18 @@ def retrieval(
         collection_name=COLLECTION_NAME,
         query_vector=query_vector,
         query_filter=filter_cond,
-        # query_filter=models.Filter(
-        #     must=[
-        #         models.FieldCondition(
-        #             key="course",
-        #             match=models.MatchValue(value=course)
-        #         )
-        #     ]
-        # ),
         limit=top_k,
         with_payload=True,
     )
 
     results = [hit.payload for hit in query_result]
     # [ {'arxiv_id' : XXX, 'abstract': XXX, 'title': XXX, 'authors': XXX, 'categories': XXX, 'published_date': XXX, 'text': XXX, 'chunk_idx': XXX}, ]
+    chunks_info_str = "\n".join(
+        [f"{chunk['title']} ({chunk['arxiv_id']})" for chunk in results]
+    )
+    msg = f"Retrieved {len(results)} chunks from collection '{COLLECTION_NAME}':\n{chunks_info_str}"
 
     return (
         results,
-        f"Retrieved {len(results)} chunks from collection '{COLLECTION_NAME}'",
+        msg,
     )
