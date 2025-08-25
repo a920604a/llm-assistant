@@ -99,6 +99,10 @@ services:
     container_name: note-worker-redis
     ports:
       - "6379:6379"
+    volumes:
+      - ./data/redis_data:/data
+    command: [ "redis-server", "--dir", "/data" ]
+    # command: ["redis-server", "--save", "", "--appendonly", "no"] #關閉持久化
   worker:
     # Celery Worker → 負責執行任務
     build:
@@ -112,6 +116,8 @@ services:
       - note-qdrant
     volumes:
       - ./note:/app
+      - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
+      - ./data/note_worker:/data
     env_file:
       - ./.env # <- 指定要讀的環境變數檔
 
@@ -127,24 +133,9 @@ services:
       - worker
     volumes:
       - ./note:/app
+      - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
     env_file:
       - ./.env
-
-  # email-api:
-  #   build:
-  #     context: .
-  #     dockerfile: ./services/emailservice/Dockerfile.email
-  #   container_name: email-api
-  #   command: uvicorn app.main:app --host 0.0.0.0 --port 8100
-  #   ports:
-  #     - "8100:8100"
-  #   env_file:
-  #     - ./.env
-  #   depends_on:
-  #     - redis
-  #     - note-db
-  #     - note-qdrant
-  #     - note-storage
 
   email-worker:
     build:
@@ -161,6 +152,7 @@ services:
       - note-storage
     volumes:
       - ./email:/app
+      - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
     working_dir: /app # <-- 加上這行
 
   email-beat:
@@ -176,6 +168,7 @@ services:
       - email-worker
     volumes:
       - ./email:/app
+      - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
 
   flower:
     image: mher/flower:0.9.7
@@ -185,37 +178,3 @@ services:
       - "5555:5555"
     depends_on:
       - redis
-  # imageserver:
-  #   build:
-  #     context: .
-  #     dockerfile: ./services/imageservice/Dockerfile.imageserver
-  #   container_name: imageservice
-  #   volumes:
-  #     - ./image:/app
-  #   #   - ./services/imageservice/models:/models # 可放置離線模型檔案 , https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt
-
-  #   # environment:
-  #   #   - VECTOR_DB_URL=http://qdrant:6333
-  #   #   - SECURITY_SERVICE_URL=http://securityserver:9000
-  #   ports:
-  #     - "8033:8000"
-  #   # depends_on:
-  #   #   - qdrant
-  #   #   - securityserver
-
-  # speechserver:
-  #   build:
-  #     context: .
-  #     dockerfile: ./services/speechservice/Dockerfile.speechserver
-  #   container_name: speechservice
-  #   volumes:
-  #     - ./speech:/app
-  #   # environment:
-  #   # - VECTOR_DB_URL=http://qdrant:6333
-  #   # - SECURITY_SERVICE_URL=http://securityserver:9000
-
-  #   ports:
-  #     - "8044:8000"
-  #   depends_on:
-  #     - qdrant
-  #     # - securityserver

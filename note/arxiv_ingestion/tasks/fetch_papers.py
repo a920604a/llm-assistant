@@ -18,5 +18,5 @@ async def fetch_papers_task(
     papers = await client.fetch_papers(
         from_date=date_from, to_date=date_to, max_results=max_results
     )
-    logger.info(f"Fetched {len(papers)} papers from {date_from} to {date_to}")
+    print(f"Fetched {len(papers)} papers from {date_from} to {date_to}")
     return client, papers

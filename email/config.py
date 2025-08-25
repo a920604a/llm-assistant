@@ -6,7 +6,8 @@ OLLAMA_API_URL = os.getenv("OLLAMA_API_URL", "http://localhost:11434")
 MODEL_NAME = "gpt-oss:20b"
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@note-db:5432/note")
-
+COLLECTION_NAME = "arxiv_collection"
+QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
 
 # Firebase Key
 FIREBASE_KEY_PATH = "/app"

@@ -15,5 +15,5 @@ def run_daily_pipeline(max_results=10, process_pdfs=True):
         date_from=(datetime.utcnow() - timedelta(days=30)).strftime("%Y%m%d"),
         date_to=datetime.utcnow().strftime("%Y%m%d"),
         max_results=max_results,
-        process_pdfs=process_pdfs,
+        download_pdfs=process_pdfs,
     )

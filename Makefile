@@ -97,6 +97,9 @@ ingest-arxiv:
 search-arxiv:
 	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app python /app/arxiv_ingestion/flows/arxiv_rag_pipeline.py"
 
+email-alert:
+	$(DOCKER_COMPOSE) exec email-worker /bin/sh -c "PYTHONPATH=/app python /app/pipeline.py"
+
 
 
 

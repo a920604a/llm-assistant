@@ -9,13 +9,11 @@ logger = get_logger(__name__)
 
 @task(retries=2)
 async def process_pdfs_task(
-    client: ArxivClient, papers: PDFParserService, process_pdfs: bool = True
+    client: ArxivClient, papers: PDFParserService, download_pdfs: bool = True
 ):
     pdf_parser = PDFParserService()
     metadata_fetcher = MetadataFetcher(client, pdf_parser)  # client 已不需
-    pdf_results = (
-        await metadata_fetcher.process_pdfs_batch(papers) if process_pdfs else {}
-    )
+    pdf_results = await metadata_fetcher.process_pdfs_batch(papers, download_pdfs)
 
-    logger.info(f"Processed PDFs: {pdf_results.get('parsed', 0)} parsed")
+    print(f"Processed PDFs: {pdf_results.get('parsed', 0)} parsed")
     return pdf_results

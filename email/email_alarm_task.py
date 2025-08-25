@@ -15,5 +15,5 @@ conf = ConnectionConfig(
 
 
 @celery_app.task(name="send_daily_papers", queue="email")
-def send_daily_papers():
-    daily_papers_flow()
+def send_daily_papers(top_k=3):
+    daily_papers_flow(top_k)

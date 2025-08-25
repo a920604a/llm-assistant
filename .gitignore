@@ -12,3 +12,5 @@ uploaded_files/
 
 logs
 celerybeat-schedule
+
+docker_cache

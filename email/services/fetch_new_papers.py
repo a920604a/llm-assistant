@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from storage.model import Paper
 
 
-def fetch_new_papers(db: Session, since_date=None) -> list[Paper]:
+def fetch_new_papers(db: Session, since_date=None, limit: int = 5) -> list[Paper]:
     """
     從 papers table 抓取新論文
     - 條件: pdf_parsed = True 或 published_date >= 昨天
@@ -14,6 +14,7 @@ def fetch_new_papers(db: Session, since_date=None) -> list[Paper]:
     papers = (
         db.query(Paper)
         .filter(Paper.pdf_parsed | (Paper.published_date >= since_date.date()))
+        .limit(limit)
         .all()
     )
     return papers

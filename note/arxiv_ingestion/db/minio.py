@@ -32,3 +32,15 @@ def create_note_bucket():
     logger.info(f"buckets {buckets}")
     if MINIO_BUCKET not in buckets:
         s3_client.create_bucket(Bucket=MINIO_BUCKET)
+
+
+def s3_file_exists(bucket: str, object_name: str) -> bool:
+    """檢查 MinIO / S3 上是否有該檔案"""
+    try:
+        s3_client.head_object(Bucket=bucket, Key=object_name)
+        return True
+    except s3_client.exceptions.ClientError as e:
+        if e.response["Error"]["Code"] == "404":
+            return False
+        else:
+            raise
