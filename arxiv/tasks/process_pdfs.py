@@ -1,8 +1,8 @@
-from arxiv_ingestion.services.arxiv_client import ArxivClient
-from arxiv_ingestion.services.metadata_fetcher import MetadataFetcher
-from arxiv_ingestion.services.pdf_parser import PDFParserService
 from logger import get_logger
 from prefect import task
+from services.arxiv_client import ArxivClient
+from services.metadata_fetcher import MetadataFetcher
+from services.pdf_parser import PDFParserService
 
 logger = get_logger(__name__)
 

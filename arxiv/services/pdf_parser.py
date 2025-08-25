@@ -5,17 +5,17 @@ from typing import List, Optional
 
 import fitz  # PyMuPDF
 import pdfplumber
-from arxiv_ingestion.config import MINIO_BUCKET, PDF_CACHE_DIR
-from arxiv_ingestion.db.minio import s3_client, s3_file_exists
-from arxiv_ingestion.services.schemas import (
+from config import MINIO_BUCKET, PDF_CACHE_DIR
+from db.minio import s3_client, s3_file_exists
+from logger import get_logger
+from PIL import Image
+from services.schemas import (
     PaperFigure,
     PaperSection,
     PaperTable,
     ParserType,
     PdfContent,
 )
-from logger import get_logger
-from PIL import Image
 
 logger = get_logger(__name__)
 

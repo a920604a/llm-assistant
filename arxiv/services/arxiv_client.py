@@ -8,11 +8,11 @@ from typing import List, Optional
 from urllib.parse import quote, urlencode
 
 import httpx
-from arxiv_ingestion.config import MINIO_BUCKET, ArxivSettings
-from arxiv_ingestion.db.minio import s3_client
-from arxiv_ingestion.exceptions import ArxivAPIException, ArxivAPITimeoutError
-from arxiv_ingestion.services.schemas import ArxivPaper
+from config import MINIO_BUCKET, ArxivSettings
+from db.minio import s3_client
+from exceptions import ArxivAPIException, ArxivAPITimeoutError
 from logger import get_logger
+from services.schemas import ArxivPaper
 
 logger = get_logger(__name__)
 

@@ -16,6 +16,8 @@ celery_app = Celery(
     backend=settings.REDIS_BACKEND,
     include=["email_alarm_task"],  # 新增 pipeline task
 )
+celery_app.conf.timezone = "Asia/Taipei"  # 設定時區為 UTC+8
+celery_app.conf.enable_utc = True  # Celery 6 以上建議保留 True
 
 
 # 確保 Celery Worker 發送事件
@@ -35,6 +37,6 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(hour=8, minute=0),  # 每天 8:00 AM
         # "schedule": crontab(minute=15),  # 或者每天每小時第 15 分鐘
         # "schedule": crontab(minute="*/2"),  # for test
-        "args": (3,),  # top_k=1
+        "args": (5,),  # top_k=1
     },
 }

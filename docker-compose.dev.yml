@@ -60,7 +60,7 @@ services:
       - note-db
       - note-storage
       - redis
-      - worker
+      - arxiv-worker
 
   note-qdrant:
     image: qdrant/qdrant
@@ -103,36 +103,37 @@ services:
       - ./data/redis_data:/data
     command: [ "redis-server", "--dir", "/data" ]
     # command: ["redis-server", "--save", "", "--appendonly", "no"] #關閉持久化
-  worker:
+  arxiv-worker:
     # Celery Worker → 負責執行任務
     build:
       context: .
-      dockerfile: ./services/celeryworker/Dockerfile.worker
-    container_name: note-worker
-    command: celery -A celery_app.celery_app worker --concurrency=4 --queues notes -n worker.ingest_argix@%h --loglevel=info
+      dockerfile: ./services/arxivservice/Dockerfile.arxiv
+    container_name: arxiv-worker
+    command: celery -A celery_app.celery_app worker --concurrency=4 --queues notes -n worker.ingest_arxiv@%h --loglevel=info
     depends_on:
       - redis
       - note-db
       - note-qdrant
+      - note-storage
     volumes:
-      - ./note:/app
+      - ./arxiv:/app
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
-      - ./data/note_worker:/data
+      - ./data/arxiv_worker:/data
     env_file:
       - ./.env # <- 指定要讀的環境變數檔
 
-  beat:
+  arxiv-beat:
     # Celery Beat → 負責發送定時任務給 Worker
     build:
       context: .
-      dockerfile: ./services/celeryworker/Dockerfile.worker
-    container_name: note-beat
+      dockerfile: ./services/arxivservice/Dockerfile.arxiv
+    container_name: arxiv-beat
     command: celery -A celery_app.celery_app beat --loglevel=info
     depends_on:
       - redis
-      - worker
+      - arxiv-worker
     volumes:
-      - ./note:/app
+      - ./arxiv:/app
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
     env_file:
       - ./.env

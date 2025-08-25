@@ -1,6 +1,6 @@
-from arxiv_ingestion.services.metadata_fetcher import MetadataFetcher
 from logger import get_logger
 from prefect import task
+from services.metadata_fetcher import MetadataFetcher
 
 logger = get_logger(__name__)
 

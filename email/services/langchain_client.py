@@ -39,7 +39,7 @@ def llm_summary(
     ]
     if isTranslate:
         prompt_lines.append(
-            f"Translate the summary to {user_language}. Output ONLY in {user_language}."
+            f"Translate the summary to {user_language}. Output ONLY in {user_language}, formatted clearly for readability with headings, bullet points, and numbering."
         )
 
     prompt_lines.append(

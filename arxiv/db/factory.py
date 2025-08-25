@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from typing import Generator, Optional
 
-from arxiv_ingestion.config import DATABASE_URL
+from config import DATABASE_URL
 from logger import get_logger
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session as SessionType

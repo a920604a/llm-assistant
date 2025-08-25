@@ -1,13 +1,13 @@
 import asyncio
 from typing import Any, Dict, List, Optional
 
-from arxiv_ingestion.db.factory import make_database
-from arxiv_ingestion.db.models import Paper  # SQLAlchemy ORM model
-from arxiv_ingestion.services.arxiv_client import ArxivClient
-from arxiv_ingestion.services.pdf_parser import PDFParserService
-from arxiv_ingestion.services.schemas import ArxivMetadata, ArxivPaper, ParsedPaper
 from dateutil import parser
+from db.factory import make_database
+from db.models import Paper  # SQLAlchemy ORM model
 from logger import get_logger
+from services.arxiv_client import ArxivClient
+from services.pdf_parser import PDFParserService
+from services.schemas import ArxivMetadata, ArxivPaper, ParsedPaper
 
 logger = get_logger(__name__)
 

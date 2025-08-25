@@ -1,15 +1,15 @@
 import io
 from typing import List
 
-from arxiv_ingestion.config import COLLECTION_NAME, MINIO_BUCKET
-from arxiv_ingestion.db.minio import s3_client
-from arxiv_ingestion.db.qdrant import qdrant_client
-from arxiv_ingestion.services.embedding import get_embedding
-from arxiv_ingestion.services.pdf_parser import TextExtractor
-from arxiv_ingestion.services.schemas import ArxivPaper
+from config import COLLECTION_NAME, MINIO_BUCKET
+from db.minio import s3_client
+from db.qdrant import qdrant_client
 from logger import get_logger
 from prefect import task
 from qdrant_client import models
+from services.embedding import get_embedding
+from services.pdf_parser import TextExtractor
+from services.schemas import ArxivPaper
 
 logger = get_logger(__name__)
 

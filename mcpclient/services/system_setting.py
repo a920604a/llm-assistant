@@ -1,6 +1,6 @@
 import requests
 from api.schemas.SystemSetting import DEFAULT_SETTINGS, SystemSettings
-from conf import NOTE_API_URL
+from config import NOTE_API_URL
 from logger import get_logger
 from redis_client import get_redis_system_setting
 

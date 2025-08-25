@@ -1,4 +1,4 @@
-from conf import MODEL_NAME, OLLAMA_API_URL
+from config import MODEL_NAME, OLLAMA_API_URL
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 

@@ -1,7 +1,7 @@
 import json
 import re
 
-from conf import MODEL_NAME
+from config import MODEL_NAME
 from logger import get_logger
 from note_workflow.tasks.llm import llm
 from prefect import task
