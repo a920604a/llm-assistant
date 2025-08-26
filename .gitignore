@@ -14,3 +14,4 @@ logs
 celerybeat-schedule
 
 docker_cache
+terraform/secrets.tf

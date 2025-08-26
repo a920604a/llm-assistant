@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: ./services/frontend/Dockerfile.nginx
+    image: nginx:latest
     container_name: nginx
     ports:
       - "80:80"
@@ -32,6 +33,7 @@ services:
     build:
       context: .
       dockerfile: ./services/mcpclient/Dockerfile.mcpclient
+    image: mcpclient:latest
     container_name: mcpclient
     environment:
       - OLLAMA_API_URL=http://ollama:11434
@@ -46,6 +48,7 @@ services:
     build:
       context: .
       dockerfile: ./services/noteservice/Dockerfile.noteserver
+    image: noteserver:latest
     container_name: note
     volumes:
       - ./note:/app
@@ -108,6 +111,7 @@ services:
     build:
       context: .
       dockerfile: ./services/arxivservice/Dockerfile.arxiv
+    image: arxiv-worker:latest
     container_name: arxiv-worker
     command: celery -A celery_app.celery_app worker --concurrency=4 --queues notes -n worker.ingest_arxiv@%h --loglevel=info
     depends_on:
@@ -127,6 +131,7 @@ services:
     build:
       context: .
       dockerfile: ./services/arxivservice/Dockerfile.arxiv
+    image: arxiv-beat:latest
     container_name: arxiv-beat
     command: celery -A celery_app.celery_app beat --loglevel=info
     depends_on:
@@ -142,6 +147,7 @@ services:
     build:
       context: .
       dockerfile: ./services/emailservice/Dockerfile.email
+    image: email-worker:latest
     container_name: email-worker
     command: celery -A celery_app.celery_app worker --concurrency=4 --queues email -n worker.email_alarm@%h --loglevel=info
     env_file:
@@ -160,6 +166,7 @@ services:
     build:
       context: .
       dockerfile: ./services/emailservice/Dockerfile.email
+    image: email-beat:latest
     container_name: email-beat
     command: celery -A celery_app.celery_app beat --loglevel=info
     env_file:

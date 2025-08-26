@@ -17,7 +17,7 @@ celery_app = Celery(
     include=["email_alarm_task"],  # 新增 pipeline task
 )
 celery_app.conf.timezone = "Asia/Taipei"  # 設定時區為 UTC+8
-celery_app.conf.enable_utc = True  # Celery 6 以上建議保留 True
+celery_app.conf.enable_utc = False  # Celery 6 以上建議保留 True
 
 
 # 確保 Celery Worker 發送事件
@@ -34,7 +34,7 @@ add_prometheus_option(celery_app)
 celery_app.conf.beat_schedule = {
     "daily_paper_summary": {
         "task": "send_daily_papers",
-        "schedule": crontab(hour=8, minute=0),  # 每天 8:00 AM
+        "schedule": crontab(hour=19, minute=0),  # 每天 6:00 PM
         # "schedule": crontab(minute=15),  # 或者每天每小時第 15 分鐘
         # "schedule": crontab(minute="*/2"),  # for test
         "args": (5,),  # top_k=1

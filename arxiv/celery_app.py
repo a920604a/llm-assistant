@@ -16,7 +16,7 @@ celery_app = Celery(
     include=["run_daily_task"],  # 啟動時要自動 import 的任務模組清單
 )
 celery_app.conf.timezone = "Asia/Taipei"  # 設定時區為 UTC+8
-celery_app.conf.enable_utc = True  # Celery 6 以上建議保留 True
+celery_app.conf.enable_utc = False  # 直接用當地時間
 
 
 # 確保 Celery Worker 發送事件
@@ -35,7 +35,7 @@ add_prometheus_option(celery_app)
 celery_app.conf.beat_schedule = {
     "daily-arxiv-pipeline": {
         "task": "run_daily_arxiv_pipeline",
-        "schedule": crontab(hour=0, minute=0),  # for production
+        "schedule": crontab(hour=18, minute=30),  # for production
         # "schedule": crontab(minute="*/2"),  # for test
         # "schedule": crontab(minute=15),  # 或者每天每小時第 15 分鐘
         "args": (3, False),  # 傳入 task 的參數 (max_results=10, process_pdfs=True)

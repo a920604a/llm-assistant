@@ -220,9 +220,9 @@ resource "docker_container" "redis" {
   }
 }
 
-resource "docker_container" "worker" {
-  name  = "worker"
-  image = "worker:latest" # TODO , because custom docker image
+resource "docker_container" "arxiv-worker" {
+  name  = "arxiv-worker"
+  image = "arxiv-worker:latest" # TODO , because custom docker image
   networks_advanced {
     name = docker_network.llm_network.name
   }
@@ -230,24 +230,37 @@ resource "docker_container" "worker" {
   command = ["celery", "-A", "celery_app.celery_app", "worker", "--concurrency=4", "-Q", "notes", "-n", "worker.import_md@%h", "--loglevel=info"]
 
   volumes {
-    host_path      = abspath("${path.module}/../note")
+    host_path      = abspath("${path.module}/../arxiv")
     container_path = "/app"
   }
+
+  volumes {
+    host_path      = abspath("${path.module}/../docker_cache/hf_cache")
+    container_path = "/root/.cache/huggingface"
+  }
+
+  # 只有 arxiv-worker 有
+  volumes {
+    host_path      = abspath("${path.module}/../data/arxiv_worker")
+    container_path = "/data"
+  }
+
 
   env = [
     for line in split("\n", file("${path.module}/../.env")) : line if length(trimspace(line)) > 0
   ]
 
   depends_on = [
-    docker_container.noteserver,
     docker_container.redis,
-    docker_container.note_db
+    docker_container.note_db,
+    docker_container.note_qdrant,
+    docker_container.note_storage
   ]
 }
 
-resource "docker_container" "beat" {
-  name  = "beat"
-  image = "beat:latest" # TODO , because custom docker image
+resource "docker_container" "arxiv-beat" {
+  name  = "arxiv-beat"
+  image = "arxiv-beat:latest" # TODO , because custom docker image
   networks_advanced {
     name = docker_network.llm_network.name
   }
@@ -255,8 +268,12 @@ resource "docker_container" "beat" {
   command = ["celery", "-A", "celery_app.celery_app", "beat", "--loglevel=info"]
 
   volumes {
-    host_path      = abspath("${path.module}/../note")
+    host_path      = abspath("${path.module}/../arxiv")
     container_path = "/app"
+  }
+  volumes {
+    host_path      = abspath("${path.module}/../docker_cache/hf_cache")
+    container_path = "/root/.cache/huggingface"
   }
 
   env = [
@@ -264,11 +281,11 @@ resource "docker_container" "beat" {
   ]
 
   depends_on = [
-    docker_container.noteserver,
     docker_container.redis,
     docker_container.note_db
   ]
 }
+
 
 resource "docker_container" "flower" {
   name  = "flower"
@@ -286,5 +303,65 @@ resource "docker_container" "flower" {
 
   depends_on = [
     docker_container.redis
+  ]
+}
+
+
+
+resource "docker_container" "email-worker" {
+  name  = "email-worker"
+  image = "email-worker:latest" # TODO , because custom docker image
+  networks_advanced {
+    name = docker_network.llm_network.name
+  }
+
+  command = ["celery", "-A", "celery_app.celery_app", "worker", "--concurrency=4", "-Q", "email", "-n", "worker.email_alarm@%h", "--loglevel=info"]
+
+  volumes {
+    host_path      = abspath("${path.module}/../email")
+    container_path = "/app"
+  }
+  volumes {
+    host_path      = abspath("${path.module}/../docker_cache/hf_cache")
+    container_path = "/root/.cache/huggingface"
+  }
+
+  env = [
+    for line in split("\n", file("${path.module}/../.env")) : line if length(trimspace(line)) > 0
+  ]
+
+  depends_on = [
+    docker_container.redis,
+    docker_container.note_db,
+    docker_container.note_storage
+  ]
+
+}
+
+resource "docker_container" "email-beat" {
+  name  = "email-beat"
+  image = "email-beat:latest" # TODO , because custom docker image
+  networks_advanced {
+    name = docker_network.llm_network.name
+  }
+
+  command = ["celery", "-A", "celery_app.celery_app", "beat", "--loglevel=info"]
+
+  volumes {
+    host_path      = abspath("${path.module}/../email")
+    container_path = "/app"
+  }
+  volumes {
+    host_path      = abspath("${path.module}/../docker_cache/hf_cache")
+    container_path = "/root/.cache/huggingface"
+  }
+
+  env = [
+    for line in split("\n", file("${path.module}/../.env")) : line if length(trimspace(line)) > 0
+  ]
+
+  depends_on = [
+    docker_container.redis,
+    docker_container.email-worker,
   ]
 }

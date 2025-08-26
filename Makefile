@@ -28,7 +28,6 @@ net-create: ## 建立共用 Docker network（若不存在）
 	fi
 # 啟動所有容器（背景執行）
 up:
-	$(MAKE) net-create
 	$(DOCKER_COMPOSE) up -d
 	$(MONITOR_DEV_COMPOSE) up -d
 # 	$(MONITOR_COMPOSE) up -d
@@ -56,13 +55,12 @@ logs:
 logs-all:
 	$(DOCKER_COMPOSE) logs -f
 
-# 重建 mcpclient 服務
-build-mcpclient:
-	$(DOCKER_COMPOSE) build mcpclient
 
 # 重建全部服務
 build:
+	$(MAKE) net-create
 	$(DOCKER_COMPOSE) build
+	$(MONITOR_DEV_COMPOSE) build
 
 # 進入 mcpclient 容器
 shell:

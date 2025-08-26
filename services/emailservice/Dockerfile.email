@@ -25,5 +25,3 @@ COPY ./email /app
 # CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8100"]
 
 CMD ["celery", "-A", "celery_app.celery_app", "worker", "-Q", "email", "-n", "worker.email_alarm@%h", "--loglevel=info"]
--
-celery -A celery_app.celery_app worker --concurrency=4 --queues email -n worker.email_alarm@%h --loglevel=info

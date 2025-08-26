@@ -6,7 +6,7 @@ terraform {
       version = "~> 2.21"
     }
     local = {
-      source = "hashicorp/local"
+      source  = "hashicorp/local"
       version = "~> 2.4"
     }
   }
@@ -18,7 +18,7 @@ provider "docker" {
 
 # 資料資料夾
 resource "local_file" "data_dirs" {
-  for_each = toset(["./data/note_db", "./data/note-storage", "./data/open-webui", "./data/qdrant_data"])
+  for_each = toset(["./data/note_db", "./data/note-storage", "./data/open-webui", "./data/qdrant_data", "./data/redis_data", "./data/arxiv_worker", "./docker_cache/hf_cache"])
   filename = each.key
   content  = ""
 }

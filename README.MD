@@ -48,10 +48,12 @@
 ├── mcpclient/                # MCP Client backend service
 ├── image/                    # Image-related scripts (未來擴充)
 ├── speech/                   # Speech service backend (未來擴充)
-├── note/                     # Note backend service (Arxiv ingestion, RAG, tasks)
+├── arxiv/                    # Arxiv service (Arxiv ingestion)
+├── email/                    # email subscription service (email subscriptionubs)
+├── note/                     # Note backend service (RAG tasks)
 ├── ollama_models/            # 本地 Ollama 模型管理
 ├── services/                 # 各微服務 Dockerfile & requirements
-│   ├── celeryworker/
+│   ├── arxivservice/
 │   ├── emailservice/
 │   ├── imageservice/
 │   ├── mcpclient/
@@ -64,7 +66,6 @@
 ├── package-lock.json
 ├── terraform.tfstate
 ├── test/                     # 單元測試 & Pytest
-├── translate.sh
 └── README.md
 
 ```
