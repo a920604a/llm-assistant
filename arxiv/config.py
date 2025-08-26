@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from pydantic import BaseSettings, Field
 
 load_dotenv()
-
+QDRANT_BATCH_SIZE = 200
 OLLAMA_API_URL = "http://ollama:11434"
 MODEL_NAME = "gpt-oss:20b"
 

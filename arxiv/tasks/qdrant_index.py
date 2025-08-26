@@ -1,7 +1,7 @@
 import io
 from typing import List
 
-from config import COLLECTION_NAME, MINIO_BUCKET
+from config import COLLECTION_NAME, MINIO_BUCKET, QDRANT_BATCH_SIZE
 from db.minio import s3_client
 from db.qdrant import qdrant_client
 from logger import get_logger
@@ -51,6 +51,8 @@ def qdrant_index_task(papers: List[ArxivPaper]):
     points: List[models.PointStruct] = []
     idx = 0
 
+    batch_points: List[models.PointStruct] = []
+
     textExtractor = TextExtractor()
 
     for paper in papers:
@@ -87,10 +89,19 @@ def qdrant_index_task(papers: List[ArxivPaper]):
             points.append(models.PointStruct(id=idx, vector=vector, payload=payload))
             idx += 1
 
-    if points:
-        qdrant_client.upsert(collection_name=COLLECTION_NAME, points=points)
-        logger.info(f"✅ 已上傳 {len(points)} 個 papers 到 Qdrant")
+            # 每到 batch_size 就上傳一次
+            if len(batch_points) >= QDRANT_BATCH_SIZE:
+                qdrant_client.upsert(
+                    collection_name=COLLECTION_NAME, points=batch_points
+                )
+                logger.info(f"✅ 上傳 batch {len(batch_points)} points 到 Qdrant")
+                batch_points = []
+
+    # 上傳剩下的不足 batch 的 points
+    if batch_points:
+        qdrant_client.upsert(collection_name=COLLECTION_NAME, points=batch_points)
+        logger.info(f"✅ 上傳最後 batch {len(batch_points)} points 到 Qdrant")
     else:
-        logger.warning("⚠️ 無可上傳的 papers 到 Qdrant")
+        logger.info("⚠️ 無可上傳的 papers 到 Qdrant")
 
     return len(points)
