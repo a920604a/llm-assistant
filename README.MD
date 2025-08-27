@@ -85,77 +85,109 @@
 
 ## 🖥️ System Architecture (Mermaid)
 
+
 ```mermaid
-flowchart LR
-    %% ===== 使用者入口 =====
-    User[User]:::user --> nginx[Nginx 入口 / 反向代理]:::frontend
+flowchart TB
+%% ======================
+%% 使用者入口
+%% ======================
+User[User]:::user --> Nginx[Nginx / API Gateway]:::frontend
+Nginx --> Client[Web UI / Frontend]:::frontend
 
-    %% ===== 認證與路由 =====
-    nginx --> mcpclient[MCPClient Auth & Router]:::auth
+%% ======================
+%% API & Services
+%% ======================
+subgraph API[API & Services]
+  FastAPI[Client API for auth]:::api
+  NoteServer[RAG Service]:::service
+end
 
-    %% ===== MCPClient 分派服務 =====
-    mcpclient --> noteserver[NoteServer RAG/筆記服務]:::service
-    mcpclient --> ollama_dev[Ollama LLM API]:::llm
-    noteserver --> |POST 請求| ollama_dev
+Client --> FastAPI
+FastAPI --> NoteServer
 
-    %% ===== Storage 模塊 =====
-    subgraph Storage["Storage 模塊 (資料存取)"]
-        note_db[Postgres<br/>關聯式資料庫]:::storage
-        note_storage[MinIO<br/>物件存儲]:::storage
-        note_qdrant[Qdrant<br/>向量資料庫]:::storage
-    end
+%% ======================
+%% Storage
+%% ======================
+subgraph Storage[Storage]
+  MinIO[(MinIO : PDFs)]:::storage
+  PostgreSQL[(PostgreSQL : Metadata / Chats)]:::storage
+  Qdrant[(Qdrant : Vectors)]:::storage
+end
 
-    %% Flower 與 Redis 共用
-    flower[Flower<br/>任務監控 UI]:::monitor
-    redis[Redis<br/>Celery 任務隊列]:::queue
+NoteServer --> MinIO
+NoteServer --> PostgreSQL
+NoteServer --> Qdrant
+FastAPI    --> LLM
+NoteServer --> LLM
 
-    %% ===== Ingest Arxiv TaskWorker =====
-    subgraph TaskWorker1["Ingest Arxiv Paper 任務隊列與後台處理"]
-        worker[Worker<br/>執行 Celery 任務]:::worker
-        beat[Beat<br/>定時任務發送]:::beat
+%% ======================
+%% LLM
+%% ======================
+subgraph LLM[LLM Engines]
+  Ollama[Ollama]:::llm
+end
 
-        %% 任務流程
-        beat -->|定時任務推送到 Redis| redis
-        redis -->|Worker 從 Redis 拉取任務| worker
-        worker -->|任務完成結果存入 Storage| Storage
-        worker --> flower
-        beat --> flower
-    end
+%% ======================
+%% Ingestion Pipeline (Routine 1)
+%% ======================
+subgraph Ingest[Ingestion Pipeline]
+  Scheduler[Daily Schedule]:::scheduler
+  IngestFlow[Fetch + Parse + Chunk + Embed + Index]:::pipeline1
+end
 
-    %% ===== Email Service TaskWorker =====
-    subgraph TaskWorker2["Email Service 任務隊列與後台處理"]
-        worker2[Worker<br/>執行 Celery 任務]:::worker
-        beat2[Beat<br/>定時任務發送]:::beat
+subgraph Data[DataSource]
+Arxiv
+end
+Arxiv --> IngestFlow
+Scheduler --> IngestFlow
+IngestFlow --> MinIO
+IngestFlow --> PostgreSQL
+IngestFlow --> Qdrant
 
-        %% 任務流程
-        beat2 -->|定時任務推送到 Redis| redis
-        redis -->|Worker 從 Redis 拉取任務| worker2
-        worker2 -->|任務完成結果存入 Storage| Storage
-        worker2 -->|寄信給使用者| User
-        worker2 --> flower
-        beat2 --> flower
-    end
+%% ======================
+%% Email Subscription Pipeline (Routine 2)
+%% ======================
+subgraph Subscription[Email Subscription Pipeline]
+  SubSched[Daily Schedule]:::scheduler
+  SubFlow[User Filter → Fetch Paper → Summarize → Send]:::pipeline2
+end
 
-    %% ===== 開發者專用 LLM =====
-    subgraph AIAgent["開發者專用 LLM"]
-        openwebui[Open-WebUI]:::frontend
-        ollama_dev[Ollama]:::llm
-        openwebui <--> ollama_dev
-    end
+SubSched --> SubFlow
+Storage --> SubFlow
+SubFlow --> User
 
-    %% ===== 模塊顏色 =====
-    classDef user fill:#FFD700,stroke:#333,stroke-width:1px
-    classDef frontend fill:#87CEEB,stroke:#333,stroke-width:1px
-    classDef auth fill:#FFA500,stroke:#333,stroke-width:1px
-    classDef service fill:#7FFFD4,stroke:#333,stroke-width:1px
-    classDef storage fill:#F08080,stroke:#333,stroke-width:1px
-    classDef worker fill:#9370DB,stroke:#333,stroke-width:1px
-    classDef beat fill:#BA55D3,stroke:#333,stroke-width:1px
-    classDef queue fill:#40E0D0,stroke:#333,stroke-width:1px
-    classDef monitor fill:#FFDAB9,stroke:#333,stroke-width:1px
-    classDef llm fill:#90EE90,stroke:#333,stroke-width:1px
+%% ======================
+%% Workers & Queue
+%% ======================
+subgraph Worker[Workers & Queue]
+  Queue1[Notes Queue]:::queue
+  Queue2[Email Queue]:::queue
+end
+
+Scheduler --> Queue1
+SubSched --> Queue2
+Queue1 --> IngestFlow
+Queue2 --> SubFlow
+
+%% ======================
+%% 顏色樣式
+%% ======================
+classDef user fill:#FFD700,stroke:#333,stroke-width:1px
+classDef frontend fill:#87CEEB,stroke:#333,stroke-width:1px
+classDef api fill:#FFA500,stroke:#333,stroke-width:1px
+classDef service fill:#7FFFD4,stroke:#333,stroke-width:1px
+classDef storage fill:#F08080,stroke:#333,stroke-width:1px
+classDef pipeline1 fill:#9370DB,stroke:#333,stroke-width:1px
+classDef pipeline2 fill:#40E0D0,stroke:#333,stroke-width:1px
+classDef scheduler fill:#BA55D3,stroke:#333,stroke-width:1px
+classDef llm fill:#90EE90,stroke:#333,stroke-width:1px
+classDef queue fill:#D2691E,stroke:#333,stroke-width:1px
+classDef data fill:#C0C0C0,stroke:#333,stroke-width:1px
+
 
 ```
+
+
 
 ---
 

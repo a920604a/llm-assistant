@@ -128,64 +128,108 @@ MVP 以 **穩定資料管線、清楚檢索體驗與可信賴引用** 為優先�
                          └─ Celery + Beat / Prefect (ingest & email schedules)
 ```
 
-### 5.1 流程圖（Mermaid）
-
-#### a) 每日 Ingest Pipeline
 
 ```mermaid
-flowchart LR
-  S[Scheduler Beat/Prefect] --> J{拉取 arXiv 清單}
-  J --> D[下載 PDF]
-  D --> E[抽取文字/頁碼]
-  E --> T[可選 翻譯 EN->ZH]
-  T --> C[Chunking]
-  C --> V[Embedding]
-  V -->|payload| Q[(Qdrant: arxiv_global_v1)]
-  C --> P[(PostgreSQL: papers, chunks)]
-  D --> M[(MinIO: pdf)]
-  J --> L[(Jobs/Logs)]
+flowchart TB
+%% ======================
+%% 使用者入口
+%% ======================
+User[User]:::user --> Nginx[Nginx / API Gateway]:::frontend
+Nginx --> Client[Web UI / Frontend]:::frontend
+
+%% ======================
+%% API & Services
+%% ======================
+subgraph API[API & Services]
+  FastAPI[Client API for auth]:::api
+  NoteServer[RAG Service]:::service
+end
+
+Client --> FastAPI
+FastAPI --> NoteServer
+
+%% ======================
+%% Storage
+%% ======================
+subgraph Storage[Storage]
+  MinIO[(MinIO : PDFs)]:::storage
+  PostgreSQL[(PostgreSQL : Metadata / Chats)]:::storage
+  Qdrant[(Qdrant : Vectors)]:::storage
+end
+
+NoteServer --> MinIO
+NoteServer --> PostgreSQL
+NoteServer --> Qdrant
+FastAPI    --> LLM
+NoteServer --> LLM
+
+%% ======================
+%% LLM
+%% ======================
+subgraph LLM[LLM Engines]
+  Ollama[Ollama]:::llm
+end
+
+%% ======================
+%% Ingestion Pipeline (Routine 1)
+%% ======================
+subgraph Ingest[Ingestion Pipeline]
+  Scheduler[Daily Schedule]:::scheduler
+  IngestFlow[Fetch + Parse + Chunk + Embed + Index]:::pipeline1
+end
+
+subgraph Data[DataSource]
+Arxiv
+end
+Arxiv --> IngestFlow
+Scheduler --> IngestFlow
+IngestFlow --> MinIO
+IngestFlow --> PostgreSQL
+IngestFlow --> Qdrant
+
+%% ======================
+%% Email Subscription Pipeline (Routine 2)
+%% ======================
+subgraph Subscription[Email Subscription Pipeline]
+  SubSched[Daily Schedule]:::scheduler
+  SubFlow[User Filter → Fetch Paper → Summarize → Send]:::pipeline2
+end
+
+SubSched --> SubFlow
+Storage --> SubFlow
+SubFlow --> User
+
+%% ======================
+%% Workers & Queue
+%% ======================
+subgraph Worker[Workers & Queue]
+  Queue1[Notes Queue]:::queue
+  Queue2[Email Queue]:::queue
+end
+
+Scheduler --> Queue1
+SubSched --> Queue2
+Queue1 --> IngestFlow
+Queue2 --> SubFlow
+
+%% ======================
+%% 顏色樣式
+%% ======================
+classDef user fill:#FFD700,stroke:#333,stroke-width:1px
+classDef frontend fill:#87CEEB,stroke:#333,stroke-width:1px
+classDef api fill:#FFA500,stroke:#333,stroke-width:1px
+classDef service fill:#7FFFD4,stroke:#333,stroke-width:1px
+classDef storage fill:#F08080,stroke:#333,stroke-width:1px
+classDef pipeline1 fill:#9370DB,stroke:#333,stroke-width:1px
+classDef pipeline2 fill:#40E0D0,stroke:#333,stroke-width:1px
+classDef scheduler fill:#BA55D3,stroke:#333,stroke-width:1px
+classDef llm fill:#90EE90,stroke:#333,stroke-width:1px
+classDef queue fill:#D2691E,stroke:#333,stroke-width:1px
+classDef data fill:#C0C0C0,stroke:#333,stroke-width:1px
+
+
 ```
 
-#### b) RAG Chat（Agentic）
-
-```mermaid
-sequenceDiagram
-  participant U as User
-  participant FE as Web UI
-  participant API as FastAPI
-  participant R as RAG Service
-  participant Q as Qdrant
-  participant DB as Postgres
-  U->>FE: 問題
-  FE->>API: /chat/query
-  API->>R: Query + 設定(反思深度…)
-  R->>R: Query Rewrite (選配)
-  R->>Q: Hybrid Search (arxiv_global + user_notes_{uid})
-  Q-->>R: 候選片段
-  R->>R: Rerank + Compose Context
-  R->>R: LLM 生成初稿
-  alt 反思深度>0
-    R->>R: 自評 & 缺漏檢測
-    R->>Q: 二次檢索/擴充
-    R->>R: 修正文稿
-  end
-  R-->>API: 回覆 + 引用(錨點)
-  API->>DB: 儲存 chat 歷史/引用
-  API-->>FE: 顯示回覆
-```
-
-#### c) 訂閱 Email（GraphRAG）
-
-```mermaid
-flowchart LR
-  S[每日排程] --> F[篩選用戶訂閱主題]
-  F --> G[抽取關聯圖 實體/關係]
-  G --> H[社群偵測/主題聚合]
-  H --> R[生成每群落摘要]
-  R --> E[渲染 HTML Email]
-  E --> M[寄送]
-  M --> L[寫回成效 開信/點擊/退信]
-```
 
 ---
 
