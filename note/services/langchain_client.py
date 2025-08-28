@@ -47,7 +47,7 @@ def llm_context(
             "callbacks": [langfuse_handler],
             "metadata": {
                 "langfuse_user_id": user_id,
-                "langfuse_tags": ["email services"],
+                "langfuse_tags": ["note services"],
             },
         },
     )

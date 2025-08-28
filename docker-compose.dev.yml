@@ -37,9 +37,6 @@ services:
     container_name: mcpclient
     environment:
       - OLLAMA_API_URL=http://ollama:11434
-      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
-      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
-      - LANGFUSE_HOST=${LANGFUSE_HOST}
     volumes:
       - ./mcpclient:/app
     ports:
