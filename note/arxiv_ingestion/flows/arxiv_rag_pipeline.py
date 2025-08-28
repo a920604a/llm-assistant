@@ -39,7 +39,11 @@ def rag(query: str, system_settings: SystemSettings, user_id: str = "anonymous")
 
     logger.info(f"Step 5: LLM generation with context = {context}")
     answer = llm.submit(
-        context, prompt, user_language=system_settings.user_language, user_id=user_id
+        context,
+        prompt,
+        user_language=system_settings.user_language,
+        user_id=user_id,
+        system_prompt=system_settings.system_prompt,
     ).result()
 
     logger.info(f"Answer generated: {answer[:200]}...")

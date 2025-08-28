@@ -11,6 +11,7 @@ else
   DOCKER_COMPOSE = docker compose -f docker-compose.dev.yml
 endif
 
+STORAGE_COMPOSE = docker compose -f docker-compose.storage.yml
 MONITOR_DEV_COMPOSE = docker compose -f docker-compose.monitor.dev.yml
 MONITOR_COMPOSE = docker compose -f docker-compose.monitor.yml
 DOCKER_FRONTEND_COMPOSE = docker compose -f docker-compose.frontend.yml
@@ -38,6 +39,8 @@ net-create:
 up:
 	$(OBS_COMPOSE) up -d
 	sleep 5
+	$(STORAGE_COMPOSE) up -d
+	sleep 5
 	$(DOCKER_COMPOSE) up -d
 	sleep 5
 	$(MONITOR_DEV_COMPOSE) up -d
@@ -51,6 +54,7 @@ up-front:
 # 停止所有容器
 down:
 	$(DOCKER_FRONTEND_COMPOSE) down
+	$(STORAGE_COMPOSE) down
 	$(MONITOR_DEV_COMPOSE) down
 	$(DOCKER_COMPOSE) down
 	$(OBS_COMPOSE) down

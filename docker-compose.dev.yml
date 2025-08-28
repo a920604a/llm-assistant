@@ -62,10 +62,6 @@ services:
     env_file:
       - ./.env # <- 指定要讀的環境變數檔
     depends_on:
-      - note-qdrant
-      - note-db
-      - note-storage
-      - redis
       - arxiv-worker
     networks:
       - langfuse-otel-net
@@ -79,46 +75,6 @@ services:
       - ./data/qdrant_data:/qdrant/storage
     networks:
       - langfuse-otel-net
-  note-db:
-    image: postgres:15
-    container_name: note-db
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: note
-    ports:
-      - "5411:5432"
-    volumes:
-      - ./data/note_db:/var/lib/postgresql/data
-      - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
-    networks:
-      - langfuse-otel-net
-  note-storage:
-    image: minio/minio
-    container_name: note-minio
-    command: server /data --console-address ":9001"
-    ports:
-      - "9111:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: note
-      MINIO_ROOT_PASSWORD: note123note123
-    volumes:
-      - ./data/note-storage:/data
-    networks:
-      - langfuse-otel-net
-
-  redis:
-    image: redis:7
-    container_name: note-worker-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - ./data/redis_data:/data
-    command: [ "redis-server", "--dir", "/data" ]
-    networks:
-      - langfuse-otel-net
-    # command: ["redis-server", "--save", "", "--appendonly", "no"] #關閉持久化
   arxiv-worker:
     # Celery Worker → 負責執行任務
     build:
@@ -127,11 +83,6 @@ services:
     image: arxiv-worker:latest
     container_name: arxiv-worker
     command: celery -A celery_app.celery_app worker --concurrency=4 --queues notes -n worker.ingest_arxiv@%h --loglevel=info
-    depends_on:
-      - redis
-      - note-db
-      - note-qdrant
-      - note-storage
     volumes:
       - ./arxiv:/app
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
@@ -150,7 +101,6 @@ services:
     container_name: arxiv-beat
     command: celery -A celery_app.celery_app beat --loglevel=info
     depends_on:
-      - redis
       - arxiv-worker
     volumes:
       - ./arxiv:/app
@@ -169,11 +119,6 @@ services:
     command: celery -A celery_app.celery_app worker --concurrency=4 --queues email -n worker.email_alarm@%h --loglevel=info
     env_file:
       - ./.env
-    depends_on:
-      - redis
-      - note-db
-      - note-qdrant
-      - note-storage
     volumes:
       - ./email:/app
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
@@ -191,7 +136,6 @@ services:
     env_file:
       - ./.env
     depends_on:
-      - redis
       - email-worker
     volumes:
       - ./email:/app
@@ -205,7 +149,5 @@ services:
     command: flower --broker=redis://redis:6379/0 --port=5555
     ports:
       - "5555:5555"
-    depends_on:
-      - redis
     networks:
       - langfuse-otel-net

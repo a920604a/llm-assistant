@@ -5,6 +5,7 @@ from storage import db_session
 from storage.postgres import Paper, User
 
 logger = get_logger(__name__)
+# from services.get_user_total_tokens import get_user_total_tokens
 
 
 def get_or_create_user(db, user_id):
@@ -14,11 +15,18 @@ def get_or_create_user(db, user_id):
             id=user_id,
             last_query_date=date.today(),
             total_queries=0,
-            remaining_tokens=100,
+            remaining_tokens=1000,
         )
         db.add(user)
         db.commit()
         db.refresh(user)
+    # else:
+    #     #  update user's token
+    #     user_token = get_user_total_tokens(user.id)
+    #     user.remaining_tokens = user.remaining_tokens - user_token
+    #     db.commit()
+    #     db.refresh(user)
+
     return user
 
 
