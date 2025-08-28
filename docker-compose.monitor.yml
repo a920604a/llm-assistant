@@ -1,3 +1,7 @@
+networks:
+  monitor-net:
+    external: true
+
 services:
   prometheus:
     image: prom/prometheus
@@ -78,7 +82,3 @@ services:
       - CE_ENABLE_EVENTS=true # 啟用事件監聽
     networks:
       - monitor-net
-
-networks:
-  monitor-net:
-    driver: bridge

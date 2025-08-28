@@ -57,6 +57,7 @@ opentelemetry-api
 opentelemetry-sdk
 opentelemetry-instrumentation-fastapi
 langfuse
+langfuse-langchain
 
 
 # === Utility ===

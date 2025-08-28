@@ -20,10 +20,9 @@ def rag(query: str):
         logger.error("生成 Context %s", context)
 
     else:
-        prompt = query
         context = ""
     # 生成答案
-    answer = llm_context(context, prompt)
+    answer = llm_context(context, query)
     logger.error("生成答案 %s", answer)
 
     return answer

@@ -1,3 +1,7 @@
+networks:
+  monitor-net:
+    external: true
+
 services:
   dozzle:
     image: amir20/dozzle:latest
@@ -7,6 +11,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
+    networks:
+      - monitor-net
 
   portainer:
     image: portainer/portainer-ce:latest
@@ -17,3 +23,5 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/portainer_data:/data
+    networks:
+      - monitor-net

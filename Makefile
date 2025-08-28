@@ -2,6 +2,8 @@
 ENV_FILE=.env
 HAS_GPU := $(shell command -v nvidia-smi >/dev/null 2>&1 && echo 1 || echo 0)
 
+
+OBS_COMPOSE = docker compose -f docker-compose.obs.yml
 # 動態決定 docker compose 指令
 ifeq ($(HAS_GPU),1)
   DOCKER_COMPOSE = docker compose -f docker-compose.dev.yml -f docker-compose.dev.gpu.yml
@@ -11,26 +13,36 @@ endif
 
 MONITOR_DEV_COMPOSE = docker compose -f docker-compose.monitor.dev.yml
 MONITOR_COMPOSE = docker compose -f docker-compose.monitor.yml
+DOCKER_FRONTEND_COMPOSE = docker compose -f docker-compose.frontend.yml
+
 PY_DIRS = note mcpclient
 
-NETWORK_NAME = monitor-net app-net
+NETWORKS = monitor-net app-net langfuse-otel-net
+
 
 .PHONY: test
 
 
-net-create: ## 建立共用 Docker network（若不存在）
-	@echo "🔌 檢查/建立 network $(NETWORK_NAME)"
-	@if ! docker network inspect $(NETWORK_NAME) >/dev/null 2>&1; then \
-		docker network create $(NETWORK_NAME) --driver bridge; \
-		echo "✅ 建立 $(NETWORK_NAME) 完成"; \
-	else \
-		echo "✅ $(NETWORK_NAME) 已存在"; \
-	fi
+
+net-create:
+	@for net in $(NETWORKS); do \
+		echo "🔌 檢查/建立 network $$net"; \
+		if ! docker network inspect $$net >/dev/null 2>&1; then \
+			docker network create $$net --driver bridge; \
+			echo "✅ 建立 $$net 完成"; \
+		else \
+			echo "✅ $$net 已存在"; \
+		fi \
+	done
 # 啟動所有容器（背景執行）
 up:
+	$(OBS_COMPOSE) up -d
+	sleep 5
 	$(DOCKER_COMPOSE) up -d
+	sleep 5
 	$(MONITOR_DEV_COMPOSE) up -d
-# 	$(MONITOR_COMPOSE) up -d
+	sleep 5
+	$(DOCKER_FRONTEND_COMPOSE) up -d
 
 
 up-front:
@@ -38,9 +50,10 @@ up-front:
 
 # 停止所有容器
 down:
-	$(DOCKER_COMPOSE) --env-file $(ENV_FILE) down
+	$(DOCKER_FRONTEND_COMPOSE) down
 	$(MONITOR_DEV_COMPOSE) down
-# 	$(MONITOR_COMPOSE) down
+	$(DOCKER_COMPOSE) down
+	$(OBS_COMPOSE) down
 
 # 重啟所有容器
 restart:
@@ -77,10 +90,17 @@ test:
 # integration_test:
 # 	$(DOCKER_COMPOSE) exec mcpclient /bin/sh -c "PYTHONPATH=/app pytest -v tests/integration"
 
+ingest-arxiv:
+	$(DOCKER_COMPOSE) exec arxiv-worker /bin/bash -c "PYTHONPATH=/app python flows/arxiv_pipeline.py"
+
+email-subscribe:
+	$(DOCKER_COMPOSE) exec email-worker /bin/bash -c "PYTHONPATH=/app python pipeline.py"
+
+
 # 移除所有 volumes (⚠️會清除資料)
 clean:
 	$(MAKE) down
-	sudo rm -rf ./data
+	sudo rm -rf ./data ./obs_data
 
 
 up-dev:

@@ -1,12 +1,8 @@
+networks:
+  langfuse-otel-net:
+    external: true
+
 services:
-  nginx:
-    build:
-      context: .
-      dockerfile: ./services/frontend/Dockerfile.nginx
-    image: nginx:latest
-    container_name: nginx
-    ports:
-      - "80:80"
   ollama:
     image: ollama/ollama
     container_name: mcphost-ollama
@@ -14,6 +10,8 @@ services:
       - "11434:11434"
     volumes:
       - ./ollama_models:/root/.ollama
+    networks:
+      - langfuse-otel-net
   open-webui:
     image: ghcr.io/open-webui/open-webui:cuda
     container_name: open-webui
@@ -28,6 +26,8 @@ services:
       - OLLAMA_BASE_URL=http://ollama:11434
     extra_hosts:
       - host.docker.internal:host-gateway
+    networks:
+      - langfuse-otel-net
 
   mcpclient:
     build:
@@ -37,12 +37,19 @@ services:
     container_name: mcpclient
     environment:
       - OLLAMA_API_URL=http://ollama:11434
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_HOST=${LANGFUSE_HOST}
     volumes:
       - ./mcpclient:/app
     ports:
       - "8011:8000"
     depends_on:
       - noteserver
+    env_file:
+      - ./.env # <- 指定要讀的環境變數檔
+    networks:
+      - langfuse-otel-net
 
   noteserver:
     build:
@@ -53,7 +60,6 @@ services:
     volumes:
       - ./note:/app
       - ./data/noteserver:/data
-
     ports:
       - "8022:8000"
     env_file:
@@ -64,6 +70,8 @@ services:
       - note-storage
       - redis
       - arxiv-worker
+    networks:
+      - langfuse-otel-net
 
   note-qdrant:
     image: qdrant/qdrant
@@ -72,6 +80,8 @@ services:
       - "6333:6333" # http://localhost:6333/dashboard
     volumes:
       - ./data/qdrant_data:/qdrant/storage
+    networks:
+      - langfuse-otel-net
   note-db:
     image: postgres:15
     container_name: note-db
@@ -84,6 +94,8 @@ services:
     volumes:
       - ./data/note_db:/var/lib/postgresql/data
       - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - langfuse-otel-net
   note-storage:
     image: minio/minio
     container_name: note-minio
@@ -96,6 +108,8 @@ services:
       MINIO_ROOT_PASSWORD: note123note123
     volumes:
       - ./data/note-storage:/data
+    networks:
+      - langfuse-otel-net
 
   redis:
     image: redis:7
@@ -105,6 +119,8 @@ services:
     volumes:
       - ./data/redis_data:/data
     command: [ "redis-server", "--dir", "/data" ]
+    networks:
+      - langfuse-otel-net
     # command: ["redis-server", "--save", "", "--appendonly", "no"] #關閉持久化
   arxiv-worker:
     # Celery Worker → 負責執行任務
@@ -125,6 +141,8 @@ services:
       - ./data/arxiv_worker:/data
     env_file:
       - ./.env # <- 指定要讀的環境變數檔
+    networks:
+      - langfuse-otel-net
 
   arxiv-beat:
     # Celery Beat → 負責發送定時任務給 Worker
@@ -142,6 +160,8 @@ services:
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
     env_file:
       - ./.env
+    networks:
+      - langfuse-otel-net
 
   email-worker:
     build:
@@ -161,6 +181,8 @@ services:
       - ./email:/app
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
     working_dir: /app # <-- 加上這行
+    networks:
+      - langfuse-otel-net
 
   email-beat:
     build:
@@ -177,6 +199,8 @@ services:
     volumes:
       - ./email:/app
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
+    networks:
+      - langfuse-otel-net
 
   flower:
     image: mher/flower:0.9.7
@@ -186,3 +210,5 @@ services:
       - "5555:5555"
     depends_on:
       - redis
+    networks:
+      - langfuse-otel-net

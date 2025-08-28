@@ -1,9 +1,15 @@
 from config import MODEL_NAME, OLLAMA_API_URL
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
+from services.langfuse_client import langfuse_handler
 
 
-def llm(query: str, isTranslate: bool, user_language: str = "English") -> str:
+def llm(
+    query: str,
+    isTranslate: bool,
+    user_language: str = "English",
+    user_id: str = "anonymous",
+) -> str:
     chat_model = ChatOllama(model=MODEL_NAME, temperature=0.6, base_url=OLLAMA_API_URL)
 
     if isTranslate:
@@ -18,7 +24,16 @@ def llm(query: str, isTranslate: bool, user_language: str = "English") -> str:
         """
         prompt = ChatPromptTemplate.from_template(prompt_template)
         chain = prompt | chat_model
-        resp = chain.invoke({"question": query, "user_language": user_language})
+        resp = chain.invoke(
+            {"question": query, "user_language": user_language},
+            config={
+                "callbacks": [langfuse_handler],
+                "metadata": {
+                    "langfuse_user_id": user_id,
+                    "langfuse_tags": ["Auth services"],
+                },
+            },
+        )
     else:
         # 不翻譯，使用預設語言
         prompt_template = """
@@ -31,12 +46,21 @@ def llm(query: str, isTranslate: bool, user_language: str = "English") -> str:
         """
         prompt = ChatPromptTemplate.from_template(prompt_template)
         chain = prompt | chat_model
-        resp = chain.invoke({"question": query})
+        resp = chain.invoke(
+            {"question": query},
+            config={
+                "callbacks": [langfuse_handler],
+                "metadata": {
+                    "langfuse_user_id": user_id,
+                    "langfuse_tags": ["Auth services"],
+                },
+            },
+        )
 
     return resp.content
 
 
-def rewrite_query(query):
+def rewrite_query(query: str, user_id: str) -> str:
     chat_model = ChatOllama(model=MODEL_NAME, temperature=0.6, base_url=OLLAMA_API_URL)
 
     prompt_template = """
@@ -51,18 +75,29 @@ def rewrite_query(query):
 
     prompt = ChatPromptTemplate.from_template(prompt_template)
     chain = prompt | chat_model
-    resp = chain.invoke({"question": query})
+    resp = chain.invoke(
+        {"question": query},
+        config={
+            "callbacks": [langfuse_handler],
+            "metadata": {
+                "langfuse_user_id": user_id,
+                "langfuse_tags": ["Auth services"],
+            },
+        },
+    )
 
     return resp.content
 
 
 if __name__ == "__main__":
-    query = "什麼是 LangChain？"
+    q = "什麼是 LangChain？"
 
     # 使用翻譯
-    result = llm(query, isTranslate=True, user_language="Traditional Chinese")
+    result = llm(
+        q, isTranslate=True, user_language="Traditional Chinese", user_id="test_user"
+    )
     print(result)
 
     # 不翻譯
-    result2 = llm(query, isTranslate=False)
+    result2 = llm(q, isTranslate=False, user_id="test_user")
     print(result2)

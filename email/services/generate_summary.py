@@ -3,9 +3,7 @@ from services.langchain_client import llm_summary
 
 
 def generate_summary(
-    papers_and_content: tuple[list[dict], dict[str, str]],
-    translate: bool = False,
-    user_language: str = "English",
+    papers_and_content: tuple[list[dict], dict[str, str]], user: dict
 ) -> str:
     """
     將每篇論文生成 LLM 摘要，並整理成 HTML，附上 PDF 連結
@@ -33,14 +31,14 @@ def generate_summary(
         logger.info(
             f"[{idx}/{len(papers)}] Summarizing paper: {paper_info['title']} and {p['pdf_url']}"
         )
-        logger.info(f"translate {translate} and user language {user_language} ")
+        logger.info(
+            f"translate {user.get('translate', False)} and user language {user.get('user_language', 'English')} "
+        )
 
         # TODO: from qdrant fetch paper's raw content, by arxiv_id or title
 
         try:
-            paper_summary = llm_summary(
-                paper_info, isTranslate=translate, user_language=user_language
-            )
+            paper_summary = llm_summary(paper_info, user)
         except Exception as e:
             logger.error(f"Failed to generate summary for '{paper_info['title']}': {e}")
             paper_summary = "Summary generation failed."
