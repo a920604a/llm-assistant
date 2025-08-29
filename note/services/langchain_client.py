@@ -1,7 +1,9 @@
 from config import MODEL_NAME, OLLAMA_API_URL
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
+from services.estimate_tokens import get_token_estimate
 from services.langfuse_client import LangfuseObs
+from storage.crud.user import set_user_token_spend
 
 obs = LangfuseObs(mode="callback")  # langchain mode
 
@@ -50,6 +52,9 @@ def llm_context(
             tags=["llm_context", "note services"],
         ),
     )
+    usage = get_token_estimate(resp, prompt)
+    # insert to user table
+    set_user_token_spend(user_id, usage["total_tokens"])
 
     return resp.content
 

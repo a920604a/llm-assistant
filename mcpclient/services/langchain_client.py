@@ -1,7 +1,14 @@
 from config import MODEL_NAME, OLLAMA_API_URL
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
+from langfuse import get_client
+from logger import get_logger
 from services.langfuse_client import LangfuseObs
+
+logger = get_logger(__name__)
+
+langfuse = get_client()
+
 
 obs = LangfuseObs(mode="callback")  # langchain mode
 # obs = LangfuseObs(mode="sdk")  # langchain mode
@@ -95,8 +102,8 @@ if __name__ == "__main__":
     result = llm(
         q, isTranslate=True, user_language="Traditional Chinese", user_id="test_user"
     )
-    print(result)
+    logger.info(result)
 
     # 不翻譯
     result2 = llm(q, isTranslate=False, user_id="test_user")
-    print(result2)
+    logger.info(result2)

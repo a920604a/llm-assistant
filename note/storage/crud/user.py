@@ -20,12 +20,6 @@ def get_or_create_user(db, user_id):
         db.add(user)
         db.commit()
         db.refresh(user)
-    # else:
-    #     #  update user's token
-    #     user_token = get_user_total_tokens(user.id)
-    #     user.remaining_tokens = user.remaining_tokens - user_token
-    #     db.commit()
-    #     db.refresh(user)
 
     return user
 
@@ -49,3 +43,11 @@ def get(user_id: str):
             "total_queries": user.total_queries,
             "remaining_tokens": user.remaining_tokens,
         }
+
+
+def set_user_token_spend(user_id: str, remaining_tokens: int):
+    with db_session() as db:
+        user = get_or_create_user(db, user_id)
+        user.remaining_tokens = user.remaining_tokens - remaining_tokens
+        user.total_queries = user.total_queries + 1
+        user.last_query_date = date.today()
