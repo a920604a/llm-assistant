@@ -28,6 +28,26 @@ class User(Base):
 
     notes = relationship("Note", back_populates="owner")
     setting = relationship("UserSetting", back_populates="user", uselist=False)
+    chat_histories = relationship(
+        "ChatHistory", back_populates="user", passive_deletes=True
+    )
+
+
+class ChatHistory(Base):
+    __tablename__ = "chat_history"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String(255), ForeignKey("users.id"), nullable=False)
+    input = Column(Text, nullable=False)
+    output = Column(Text, nullable=False)
+    input_token = Column(Integer)
+    output_token = Column(Integer)
+    latency_ms = Column(Integer)
+    model = Column(String(64))
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+    # 與 User 建立 ORM 關聯
+    user = relationship("User", back_populates="chat_histories", passive_deletes=True)
 
 
 class UserSetting(Base):

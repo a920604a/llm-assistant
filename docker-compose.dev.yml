@@ -29,25 +29,6 @@ services:
     networks:
       - langfuse-otel-net
 
-  mcpclient:
-    build:
-      context: .
-      dockerfile: ./services/mcpclient/Dockerfile.mcpclient
-    image: mcpclient:latest
-    container_name: mcpclient
-    environment:
-      - OLLAMA_API_URL=http://ollama:11434
-    volumes:
-      - ./mcpclient:/app
-    ports:
-      - "8011:8000"
-    depends_on:
-      - noteserver
-    env_file:
-      - ./.env # <- 指定要讀的環境變數檔
-    networks:
-      - langfuse-otel-net
-
   noteserver:
     build:
       context: .
@@ -66,15 +47,6 @@ services:
     networks:
       - langfuse-otel-net
 
-  note-qdrant:
-    image: qdrant/qdrant
-    container_name: note-qdrant
-    ports:
-      - "6333:6333" # http://localhost:6333/dashboard
-    volumes:
-      - ./data/qdrant_data:/qdrant/storage
-    networks:
-      - langfuse-otel-net
   arxiv-worker:
     # Celery Worker → 負責執行任務
     build:
@@ -143,11 +115,21 @@ services:
     networks:
       - langfuse-otel-net
 
-  flower:
-    image: mher/flower:0.9.7
-    container_name: worker-flower
-    command: flower --broker=redis://redis:6379/0 --port=5555
+  mcpclient:
+    build:
+      context: .
+      dockerfile: ./services/mcpclient/Dockerfile.mcpclient
+    image: mcpclient:latest
+    container_name: mcpclient
+    environment:
+      - OLLAMA_API_URL=http://ollama:11434
+    volumes:
+      - ./mcpclient:/app
     ports:
-      - "5555:5555"
+      - "8011:8000"
+    depends_on:
+      - noteserver
+    env_file:
+      - ./.env # <- 指定要讀的環境變數檔
     networks:
       - langfuse-otel-net

@@ -45,6 +45,8 @@ up:
 	sleep 5
 	$(MONITOR_DEV_COMPOSE) up -d
 	sleep 5
+	$(MONITOR_COMPOSE) up -d
+	sleep 5
 	$(DOCKER_FRONTEND_COMPOSE) up -d
 
 
@@ -56,6 +58,7 @@ down:
 	$(DOCKER_FRONTEND_COMPOSE) down
 	$(STORAGE_COMPOSE) down
 	$(MONITOR_DEV_COMPOSE) down
+	$(MONITOR_COMPOSE) down
 	$(DOCKER_COMPOSE) down
 	$(OBS_COMPOSE) down
 
