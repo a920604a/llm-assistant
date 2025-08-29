@@ -1,0 +1,15 @@
+networks:
+  langfuse-otel-net:
+    external: true
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: ./services/frontend/Dockerfile.nginx
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    networks:
+      - langfuse-otel-net

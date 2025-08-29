@@ -1,7 +1,6 @@
-from datetime import date
-
 from storage import db_session
-from storage.postgres import User, UserSetting
+from storage.crud.user import get_or_create_user
+from storage.postgres import UserSetting
 
 
 def get(user_id: str):
@@ -16,21 +15,10 @@ def get(user_id: str):
 def update(user_id: str, settings: dict) -> bool:
     with db_session() as db:  # type: Session
         # 先檢查 user 是否存在
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            # 建立新的 user（避免 user_setting 孤兒）
-            user = User(
-                id=user_id,
-                last_query_date=date.today(),
-                total_queries=0,
-                remaining_tokens=1000,
-            )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
+        user = get_or_create_user(db, user_id)
 
         # 再檢查 userSetting
-        setting = db.query(UserSetting).filter(UserSetting.user_id == user_id).first()
+        setting = db.query(UserSetting).filter(UserSetting.user_id == user.id).first()
         if not setting:
             setting = UserSetting(user_id=user_id, **settings)
             db.add(setting)

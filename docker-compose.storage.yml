@@ -1,0 +1,65 @@
+networks:
+  langfuse-otel-net:
+    external: true
+
+services:
+  note-qdrant:
+    image: qdrant/qdrant
+    container_name: note-qdrant
+    ports:
+      - "6333:6333" # http://localhost:6333/dashboard
+    volumes:
+      - ./data/qdrant_data:/qdrant/storage
+    networks:
+      - langfuse-otel-net
+  note-db:
+    image: postgres:15
+    container_name: note-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: note
+    ports:
+      - "5411:5432"
+    volumes:
+      - ./data/note_db:/var/lib/postgresql/data
+      - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - langfuse-otel-net
+  note-storage:
+    image: minio/minio
+    container_name: note-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9111:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: note
+      MINIO_ROOT_PASSWORD: note123note123
+    volumes:
+      - ./data/note-storage:/data
+    networks:
+      - langfuse-otel-net
+
+  redis:
+    image: redis:7
+    container_name: note-worker-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis_data:/data
+    command: [ "redis-server", "--dir", "/data" ]
+    networks:
+      - langfuse-otel-net
+    # command: ["redis-server", "--save", "", "--appendonly", "no"] #關閉持久化
+
+  flower:
+    image: mher/flower:0.9.7
+    container_name: worker-flower
+    command: flower --broker=redis://redis:6379/0 --port=5555
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    networks:
+      - langfuse-otel-net

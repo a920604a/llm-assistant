@@ -99,14 +99,13 @@ def get_users_task():
 @task(name="Generate Summary")
 def generate_summary_task(
     papers: tuple[list[dict], dict[str, str]],
-    translate: bool = False,
-    user_language: str = "English",
+    user: dict,
 ):
     logger = get_run_logger()
 
     start = time.time()
     logger.info("Generating summary")
-    summary = generate_summary(papers, translate=translate, user_language=user_language)
+    summary = generate_summary(papers, user)
     logger.info(f"Summary generated in {time.time() - start:.2f}s")
     return summary
 
@@ -153,11 +152,7 @@ def daily_papers_flow(top_k: int = 3):
             continue
 
         # 個人化 summary task
-        summary = generate_summary_task(
-            (papers, papers_content_map),
-            u.get("translate", False),
-            u.get("user_language", "English"),
-        )
+        summary = generate_summary_task((papers, papers_content_map), u)
         send_task = send_email_task("Daily Paper Summary", [email], summary)
         send_tasks.append(send_task)
 
@@ -170,4 +165,13 @@ def daily_papers_flow(top_k: int = 3):
 
 
 if __name__ == "__main__":
+    import firebase_admin
+    from config import FIREBASE_KEY_PATH
+
+    # 初始化 Firebase
+    cred = firebase_admin.credentials.Certificate(
+        f"{FIREBASE_KEY_PATH}/serviceAccountKey.json"
+    )
+    firebase_admin.initialize_app(cred)
+
     daily_papers_flow(top_k=3)

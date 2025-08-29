@@ -38,6 +38,9 @@ def get_subscribed_users(db: Session) -> List[Dict]:
                     "email": email,
                     "translate": setting.translate,
                     "user_language": setting.user_language,
+                    "temperature": setting.temperature,
+                    "system_prompt": setting.system_prompt,
+                    "top_k": setting.top_k,
                 }
             )
 

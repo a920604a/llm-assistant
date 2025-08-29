@@ -18,6 +18,24 @@ CREATE TABLE user_setting (
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
+CREATE TABLE chat_history (
+    id SERIAL PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    input TEXT NOT NULL,
+    output TEXT NOT NULL,
+    input_token INT,
+    output_token INT,
+    latency_ms INT, -- 延遲時間
+    model VARCHAR(64),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+-- 可以加索引加速查詢
+CREATE INDEX idx_chat_history_user_id ON chat_history (user_id);
+
+CREATE INDEX idx_chat_history_created_at ON chat_history (created_at);
+
 CREATE TABLE notes (
     id SERIAL PRIMARY KEY,
     filename VARCHAR(255) NOT NULL,

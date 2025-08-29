@@ -3,13 +3,14 @@ from typing import Dict
 from config import MODEL_NAME, OLLAMA_API_URL
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
+from services.langfuse_client import LangfuseObs
+
+obs = LangfuseObs(mode="callback")  # langchain mode
 
 
 def llm_summary(
     paper: Dict,
-    isTranslate: bool = False,
-    user_language: str = "English",
-    temperature: float = 0.5,
+    user: dict,
     max_words: int = 300,
 ) -> str:
     """
@@ -19,6 +20,11 @@ def llm_summary(
     if not paper:
         return "No paper provided."
 
+    isTranslate = user.get("translate", False)
+    user_language = user.get("user_language", "English")
+    temperature = user.get("temperature", 0.5)
+    system_prompt = user.get("system_prompt", "")
+
     title = paper.get("title", "No Title")
     authors = ", ".join(paper.get("authors", []))
 
@@ -27,11 +33,14 @@ def llm_summary(
     content_type = "Full Content" if paper.get("raw_content") else "Abstract"
 
     chat_model = ChatOllama(
-        model=MODEL_NAME, temperature=temperature, base_url=OLLAMA_API_URL
+        model=MODEL_NAME,
+        temperature=temperature,
+        base_url=OLLAMA_API_URL,
     )
 
     # Prompt 組裝
     prompt_lines = [
+        system_prompt,
         "You are a professional research assistant.",
         f"Summarize the following paper concisely, in no more than {max_words} words.",
         "Keep it readable for an email newsletter.",
@@ -58,6 +67,12 @@ def llm_summary(
     if isTranslate:
         input_vars["user_language"] = user_language
 
-    resp = chain.invoke(input_vars)
+    resp = chain.invoke(
+        input_vars,
+        config=obs.get_config(
+            user_id=user.get("user_id", "anonymous"),
+            tags=["llm_summary", "email services"],
+        ),
+    )
 
     return resp.content.strip()

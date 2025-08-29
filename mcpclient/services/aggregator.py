@@ -19,12 +19,12 @@ def process_user_query(user_query: UserQuery, user_id: str):
 
     # 呼叫 Ollama LLM（主要語言理解與生成）
     if shortcut:
-        llm_reply = llm(user_query.query, isTranslate, user_language)
+        llm_reply = llm(user_query.query, isTranslate, user_language, user_id)
         logger.info(f"llm_reply {llm_reply}")
         return llm_reply
     else:  # rag
         # Step 1 : re-write user query
-        llm_reply = rewrite_query(user_query.query)
+        llm_reply = rewrite_query(user_query.query, user_id)
         logger.info(f"Step 1: 呼叫 Ollama LLM（主要語言理解與生成） {llm_reply[:200]}")
 
         # Step 2: 呼叫 MCP Server（筆記服務）

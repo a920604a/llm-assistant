@@ -45,7 +45,8 @@ prometheus_client
 opentelemetry-api
 opentelemetry-sdk
 opentelemetry-instrumentation-fastapi
-langfuse
+
+langfuse-langchain
 
 # === Utility ===
 python-dotenv==1.0.0

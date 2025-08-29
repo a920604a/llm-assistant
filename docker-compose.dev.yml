@@ -1,12 +1,8 @@
+networks:
+  langfuse-otel-net:
+    external: true
+
 services:
-  nginx:
-    build:
-      context: .
-      dockerfile: ./services/frontend/Dockerfile.nginx
-    image: nginx:latest
-    container_name: nginx
-    ports:
-      - "80:80"
   ollama:
     image: ollama/ollama
     container_name: mcphost-ollama
@@ -14,6 +10,8 @@ services:
       - "11434:11434"
     volumes:
       - ./ollama_models:/root/.ollama
+    networks:
+      - langfuse-otel-net
   open-webui:
     image: ghcr.io/open-webui/open-webui:cuda
     container_name: open-webui
@@ -28,6 +26,94 @@ services:
       - OLLAMA_BASE_URL=http://ollama:11434
     extra_hosts:
       - host.docker.internal:host-gateway
+    networks:
+      - langfuse-otel-net
+
+  noteserver:
+    build:
+      context: .
+      dockerfile: ./services/noteservice/Dockerfile.noteserver
+    image: noteserver:latest
+    container_name: note
+    volumes:
+      - ./note:/app
+      - ./data/noteserver:/data
+    ports:
+      - "8022:8000"
+    env_file:
+      - ./.env # <- 指定要讀的環境變數檔
+    depends_on:
+      - arxiv-worker
+    networks:
+      - langfuse-otel-net
+
+  arxiv-worker:
+    # Celery Worker → 負責執行任務
+    build:
+      context: .
+      dockerfile: ./services/arxivservice/Dockerfile.arxiv
+    image: arxiv-worker:latest
+    container_name: arxiv-worker
+    command: celery -A celery_app.celery_app worker --concurrency=4 --queues notes -n worker.ingest_arxiv@%h --loglevel=info
+    volumes:
+      - ./arxiv:/app
+      - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
+      - ./data/arxiv_worker:/data
+    env_file:
+      - ./.env # <- 指定要讀的環境變數檔
+    networks:
+      - langfuse-otel-net
+
+  arxiv-beat:
+    # Celery Beat → 負責發送定時任務給 Worker
+    build:
+      context: .
+      dockerfile: ./services/arxivservice/Dockerfile.arxiv
+    image: arxiv-beat:latest
+    container_name: arxiv-beat
+    command: celery -A celery_app.celery_app beat --loglevel=info
+    depends_on:
+      - arxiv-worker
+    volumes:
+      - ./arxiv:/app
+      - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
+    env_file:
+      - ./.env
+    networks:
+      - langfuse-otel-net
+
+  email-worker:
+    build:
+      context: .
+      dockerfile: ./services/emailservice/Dockerfile.email
+    image: email-worker:latest
+    container_name: email-worker
+    command: celery -A celery_app.celery_app worker --concurrency=4 --queues email -n worker.email_alarm@%h --loglevel=info
+    env_file:
+      - ./.env
+    volumes:
+      - ./email:/app
+      - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
+    working_dir: /app # <-- 加上這行
+    networks:
+      - langfuse-otel-net
+
+  email-beat:
+    build:
+      context: .
+      dockerfile: ./services/emailservice/Dockerfile.email
+    image: email-beat:latest
+    container_name: email-beat
+    command: celery -A celery_app.celery_app beat --loglevel=info
+    env_file:
+      - ./.env
+    depends_on:
+      - email-worker
+    volumes:
+      - ./email:/app
+      - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
+    networks:
+      - langfuse-otel-net
 
   mcpclient:
     build:
@@ -43,146 +129,7 @@ services:
       - "8011:8000"
     depends_on:
       - noteserver
-
-  noteserver:
-    build:
-      context: .
-      dockerfile: ./services/noteservice/Dockerfile.noteserver
-    image: noteserver:latest
-    container_name: note
-    volumes:
-      - ./note:/app
-      - ./data/noteserver:/data
-
-    ports:
-      - "8022:8000"
     env_file:
       - ./.env # <- 指定要讀的環境變數檔
-    depends_on:
-      - note-qdrant
-      - note-db
-      - note-storage
-      - redis
-      - arxiv-worker
-
-  note-qdrant:
-    image: qdrant/qdrant
-    container_name: note-qdrant
-    ports:
-      - "6333:6333" # http://localhost:6333/dashboard
-    volumes:
-      - ./data/qdrant_data:/qdrant/storage
-  note-db:
-    image: postgres:15
-    container_name: note-db
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: note
-    ports:
-      - "5411:5432"
-    volumes:
-      - ./data/note_db:/var/lib/postgresql/data
-      - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
-  note-storage:
-    image: minio/minio
-    container_name: note-minio
-    command: server /data --console-address ":9001"
-    ports:
-      - "9111:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: note
-      MINIO_ROOT_PASSWORD: note123note123
-    volumes:
-      - ./data/note-storage:/data
-
-  redis:
-    image: redis:7
-    container_name: note-worker-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - ./data/redis_data:/data
-    command: [ "redis-server", "--dir", "/data" ]
-    # command: ["redis-server", "--save", "", "--appendonly", "no"] #關閉持久化
-  arxiv-worker:
-    # Celery Worker → 負責執行任務
-    build:
-      context: .
-      dockerfile: ./services/arxivservice/Dockerfile.arxiv
-    image: arxiv-worker:latest
-    container_name: arxiv-worker
-    command: celery -A celery_app.celery_app worker --concurrency=4 --queues notes -n worker.ingest_arxiv@%h --loglevel=info
-    depends_on:
-      - redis
-      - note-db
-      - note-qdrant
-      - note-storage
-    volumes:
-      - ./arxiv:/app
-      - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
-      - ./data/arxiv_worker:/data
-    env_file:
-      - ./.env # <- 指定要讀的環境變數檔
-
-  arxiv-beat:
-    # Celery Beat → 負責發送定時任務給 Worker
-    build:
-      context: .
-      dockerfile: ./services/arxivservice/Dockerfile.arxiv
-    image: arxiv-beat:latest
-    container_name: arxiv-beat
-    command: celery -A celery_app.celery_app beat --loglevel=info
-    depends_on:
-      - redis
-      - arxiv-worker
-    volumes:
-      - ./arxiv:/app
-      - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
-    env_file:
-      - ./.env
-
-  email-worker:
-    build:
-      context: .
-      dockerfile: ./services/emailservice/Dockerfile.email
-    image: email-worker:latest
-    container_name: email-worker
-    command: celery -A celery_app.celery_app worker --concurrency=4 --queues email -n worker.email_alarm@%h --loglevel=info
-    env_file:
-      - ./.env
-    depends_on:
-      - redis
-      - note-db
-      - note-qdrant
-      - note-storage
-    volumes:
-      - ./email:/app
-      - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
-    working_dir: /app # <-- 加上這行
-
-  email-beat:
-    build:
-      context: .
-      dockerfile: ./services/emailservice/Dockerfile.email
-    image: email-beat:latest
-    container_name: email-beat
-    command: celery -A celery_app.celery_app beat --loglevel=info
-    env_file:
-      - ./.env
-    depends_on:
-      - redis
-      - email-worker
-    volumes:
-      - ./email:/app
-      - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
-
-  flower:
-    image: mher/flower:0.9.7
-    container_name: worker-flower
-    command: flower --broker=redis://redis:6379/0 --port=5555
-    ports:
-      - "5555:5555"
-    depends_on:
-      - redis
+    networks:
+      - langfuse-otel-net

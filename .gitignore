@@ -15,3 +15,6 @@ celerybeat-schedule
 
 docker_cache
 terraform/secrets.tf
+
+
+obs_data
