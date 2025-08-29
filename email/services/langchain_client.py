@@ -3,7 +3,9 @@ from typing import Dict
 from config import MODEL_NAME, OLLAMA_API_URL
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
-from services.langfuse_client import langfuse_handler
+from services.langfuse_client import LangfuseObs
+
+obs = LangfuseObs(mode="callback")  # langchain mode
 
 
 def llm_summary(
@@ -67,13 +69,10 @@ def llm_summary(
 
     resp = chain.invoke(
         input_vars,
-        config={
-            "callbacks": [langfuse_handler],
-            "metadata": {
-                "langfuse_user_id": user.get("user_id", "anonymous"),
-                "langfuse_tags": ["email services"],
-            },
-        },
+        config=obs.get_config(
+            user_id=user.get("user_id", "anonymous"),
+            tags=["llm_summary", "email services"],
+        ),
     )
 
     return resp.content.strip()

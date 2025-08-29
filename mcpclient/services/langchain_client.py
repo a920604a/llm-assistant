@@ -1,9 +1,13 @@
 from config import MODEL_NAME, OLLAMA_API_URL
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
-from services.langfuse_client import langfuse_handler
+from services.langfuse_client import LangfuseObs
+
+obs = LangfuseObs(mode="callback")  # langchain mode
+# obs = LangfuseObs(mode="sdk")  # langchain mode
 
 
+@obs.observe_fn
 def llm(
     query: str,
     isTranslate: bool,
@@ -11,6 +15,10 @@ def llm(
     user_id: str = "anonymous",
 ) -> str:
     chat_model = ChatOllama(model=MODEL_NAME, temperature=0.6, base_url=OLLAMA_API_URL)
+
+    # obs.set_user(user_id)
+    # obs.set_tags(["translation", "Auth service"])
+    # obs.set_metadata({"user_language": user_language})
 
     if isTranslate:
         # 使用 user_language 指定語言
@@ -26,13 +34,10 @@ def llm(
         chain = prompt | chat_model
         resp = chain.invoke(
             {"question": query, "user_language": user_language},
-            config={
-                "callbacks": [langfuse_handler],
-                "metadata": {
-                    "langfuse_user_id": user_id,
-                    "langfuse_tags": ["Auth services"],
-                },
-            },
+            config=obs.get_config(
+                user_id=user_id,
+                tags=["translation", "Auth service"],
+            ),
         )
     else:
         # 不翻譯，使用預設語言
@@ -48,13 +53,10 @@ def llm(
         chain = prompt | chat_model
         resp = chain.invoke(
             {"question": query},
-            config={
-                "callbacks": [langfuse_handler],
-                "metadata": {
-                    "langfuse_user_id": user_id,
-                    "langfuse_tags": ["Auth services"],
-                },
-            },
+            config=obs.get_config(
+                user_id=user_id,
+                tags=["Not translation", "Auth service"],
+            ),
         )
 
     return resp.content
@@ -77,13 +79,10 @@ def rewrite_query(query: str, user_id: str) -> str:
     chain = prompt | chat_model
     resp = chain.invoke(
         {"question": query},
-        config={
-            "callbacks": [langfuse_handler],
-            "metadata": {
-                "langfuse_user_id": user_id,
-                "langfuse_tags": ["Auth services"],
-            },
-        },
+        config=obs.get_config(
+            user_id=user_id,
+            tags=["rewrite_query", "Auth service"],
+        ),
     )
 
     return resp.content

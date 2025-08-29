@@ -1,7 +1,9 @@
 from config import MODEL_NAME, OLLAMA_API_URL
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
-from services.langfuse_client import langfuse_handler
+from services.langfuse_client import LangfuseObs
+
+obs = LangfuseObs(mode="callback")  # langchain mode
 
 
 def llm_context(
@@ -43,13 +45,10 @@ def llm_context(
             "question": query,
             "user_language": user_language,
         },
-        config={
-            "callbacks": [langfuse_handler],
-            "metadata": {
-                "langfuse_user_id": user_id,
-                "langfuse_tags": ["note services"],
-            },
-        },
+        config=obs.get_config(
+            user_id=user_id,
+            tags=["llm_context", "note services"],
+        ),
     )
 
     return resp.content
