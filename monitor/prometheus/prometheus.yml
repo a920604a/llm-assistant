@@ -1,0 +1,36 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'app_metrics'
+    static_configs:
+      - targets:
+          - 'noteserver:8000'
+          - 'mcpclient:8000'
+          - 'celery_exporter:9808'
+          - 'node-exporter:9100'
+          - 'cadvisor:8080'
+          - 'redis-exporter:9121'
+
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - 'http://noteserver:8000/docs'
+          - 'http://mcpclient:8000/docs'
+          - 'http://open-webui:8080'
+          - 'http://langfuse-web:3000'
+          - 'http://grafana:3000'
+          - 'http://minio:9001'
+          - 'http://note-storage:9001'
+          - 'http://prometheus:9090/-/ready'
+          - 'http://portainer:9110'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
