@@ -2,11 +2,11 @@
 from typing import Optional
 
 from api.schemas.SystemSetting import SystemSettings
-from logger import get_logger
+from logger import AppLogger
 from storage.crud.setting import get, update
 from storage.redis_client import update_redis_system_setting
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 def get_setting(user_id: str) -> Optional[SystemSettings]:

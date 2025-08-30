@@ -6,11 +6,11 @@ from api.schemas.SystemSetting import DEFAULT_SETTINGS
 from api.verify_token import verify_firebase_token
 from config import NOTE_API_URL
 from fastapi import APIRouter, Depends, HTTPException
-from logger import get_logger
+from logger import AppLogger
 from redis_client import get_redis_system_setting
 from services.user import get_user_data
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 router = APIRouter()

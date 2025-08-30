@@ -4,14 +4,14 @@ from typing import List
 from config import COLLECTION_NAME, MINIO_BUCKET, QDRANT_BATCH_SIZE
 from db.minio import s3_client
 from db.qdrant import qdrant_client
-from logger import get_logger
+from logger import AppLogger
 from prefect import task
 from qdrant_client import models
 from services.embedding import get_embedding
 from services.pdf_parser import TextExtractor
 from services.schemas import ArxivPaper
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 # 可以依需要調整 chunk_size 與 overlap

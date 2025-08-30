@@ -5,9 +5,9 @@ from celery_prometheus import add_prometheus_option  # 新增導入
 from config import CELERY_BROKER_URL, CELERY_RESULT_BACKEND
 from db.minio import create_note_bucket
 from db.qdrant import create_qdrant_collection as create_arxiv_collection
-from logger import get_logger
+from logger import AppLogger
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 celery_app = Celery(
     "ingest_arxiv",

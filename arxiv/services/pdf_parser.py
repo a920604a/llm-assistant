@@ -7,7 +7,7 @@ import fitz  # PyMuPDF
 import pdfplumber
 from config import MINIO_BUCKET, PDF_CACHE_DIR
 from db.minio import s3_client, s3_file_exists
-from logger import get_logger
+from logger import AppLogger
 from PIL import Image
 from services.schemas import (
     PaperFigure,
@@ -17,7 +17,7 @@ from services.schemas import (
     PdfContent,
 )
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 class TextExtractor:

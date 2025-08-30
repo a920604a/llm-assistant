@@ -1,8 +1,8 @@
 from arxiv_ingestion.config import QDRANT_URL
-from logger import get_logger
+from logger import AppLogger
 from qdrant_client import QdrantClient
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 # Qdrant client，請確認連線設定

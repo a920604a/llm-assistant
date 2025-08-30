@@ -3,10 +3,10 @@
 from api.schemas.SystemSetting import DEFAULT_SETTINGS, SystemSettings
 from api.verify_token import verify_firebase_token  # 解析 Firebase token
 from fastapi import APIRouter, Depends
-from logger import get_logger
+from logger import AppLogger
 from services.system_setting import get_setting, post_setting
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 router = APIRouter()
 

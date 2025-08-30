@@ -1,10 +1,10 @@
 from api.routers import dashboard, query, setting
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from logger import get_logger
+from logger import AppLogger
 from prometheus_fastapi_instrumentator import Instrumentator
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 app = FastAPI(title="MCP Client Service")

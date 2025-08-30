@@ -1,8 +1,8 @@
-from logger import get_logger
+from logger import AppLogger
 from note_workflow.rag_pipeline import build_prompt, re_ranking, retrieval
 from services.langchain_client import llm_context
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 def rag(query: str):

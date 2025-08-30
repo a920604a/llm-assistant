@@ -2,9 +2,10 @@
 import anyio
 from config import settings
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
-from logger import get_logger
+from logger import AppLogger
 
-logger = get_logger("send_email_sync")
+logger = AppLogger(__name__).get_logger()
+
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.MAIL_USERNAME,

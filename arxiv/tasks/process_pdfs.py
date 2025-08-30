@@ -1,10 +1,10 @@
-from logger import get_logger
+from logger import AppLogger
 from prefect import task
 from services.arxiv_client import ArxivClient
 from services.metadata_fetcher import MetadataFetcher
 from services.pdf_parser import PDFParserService
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 @task(retries=2)
