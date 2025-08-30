@@ -25,21 +25,22 @@ services:
       - langfuse-otel-net
       - app-net
 
-  # grafana:
-  #   image: grafana/grafana-enterprise
-  #   user: "472"
-  #   ports:
-  #     - "0.0.0.0:3002:3000"
-  #   volumes:
-  #     - ./monitor/dashboards:/var/lib/grafana/dashboards # dashboard JSON
-  #     - ./monitor/provisioning:/etc/grafana/provisioning # provisioning 設定
-  #   environment:
-  #     - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
-  #     - GF_SECURITY_ADMIN_PASSWORD=admin12345 # 可設定 Grafana admin 密碼
-  #     - GF_INSTALL_PLUGINS=vertamedia-clickhouse-datasource
-  #   restart: always
-  #   networks:
-  #     - monitor-net
+  grafana:
+    image: grafana/grafana-enterprise
+    user: "472"
+    ports:
+      - "0.0.0.0:3002:3000"
+    volumes:
+      - ./monitor/dashboards:/var/lib/grafana/dashboards # dashboard JSON
+      - ./monitor/provisioning:/etc/grafana/provisioning # provisioning 設定
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD} # 可設定 Grafana admin 密碼
+      - GF_INSTALL_PLUGINS=vertamedia-clickhouse-datasource
+    restart: always
+    networks:
+      - monitor-net
 
   node-exporter:
     image: prom/node-exporter:v1.8.2
