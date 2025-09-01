@@ -1,0 +1,9 @@
+FROM prom/alertmanager:latest
+
+# 複製配置和 entrypoint
+COPY ./monitor/alertmanager/alertmanager.yml /etc/alertmanager/alertmanager.yml
+COPY ./services/alertmanager/entrypoint.sh /entrypoint.sh
+
+
+# 啟動
+ENTRYPOINT ["/entrypoint.sh"]

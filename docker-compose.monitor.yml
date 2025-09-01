@@ -13,6 +13,7 @@ services:
     volumes:
       - ./monitor/prometheus:/etc/config
       - ./monitor_data/prometheus_data:/prometheus
+      - ./monitor/rules:/etc/prometheus/rules
     ports:
       - "127.0.0.1:9090:9090"
     command:
@@ -24,6 +25,20 @@ services:
       - monitor-net
       - langfuse-otel-net
       - app-net
+
+  alertmanager:
+    build:
+      context: .
+      dockerfile: ./services/alertmanager/Dockerfile.alertmanager
+    image: alertmanager:latest
+    container_name: alertmanager
+    restart: always
+    networks:
+      - monitor-net
+    ports:
+      - 127.0.0.1:9093:9093
+    env_file:
+      - .env
 
   grafana:
     image: grafana/grafana-enterprise
