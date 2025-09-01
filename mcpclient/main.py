@@ -9,7 +9,7 @@ logger = AppLogger(__name__).get_logger()
 
 app = FastAPI(title="MCP Client Service")
 
-Instrumentator(labels={"service": "AuthService"}).instrument(app).expose(app)
+Instrumentator().instrument(app).expose(app)
 
 origins = [
     "http://localhost",

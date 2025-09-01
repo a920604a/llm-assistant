@@ -11,7 +11,7 @@ logger = AppLogger(__name__).get_logger()
 
 
 app = FastAPI(title="Note Server")
-Instrumentator(labels={"service": "NoteService"}).instrument(app).expose(app)
+Instrumentator().instrument(app).expose(app)
 
 origins = ["http://mcpclient:8000"]
 
