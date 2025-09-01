@@ -26,19 +26,19 @@ services:
       - langfuse-otel-net
       - app-net
 
-  alertmanager:
-    build:
-      context: .
-      dockerfile: ./services/alertmanager/Dockerfile.alertmanager
-    image: alertmanager:latest
-    container_name: alertmanager
-    restart: always
-    networks:
-      - monitor-net
-    ports:
-      - 127.0.0.1:9093:9093
-    env_file:
-      - .env
+  # alertmanager:
+  #   build:
+  #     context: .
+  #     dockerfile: ./services/alertmanager/Dockerfile.alertmanager
+  #   image: alertmanager:latest
+  #   container_name: alertmanager
+  #   restart: always
+  #   networks:
+  #     - monitor-net
+  #   ports:
+  #     - 127.0.0.1:9093:9093
+  #   env_file:
+  #     - .env
 
   grafana:
     image: grafana/grafana-enterprise
