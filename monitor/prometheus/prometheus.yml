@@ -27,15 +27,16 @@ scrape_configs:
       module: [http_2xx]
     static_configs:
       - targets:
+          # App 內部服務
           - 'http://noteserver:8000/docs'
           - 'http://mcpclient:8000/docs'
           - 'http://open-webui:8080'
-          - 'http://langfuse-web:3000'
-          - 'http://grafana:3000'
           - 'http://minio:9001'
           - 'http://note-storage:9001'
+          # 其他服務模組
+          - 'http://langfuse-web:3000'
+          - 'http://grafana:3000'
           - 'http://prometheus:9090/-/ready'
-          - 'http://portainer:9110'
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target

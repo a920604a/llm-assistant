@@ -91,6 +91,7 @@ services:
       - "--config.file=/config/blackbox.yml"
     networks:
       - monitor-net
+      - langfuse-otel-net
 
   celery_exporter:
     # 新增的 Celery Prometheus Exporter 服務
