@@ -1,48 +1,64 @@
 groups:
   - name: Service
     rules:
-      - alert: Service Down
+      - alert: ServiceDown
         expr: up == 0
+        for: 2m
         labels:
           severity: page
+          team: app
+          service: all
         annotations:
           summary: "Instance {{ $labels.instance }} down"
           description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 2 minutes."
   - name: System
     rules:
-      - alert: Network Down
+      - alert: NetworkDown
         expr: probe_success == 0
-        for: 10s
+        for: 30s
         labels:
           severity: "critical"
+          team: ops
+          service: network
         annotations:
-          summary: "Endpoint {{ $labels.instance }} Network down"
+          summary: "Network unreachable on {{ $labels.instance }}"
+          description: "Endpoint {{ $labels.instance }} network down for 30s."
 
-      - alert: Free Disk Usage
-        expr: (node_filesystem_avail_bytes{mountpoint="/"} * 100) / node_filesystem_size_bytes{mountpoint="/"} < 20
+      - alert: FreeDiskUsage
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} * 100 / node_filesystem_size_bytes{mountpoint="/"}) < 20
+          or
+          (node_filesystem_avail_bytes{mountpoint="/var"} * 100 / node_filesystem_size_bytes{mountpoint="/var"}) < 20
+        for: 5m
+        labels:
+          severity: warning
+          team: ops
+          service: storage
         annotations:
-          summary: "free disk usage to understand when there needs to be more space"
-          description: "{{ $labels.instance }} of job {{ $labels.job }}"
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Available disk space on {{ $labels.instance }} is below 20%."
 
 
-      - alert: Memory Usage
+      - alert: MemoryUsage
         ## 記憶體使用率％
         expr: ((1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100) > 50
+        for: 2m
+        labels:
+          severity: warning
+          team: ops
+          service: system
         annotations:
           summary: " the total percentage of used memory"
           description: "{{ $labels.instance }} of job {{ $labels.job }}"
 
-
-      - alert: CPU Usage
-        expr: (sum by (instance) (irate(node_cpu{job="node_exporter_metrics",mode="idle"}[5m]))) > 80
-        annotations:
-          summary: "High CPU Idle Rate Detected"
-          description: "The CPU idle rate for instance {{ $labels.instance }} has exceeded 80% over the last 5 minutes, indicating the system may be under-utilized."
-
-
-      - alert: High CPU Usage
+      - alert: HighCPUUsage
         #  CPU 使用率 進行監控，並且當使用率超過 80% 時會https://github.com/hello02923/prometheus發出告警，
         expr: (1 - sum by (instance) (irate(node_cpu_seconds_total{job="node_exporter_metrics",mode="idle"}[5m]))) * 100 > 80
+        for: 2m
+        labels:
+          severity: warning
+          team: ops
+          service: system
         annotations:
           summary: "High CPU Usage Detected"
           description: "The CPU usage for instance {{ $labels.instance }} has exceeded 80% over the last 5 minutes, indicating a high load on the system."
