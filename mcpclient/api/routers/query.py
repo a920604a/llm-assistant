@@ -1,4 +1,5 @@
 # REST API routers
+from api.metrics import observe_api
 from api.schemas.user import UserQuery
 from api.verify_token import verify_firebase_token  # 解析 Firebase token
 from fastapi import APIRouter, Depends
@@ -8,6 +9,7 @@ router = APIRouter()
 
 
 @router.post("/api/ask")
+@observe_api
 def ask_host(user_query: UserQuery, user_id: str = Depends(verify_firebase_token)):
     """
     Host API 入口：
