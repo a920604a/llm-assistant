@@ -1,5 +1,4 @@
 # REST API routers
-from api.metrics import observe_api
 from api.schemas.query import Query
 from fastapi import APIRouter
 from logger import AppLogger
@@ -11,7 +10,6 @@ router = APIRouter()
 
 
 @router.post("/api/query")
-@observe_api
 def ask_host(query: Query):
     q = query.text.strip()
     logger.info("ask_host %s", q)

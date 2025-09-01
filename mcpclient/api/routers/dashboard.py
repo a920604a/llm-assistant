@@ -1,7 +1,6 @@
 from datetime import date
 
 import requests
-from api.auto_metrics import observe_api
 from api.schemas.DashboardStats import DashboardStats
 from api.schemas.SystemSetting import DEFAULT_SETTINGS
 from api.verify_token import verify_firebase_token
@@ -29,7 +28,6 @@ fake_db = {
 
 
 @router.get("/api/dashboard/stats", response_model=DashboardStats)
-@observe_api
 # async def get_dashboard_stats(user_id: str):
 async def get_dashboard_stats(user_id: str = Depends(verify_firebase_token)):
     # user_data = fake_db.get("user123")
