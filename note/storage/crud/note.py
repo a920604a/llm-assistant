@@ -4,8 +4,10 @@ from typing import List
 from storage import db_session
 from storage.crud.user import get_or_create_user
 from storage.postgres import Note, User
+from storage.storage_metrics import monitored_db
 
 
+@monitored_db
 def update_notes(user_id: str, saved_files: List[str]):
     # save postgres: 寫入 notes table
     with db_session() as db:
@@ -24,6 +26,7 @@ def update_notes(user_id: str, saved_files: List[str]):
         db.commit()
 
 
+@monitored_db
 def get_note(user_id: str):
     with db_session() as db:
         notes = db.query(Note).filter(Note.user_id == user_id).all()

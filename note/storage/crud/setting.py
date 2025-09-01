@@ -1,8 +1,10 @@
 from storage import db_session
 from storage.crud.user import get_or_create_user
 from storage.postgres import UserSetting
+from storage.storage_metrics import monitored_db
 
 
+@monitored_db
 def get(user_id: str):
     with db_session() as db:
         setting = db.query(UserSetting).filter(UserSetting.user_id == user_id).first()
@@ -12,6 +14,7 @@ def get(user_id: str):
             return None
 
 
+@monitored_db
 def update(user_id: str, settings: dict) -> bool:
     with db_session() as db:  # type: Session
         # 先檢查 user 是否存在

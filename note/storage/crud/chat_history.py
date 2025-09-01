@@ -3,8 +3,10 @@ from typing import Optional
 
 from storage import db_session
 from storage.postgres import ChatHistory, User
+from storage.storage_metrics import monitored_db
 
 
+@monitored_db
 def insert_chat_history(
     user_id: str,
     input_text: str,

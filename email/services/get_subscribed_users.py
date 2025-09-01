@@ -5,8 +5,10 @@ from prefect import get_run_logger
 from services.get_user_email_from_firebase import get_user_email_from_firebase
 from sqlalchemy.orm import Session
 from storage.model import User, UserSetting  # 假設 ORM model
+from storage.storage_metrics import monitored_db
 
 
+@monitored_db
 def get_subscribed_users(db: Session) -> List[Dict]:
     logger = get_run_logger()
     """
