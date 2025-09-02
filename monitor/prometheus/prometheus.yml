@@ -45,7 +45,6 @@ scrape_configs:
           - 'http://noteserver:8000/docs'
           - 'http://mcpclient:8000/docs'
           - 'http://open-webui:8080'
-          - 'http://minio:9001'
           - 'http://note-storage:9001'
           # 其他服務模組
           - 'http://langfuse-web:3000'
