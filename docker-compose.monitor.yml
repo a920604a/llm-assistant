@@ -46,7 +46,7 @@ services:
     ports:
       - "0.0.0.0:3002:3000"
     volumes:
-      - ./monitor/dashboards:/var/lib/grafana/dashboards # dashboard JSON
+      - ./monitor/dashboards:/var/lib/grafana/dashboards # dashboard JSON, Node Exporter Full: 1860 , cAdvisor Exporter: 14282 , Prometheus Blackbox Exporter: 7587
       - ./monitor/provisioning:/etc/grafana/provisioning # provisioning 設定
     environment:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
