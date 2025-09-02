@@ -30,7 +30,7 @@ instrumentator = (
     .add(
         metrics.default(
             metric_namespace="llm_assistance",  # Don't user -
-            metric_subsystem="llm_assistance",
+            metric_subsystem="noteservice",
             custom_labels={"environment": "noteservice"},
         )
     )

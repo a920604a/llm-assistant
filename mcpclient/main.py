@@ -18,7 +18,7 @@ instrumentator = (
     .add(
         metrics.default(
             metric_namespace="llm_assistance",  # Don't user -
-            metric_subsystem="llm_assistance",
+            metric_subsystem="mcpclient",
             custom_labels={"environment": "mcpclient"},
         )
     )
