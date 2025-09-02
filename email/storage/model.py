@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from config import DATABASE_URL
 from sqlalchemy import (
     ARRAY,
@@ -5,6 +7,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     Date,
+    DateTime,
     Float,
     ForeignKey,
     Integer,
@@ -49,6 +52,17 @@ class UserSetting(Base):
     temperature = Column(Float, nullable=False, default=0.6)  # LLM temperature
 
     user = relationship("User", back_populates="setting")
+
+
+class Note(Base):
+    __tablename__ = "notes"
+    id = Column(Integer, primary_key=True, index=True)
+    filename = Column(String, nullable=False)
+    s3_key = Column(String, nullable=False)  # MinIO 上的 Key
+    upload_time = Column(DateTime, default=datetime.utcnow)
+    user_id = Column(String, ForeignKey("users.id"))
+
+    owner = relationship("User", back_populates="notes")
 
 
 class Paper(Base):
