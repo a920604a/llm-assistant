@@ -5,7 +5,7 @@ import uuid
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_fastapi_instrumentator import Instrumentator, metrics
 from utils import load_deeplab, load_yolo, read_imagefile, segmentation_overlay
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,18 @@ logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="Multi-arch Vision Service")
 
-Instrumentator().instrument(app).expose(app)
+instrumentator = (
+    Instrumentator()
+    .add(
+        metrics.default(
+            metric_namespace="llm_assistance",  # Don't user -
+            metric_subsystem="llm_assistance",
+            custom_labels={"environment": "imageservice"},
+        )
+    )
+    .instrument(app)
+    .expose(app)
+)
 
 origins = [
     "http://localhost",

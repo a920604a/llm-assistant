@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from faster_whisper import WhisperModel
-from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_fastapi_instrumentator import Instrumentator, metrics
 from TTS.api import TTS
 
 logger = logging.getLogger(__name__)
@@ -18,6 +18,19 @@ origins = [
     "http://localhost:5173",  # 如果前端跑在 5173 port
     # 其他允許的來源
 ]
+
+instrumentator = (
+    Instrumentator()
+    .add(
+        metrics.default(
+            metric_namespace="llm_assistance",  # Don't user -
+            metric_subsystem="llm_assistance",
+            custom_labels={"environment": "speechservice"},
+        )
+    )
+    .instrument(app)
+    .expose(app)
+)
 
 
 # 設定允許的來源

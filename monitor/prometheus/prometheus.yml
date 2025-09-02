@@ -21,11 +21,11 @@ scrape_configs:
 
   - job_name: 'mcp_client'
     static_configs:
-      - targets: ['mcp_client:8000']
+      - targets: ['mcpclient:8000']
     relabel_configs:
       - source_labels: ['__address__']
         target_label: 'service'
-        replacement: 'mcp_client'
+        replacement: 'mcp client'
 
   - job_name: 'noteserver'
     static_configs:

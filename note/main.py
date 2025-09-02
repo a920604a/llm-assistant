@@ -2,7 +2,7 @@ from api.routers import query, setting, user
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from logger import AppLogger
-from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_fastapi_instrumentator import Instrumentator, metrics
 from starlette.concurrency import run_in_threadpool
 from storage.minio import create_note_bucket
 from storage.qdrant import create_qdrant_collection as create_note_collection
@@ -24,6 +24,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+instrumentator = (
+    Instrumentator()
+    .add(
+        metrics.default(
+            metric_namespace="llm_assistance",  # Don't user -
+            metric_subsystem="llm_assistance",
+            custom_labels={"environment": "noteservice"},
+        )
+    )
+    .instrument(app)
+    .expose(app)
+)
+
 
 # REST API routers
 
