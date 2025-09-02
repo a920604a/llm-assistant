@@ -1,5 +1,5 @@
 # === Web API Framework ===
-fastapi==0.100.0
+fastapi>=0.111.0
 uvicorn[standard]==0.22.0
 aiofiles
 websockets
@@ -48,14 +48,14 @@ prefect>=2.16.3
 
 
 # === Monitoring ===
-prometheus-fastapi-instrumentator
+prometheus-fastapi-instrumentator==7.1.0
 prometheus_client
 
 opentelemetry-api
 opentelemetry-sdk
 opentelemetry-instrumentation-fastapi
 langfuse
-langfuse-langchain
+
 
 # === Utility ===
 python-dotenv==1.0.0

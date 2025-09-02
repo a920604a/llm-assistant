@@ -1,11 +1,11 @@
 from api.schemas.user import UserQuery
 from config import NOTE_API_URL
-from logger import get_logger
+from logger import AppLogger
 from redis_client import get_redis_system_setting
 from services.langchain_client import llm, rewrite_query
 from services.mcp_client import call_note_server
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 def process_user_query(user_query: UserQuery, user_id: str):

@@ -1,15 +1,17 @@
 # REST API routers
+from api.auto_metrics import observe_api
 from api.schemas.query import Query
 from fastapi import APIRouter
-from logger import get_logger
+from logger import AppLogger
 from storage.redis_client import get_redis_system_setting
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 router = APIRouter()
 
 
 @router.post("/api/query")
+@observe_api
 def ask_host(query: Query):
     q = query.text.strip()
     logger.info("ask_host %s", q)

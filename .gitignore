@@ -18,3 +18,4 @@ terraform/secrets.tf
 
 
 obs_data
+monitor_data

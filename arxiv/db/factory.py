@@ -2,12 +2,12 @@ from contextlib import contextmanager
 from typing import Generator, Optional
 
 from config import DATABASE_URL
-from logger import get_logger
+from logger import AppLogger
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session as SessionType
 from sqlalchemy.orm import sessionmaker
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 class Database:

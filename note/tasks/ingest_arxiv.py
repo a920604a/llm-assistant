@@ -3,9 +3,9 @@ from datetime import datetime, timedelta
 
 from arxiv_ingestion.flows.arxiv_pipeline import arxiv_pipeline
 from celery_app import celery_app
-from logger import get_logger
+from logger import AppLogger
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 @celery_app.task(name="run_daily_arxiv_pipeline", queue="notes")

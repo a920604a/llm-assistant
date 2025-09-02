@@ -3,9 +3,9 @@ from typing import Optional
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from firebase_admin import auth as firebase_auth
-from logger import get_logger
+from logger import AppLogger
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 security = HTTPBearer()
 

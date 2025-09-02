@@ -1,12 +1,12 @@
 from typing import List, Tuple
 
 from config import ArxivSettings
-from logger import get_logger
+from logger import AppLogger
 from prefect import task
 from services.arxiv_client import ArxivClient
 from services.schemas import ArxivPaper
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 @task(retries=3, retry_delay_seconds=10)

@@ -2,10 +2,10 @@ from config import MODEL_NAME, OLLAMA_API_URL
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 from langfuse import get_client
-from logger import get_logger
+from logger import AppLogger
 from services.langfuse_client import LangfuseObs
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 langfuse = get_client()
 

@@ -1,13 +1,15 @@
 from datetime import date
 
-from logger import get_logger
+from logger import AppLogger
 from storage import db_session
 from storage.postgres import Paper, User
+from storage.storage_metrics import monitored_db
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 # from services.get_user_total_tokens import get_user_total_tokens
 
 
+@monitored_db
 def get_or_create_user(db, user_id):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -24,12 +26,14 @@ def get_or_create_user(db, user_id):
     return user
 
 
+@monitored_db
 def __get_all_papers_number(db) -> int:
     """回傳指定使用者已上傳的筆記數量"""
     # 確保使用者存在
     return db.query(Paper).count()
 
 
+@monitored_db
 def get(user_id: str):
     with db_session() as db:
         user = get_or_create_user(db, user_id)
@@ -45,6 +49,7 @@ def get(user_id: str):
         }
 
 
+@monitored_db
 def set_user_token_spend(user_id: str, remaining_tokens: int):
     with db_session() as db:
         user = get_or_create_user(db, user_id)

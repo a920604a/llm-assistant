@@ -1,15 +1,30 @@
 from api.routers import dashboard, query, setting
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from logger import get_logger
-from prometheus_fastapi_instrumentator import Instrumentator
+from logger import AppLogger
 
-logger = get_logger(__name__)
+# from prometheus_fastapi_instrumentator import Instrumentator, metrics
+#
+from prometheus_fastapi_instrumentator import Instrumentator, metrics
+
+logger = AppLogger(__name__).get_logger()
 
 
 app = FastAPI(title="MCP Client Service")
 
-Instrumentator().instrument(app).expose(app)
+# Instrumentator().instrument(app).expose(app)
+instrumentator = (
+    Instrumentator()
+    .add(
+        metrics.default(
+            metric_namespace="llm_assistance",  # Don't user -
+            metric_subsystem="mcpclient",
+            custom_labels={"environment": "mcpclient"},
+        )
+    )
+    .instrument(app)
+    .expose(app)
+)
 
 origins = [
     "http://localhost",

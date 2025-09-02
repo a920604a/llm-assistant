@@ -2,8 +2,10 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 from storage.model import Paper
+from storage.storage_metrics import monitored_db
 
 
+@monitored_db
 def fetch_new_papers(db: Session, since_date=None, limit: int = 5) -> list[Paper]:
     """
     從 papers table 抓取新論文

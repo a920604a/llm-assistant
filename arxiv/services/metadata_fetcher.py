@@ -4,12 +4,13 @@ from typing import Any, Dict, List, Optional
 from dateutil import parser
 from db.factory import make_database
 from db.models import Paper  # SQLAlchemy ORM model
-from logger import get_logger
+from db.storage_metrics import monitored_db
+from logger import AppLogger
 from services.arxiv_client import ArxivClient
 from services.pdf_parser import PDFParserService
 from services.schemas import ArxivMetadata, ArxivPaper, ParsedPaper
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 class MetadataFetcher:
@@ -198,6 +199,7 @@ class MetadataFetcher:
     # ------------------------------
     # Stage 3: Store to DB
     # ------------------------------
+    @monitored_db
     def store_to_db(self, papers: List[ArxivPaper]) -> int:
         stored_count = 0
         with self.database.get_session() as session:

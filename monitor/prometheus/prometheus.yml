@@ -1,0 +1,59 @@
+global:
+  scrape_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "alertmanager:9093"
+
+rule_files:
+  - "/etc/prometheus/rules/*.yml"
+
+scrape_configs:
+  - job_name: 'app_metrics'
+    static_configs:
+      - targets:
+          - 'celery_exporter:9808'
+          - 'node-exporter:9100'
+          - 'redis-exporter:9121'
+          - 'cadvisor:8080'
+
+  - job_name: 'mcp_client'
+    static_configs:
+      - targets: ['mcpclient:8000']
+    relabel_configs:
+      - source_labels: ['__address__']
+        target_label: 'service'
+        replacement: 'mcp client'
+
+  - job_name: 'noteserver'
+    static_configs:
+      - targets: ['noteserver:8000']
+    relabel_configs:
+      - source_labels: ['__address__']
+        target_label: 'service'
+        replacement: 'noteserver'
+
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          # App 內部服務
+          - 'http://noteserver:8000/docs'
+          - 'http://mcpclient:8000/docs'
+          - 'http://open-webui:8080'
+          - 'http://note-storage:9001'
+          # 其他服務模組
+          - 'http://langfuse-web:3000'
+          - 'http://grafana:3000'
+          - 'http://prometheus:9090/-/ready'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115

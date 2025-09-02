@@ -2,9 +2,7 @@ from datetime import datetime, timedelta
 
 from db.minio import create_note_bucket
 from db.qdrant import create_qdrant_collection
-
-# from prefect import get_run_logger
-from logger import get_logger
+from logger import AppLogger
 from prefect import flow
 from tasks.fetch_papers import fetch_papers_task
 from tasks.generate_report import generate_report_task
@@ -12,7 +10,7 @@ from tasks.process_pdfs import process_pdfs_task
 from tasks.qdrant_index import qdrant_index_task
 from tasks.store_papers import store_papers_task
 
-logger = get_logger()
+logger = AppLogger(__name__).get_logger()
 
 
 @flow(name="Arxiv Paper Ingestion Pipeline")

@@ -2,11 +2,11 @@ import json
 import re
 
 from config import MODEL_NAME
-from logger import get_logger
+from logger import AppLogger
 from note_workflow.tasks.llm import llm
 from prefect import task
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 def clean_json_string(s: str) -> str:

@@ -6,9 +6,9 @@ from config import (
     MINIO_ENDPOINT,
     MINIO_SECRET_KEY,
 )
-from logger import get_logger
+from logger import AppLogger
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 # 初始化 MinIO (S3) 客戶端

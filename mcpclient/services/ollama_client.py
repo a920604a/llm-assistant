@@ -1,9 +1,9 @@
 import requests
 from config import MODEL_NAME, OLLAMA_API_URL
-from logger import get_logger
+from logger import AppLogger
 from utils import clean_json_string
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 def call_ollama(prompt: str) -> str:

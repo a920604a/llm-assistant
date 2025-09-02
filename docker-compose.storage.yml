@@ -52,14 +52,3 @@ services:
     networks:
       - langfuse-otel-net
     # command: ["redis-server", "--save", "", "--appendonly", "no"] #關閉持久化
-
-  flower:
-    image: mher/flower:0.9.7
-    container_name: worker-flower
-    command: flower --broker=redis://redis:6379/0 --port=5555
-    ports:
-      - "5555:5555"
-    depends_on:
-      - redis
-    networks:
-      - langfuse-otel-net

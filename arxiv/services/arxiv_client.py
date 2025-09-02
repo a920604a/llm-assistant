@@ -11,10 +11,10 @@ import httpx
 from config import MINIO_BUCKET, ArxivSettings
 from db.minio import s3_client
 from exceptions import ArxivAPIException, ArxivAPITimeoutError
-from logger import get_logger
+from logger import AppLogger
 from services.schemas import ArxivPaper
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 class ArxivClient:

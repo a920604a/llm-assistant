@@ -1,0 +1,64 @@
+groups:
+  - name: Service
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: page
+          team: app
+          service: all
+        annotations:
+          summary: "Instance {{ $labels.instance }} down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 2 minutes."
+  - name: System
+    rules:
+      - alert: NetworkDown
+        expr: probe_success == 0
+        for: 30s
+        labels:
+          severity: "critical"
+          team: ops
+          service: network
+        annotations:
+          summary: "Network unreachable on {{ $labels.instance }}"
+          description: "Endpoint {{ $labels.instance }} network down for 30s."
+
+      - alert: FreeDiskUsage
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} * 100 / node_filesystem_size_bytes{mountpoint="/"}) < 20
+          or
+          (node_filesystem_avail_bytes{mountpoint="/var"} * 100 / node_filesystem_size_bytes{mountpoint="/var"}) < 20
+        for: 5m
+        labels:
+          severity: warning
+          team: ops
+          service: storage
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Available disk space on {{ $labels.instance }} is below 20%."
+
+
+      - alert: MemoryUsage
+        ## 記憶體使用率％
+        expr: ((1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100) > 50
+        for: 2m
+        labels:
+          severity: warning
+          team: ops
+          service: system
+        annotations:
+          summary: " the total percentage of used memory"
+          description: "{{ $labels.instance }} of job {{ $labels.job }}"
+
+      - alert: HighCPUUsage
+        #  CPU 使用率 進行監控，並且當使用率超過 80% 時會https://github.com/hello02923/prometheus發出告警，
+        expr: (1 - sum by (instance) (irate(node_cpu_seconds_total{job="node_exporter_metrics",mode="idle"}[5m]))) * 100 > 80
+        for: 2m
+        labels:
+          severity: warning
+          team: ops
+          service: system
+        annotations:
+          summary: "High CPU Usage Detected"
+          description: "The CPU usage for instance {{ $labels.instance }} has exceeded 80% over the last 5 minutes, indicating a high load on the system."

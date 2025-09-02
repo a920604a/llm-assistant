@@ -1,11 +1,11 @@
 from config import COLLECTION_NAME
-from logger import get_logger
+from logger import AppLogger
 from prefect import task
 from qdrant_client import models
 from services.embedding import get_embedding
 from storage.qdrant import qdrant_client
 
-logger = get_logger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 @task

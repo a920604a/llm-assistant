@@ -129,3 +129,9 @@ format:
 lint:
 	pylint $(PY_DIRS) || true
 	python -m bandit -r $(PY_DIRS) || true
+
+
+down-monitor:
+	$(MONITOR_COMPOSE) down
+up-monitor:
+	$(MONITOR_COMPOSE) up -d

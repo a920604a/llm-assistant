@@ -3,10 +3,12 @@ from typing import Any
 import redis
 from api.schemas.SystemSetting import SystemSettings
 from config import REDIS_URL
+from redis_metrics import monitored_redis
 
 redis_client = redis.from_url(REDIS_URL, decode_responses=True)  # 回傳字串
 
 
+@monitored_redis
 def update_redis_system_setting(user_id: str, settings: SystemSettings) -> None:
     """
     更新 Redis 中的使用者系統設定，每個 field 個別存入 Hash。
@@ -40,6 +42,7 @@ def update_redis_system_setting(user_id: str, settings: SystemSettings) -> None:
 # }
 
 
+@monitored_redis
 def get_redis_system_setting(user_id: str) -> SystemSettings:
     key = f"system_setting:{user_id}"
     data = redis_client.hgetall(key)
