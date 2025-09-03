@@ -1,14 +1,10 @@
 from datetime import date
 
-import requests
 from api.auto_metrics import observe_api
 from api.schemas.DashboardStats import DashboardStats
-from api.schemas.SystemSetting import DEFAULT_SETTINGS
 from api.verify_token import verify_firebase_token
-from config import NOTE_API_URL
 from fastapi import APIRouter, Depends, HTTPException
 from logger import AppLogger
-from redis_client import get_redis_system_setting
 from services.user import get_user_data
 
 logger = AppLogger(__name__).get_logger()
@@ -33,19 +29,12 @@ fake_db = {
 # async def get_dashboard_stats(user_id: str):
 async def get_dashboard_stats(user_id: str = Depends(verify_firebase_token)):
     # user_data = fake_db.get("user123")
-    print(f"user_data {user_id}")
-
-    if not get_redis_system_setting(user_id):
-        requests.post(
-            f"{NOTE_API_URL}/api/settings",
-            json={"user_id": user_id, "new_settings": DEFAULT_SETTINGS.dict()},
-        )
+    logger.info(f"user_data {user_id}")
 
     user_data = get_user_data(user_id)
     if not user_data:
         raise HTTPException(status_code=404, detail="User data not found")
 
-    print(f"user_data {user_data}")
     logger.info(f"User {user_id} dashboard stats retrieved: {user_data}")
 
     return DashboardStats(
