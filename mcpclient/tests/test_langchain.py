@@ -11,7 +11,7 @@ def test_llm_basic():
     result = llm(query, "Traditional Chinese")
 
     # 確認有輸出字串
-    assert isinstance(result, str)
+    assert isinstance(result.content, str)
     assert len(result) > 0
 
     # 驗證內容是否有關鍵字（這裡用中文"LangChain"來確認）

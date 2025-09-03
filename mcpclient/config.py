@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@note-db:5432/note")
 
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/2")  # for user cache

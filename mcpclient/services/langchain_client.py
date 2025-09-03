@@ -66,7 +66,7 @@ def llm(
             ),
         )
 
-    return resp.content
+    return resp
 
 
 @obs.observe_fn
@@ -103,8 +103,8 @@ if __name__ == "__main__":
     result = llm(
         q, isTranslate=True, user_language="Traditional Chinese", user_id="test_user"
     )
-    logger.info(result)
+    logger.info(result.content)
 
     # 不翻譯
     result2 = llm(q, isTranslate=False, user_id="test_user")
-    logger.info(result2)
+    logger.info(result2.content)

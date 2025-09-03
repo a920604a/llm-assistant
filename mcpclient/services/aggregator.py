@@ -2,7 +2,7 @@ from api.schemas.user import UserQuery
 from config import NOTE_API_URL
 from logger import AppLogger
 from redis_client import get_redis_system_setting
-from services.langchain_client import llm, rewrite_query
+from services.llm_flow import llm_flow
 from services.mcp_client import call_note_server
 
 logger = AppLogger(__name__).get_logger()
@@ -21,9 +21,8 @@ def process_user_query(user_query: UserQuery, user_id: str):
 
     # 呼叫 Ollama LLM（主要語言理解與生成）
     if shortcut:
-        query = rewrite_query(query=query, user_id=user_id)
-        llm_reply = llm(query, isTranslate, user_language, user_id)
-        logger.info(f"llm_reply {llm_reply}")
+        llm_reply = llm_flow(query, user_id, isTranslate, user_language)
+
         return llm_reply
     else:  # rag
         # 呼叫 MCP Server（筆記服務）

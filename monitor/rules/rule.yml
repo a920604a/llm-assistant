@@ -11,6 +11,50 @@ groups:
         annotations:
           summary: "Instance {{ $labels.instance }} down"
           description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 2 minutes."
+      - alert: APIHighFrequency
+        expr: rate(get_dashboard_stats_total[1m]) > 0.2
+        for: 1m
+        labels:
+          severity: warning
+          service: mcpclient
+          api: dashboard_stats
+        annotations:
+          summary: "API {{ $labels.api }} is called frequently"
+          description: "API {{ $labels.api }} exceeded 12 calls per minute. Current rate: {{ $value }} calls/min"
+
+      - alert: APIHighFrequency
+        expr: rate(ask_host_total[1m]) > 0.2
+        for: 1m
+        labels:
+          severity: warning
+          service: mcpclient
+          api: dashboard_stats
+        annotations:
+          summary: "API {{ $labels.api }} is called frequently"
+          description: "API {{ $labels.api }} exceeded 12 calls per minute. Current rate: {{ $value }} calls/min"
+
+      - alert: APIHighFrequency
+        expr: rate(post_settings_total[1m]) > 0.2
+        for: 1m
+        labels:
+          severity: warning
+          service: mcpclient
+          api: dashboard_stats
+        annotations:
+          summary: "API {{ $labels.api }} is called frequently"
+          description: "API {{ $labels.api }} exceeded 12 calls per minute. Current rate: {{ $value }} calls/min"
+      - alert: APIHighFrequency
+        expr: rate(get_user_settings_total[1m]) > 0.2
+        for: 1m
+        labels:
+          severity: warning
+          service: mcpclient
+          api: dashboard_stats
+        annotations:
+          summary: "API {{ $labels.api }} is called frequently"
+          description: "API {{ $labels.api }} exceeded 12 calls per minute. Current rate: {{ $value }} calls/min"
+
+
   - name: System
     rules:
       - alert: NetworkDown
