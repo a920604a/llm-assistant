@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { getChatHistory, ChatMessage } from '../api/chat'
+import { getChatHistory, type ChatMessage } from '../api/chat'
 
 const HistoryPage = () => {
     const [history, setHistory] = useState<ChatMessage[]>([]) // 初始值保證是陣列
@@ -42,12 +42,12 @@ const HistoryPage = () => {
             )}
 
             <div className="flex-1 overflow-auto flex flex-col space-y-3">
-                {history.map((msg, idx) => (
+                {history.map((msg) => (
                     <div
-                        key={msg.id || idx} // 優先使用 id，沒有就用 index
+                        key={msg.id}
                         className={`p-3 rounded max-w-md whitespace-pre-wrap ${msg.role === 'user'
-                                ? 'bg-blue-100 self-end shadow'
-                                : 'bg-gray-200 self-start shadow-sm'
+                            ? 'bg-blue-100 self-end shadow'
+                            : 'bg-gray-200 self-start shadow-sm'
                             }`}
                     >
                         <div className="text-sm text-gray-500 mb-1">

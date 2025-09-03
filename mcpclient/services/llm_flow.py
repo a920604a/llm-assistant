@@ -11,3 +11,5 @@ def llm_flow(query: str, user_id: str, isTranslate: bool, user_language: str):
     logger.info(f"llm_reply {resp}")
 
     store_chat_and_usage(user_id, query, llm_rewrite_query, resp)
+
+    return resp.content

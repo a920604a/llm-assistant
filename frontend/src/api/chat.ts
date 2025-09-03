@@ -2,6 +2,7 @@ import { auth } from "../firebase";
 import { BASE_URL } from "./conf";
 
 export interface ChatMessage {
+    id: string
     role: 'user' | 'bot'
     content: string
     timestamp: string

@@ -14,13 +14,13 @@ router = APIRouter()
 
 fake_db = [
     ChatMessage(
-        # id="1",
+        id="1",
         role="user",
         content="What is RAG?",
         timestamp=datetime(2025, 9, 3, 9, 0),
     ),
     ChatMessage(
-        # id="2",
+        id="2",
         role="bot",
         content="RAG stands for Retrieval-Augmented Generation...",
         timestamp=datetime(2025, 9, 3, 9, 0, 5),

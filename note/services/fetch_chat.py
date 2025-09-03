@@ -7,9 +7,19 @@ def fetch_chat(user_id: str, limit: int) -> list[ChatMessage]:
     chat = fetch_chat_history(user_id=user_id, limit=limit)
     for data in chat:
         result.append(
-            ChatMessage(role="user", content=data["input"], timestamp=data["timestamp"])
+            ChatMessage(
+                id=data["id"],
+                role="user",
+                content=data["input"],
+                timestamp=data["timestamp"],
+            )
         )
         result.append(
-            ChatMessage(role="bot", content=data["output"], timestamp=data["timestamp"])
+            ChatMessage(
+                id=data["id"],
+                role="bot",
+                content=data["output"],
+                timestamp=data["timestamp"],
+            )
         )
     return result
