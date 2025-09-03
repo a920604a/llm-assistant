@@ -1,10 +1,8 @@
 from config import MODEL_NAME, OLLAMA_API_URL
+from langchain_core.messages.ai import AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
-from services.estimate_tokens import get_token_estimate
 from services.langfuse_client import LangfuseObs
-from storage.crud.chat_history import insert_chat_history
-from storage.crud.user import set_user_token_spend
 
 obs = LangfuseObs(mode="callback")  # langchain mode
 
@@ -16,7 +14,7 @@ def llm_context(
     temperature: float = 0.5,
     system_prompt: str = "",
     user_id: str = "anonymous",
-):
+) -> AIMessage:
     chat_model = ChatOllama(
         model=MODEL_NAME, temperature=temperature, base_url=OLLAMA_API_URL
     )
@@ -53,18 +51,31 @@ def llm_context(
             tags=["llm_context", "note services"],
         ),
     )
-    usage = get_token_estimate(resp, prompt)
-    # insert to user table
-    set_user_token_spend(user_id, usage["total_tokens"])
 
-    insert_chat_history(
-        user_id=user_id,
-        input_text=query,
-        output_text=resp.content,
-        input_token=usage["prompt_tokens"],
-        output_token=usage["completion_tokens"],
-        latency_ms=usage["latency_ms"],
-        model=MODEL_NAME,
+    return resp
+
+
+def rewrite_query(query: str, user_id: str) -> str:
+    chat_model = ChatOllama(model=MODEL_NAME, temperature=0.6, base_url=OLLAMA_API_URL)
+
+    prompt_template = """
+    You are a professional query rewriting assistant.
+
+    Original Question:
+    {question}
+
+    Rewrite the question clearly and concisely for information retrieval.
+    Only output the rewritten query, do not answer it.
+    """
+
+    prompt = ChatPromptTemplate.from_template(prompt_template)
+    chain = prompt | chat_model
+    resp = chain.invoke(
+        {"question": query},
+        config=obs.get_config(
+            user_id=user_id,
+            tags=["rewrite_query", "Auth service"],
+        ),
     )
 
     return resp.content

@@ -2,7 +2,7 @@ from api.schemas.user import UserQuery
 from config import NOTE_API_URL
 from logger import AppLogger
 from redis_client import get_redis_system_setting
-from services.langchain_client import llm, rewrite_query
+from services.langchain_client import llm
 from services.mcp_client import call_note_server
 
 logger = AppLogger(__name__).get_logger()
@@ -23,16 +23,12 @@ def process_user_query(user_query: UserQuery, user_id: str):
         logger.info(f"llm_reply {llm_reply}")
         return llm_reply
     else:  # rag
-        # Step 1 : re-write user query
-        llm_reply = rewrite_query(user_query.query, user_id)
-        logger.info(f"Step 1: 呼叫 Ollama LLM（主要語言理解與生成） {llm_reply[:200]}")
-
-        # Step 2: 呼叫 MCP Server（筆記服務）
-        logger.info("Step 2: 呼叫 MCP Server（筆記服務）")
+        # 呼叫 MCP Server（筆記服務）
+        logger.info("呼叫 MCP Server（筆記服務）")
 
         note_result = call_note_server(
             NOTE_API_URL,
-            {"text": llm_reply, "user_id": user_id},
+            {"text": user_query.query, "user_id": user_id},
         )
         logger.info(f"note_result {note_result[:200]}")
 
