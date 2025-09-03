@@ -28,6 +28,10 @@ qdrant-client
 fastembed
 sentence-transformers
 
+# === SQL DB ===
+sqlalchemy==2.0.19
+psycopg2-binary==2.9.6
+
 # === OCR / Image Processing ===
 pillow
 pytesseract

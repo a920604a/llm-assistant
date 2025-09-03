@@ -66,6 +66,33 @@ def llm(
             ),
         )
 
+    return resp
+
+
+@obs.observe_fn
+def rewrite_query(query: str, user_id: str) -> str:
+    chat_model = ChatOllama(model=MODEL_NAME, temperature=0.6, base_url=OLLAMA_API_URL)
+
+    prompt_template = """
+    You are a professional query rewriting assistant.
+
+    Original Question:
+    {question}
+
+    Rewrite the question clearly and concisely for information retrieval.
+    Only output the rewritten query, do not answer it.
+    """
+
+    prompt = ChatPromptTemplate.from_template(prompt_template)
+    chain = prompt | chat_model
+    resp = chain.invoke(
+        {"question": query},
+        config=obs.get_config(
+            user_id=user_id,
+            tags=["rewrite_query", "Auth service"],
+        ),
+    )
+
     return resp.content
 
 
@@ -76,8 +103,8 @@ if __name__ == "__main__":
     result = llm(
         q, isTranslate=True, user_language="Traditional Chinese", user_id="test_user"
     )
-    logger.info(result)
+    logger.info(result.content)
 
     # 不翻譯
     result2 = llm(q, isTranslate=False, user_id="test_user")
-    logger.info(result2)
+    logger.info(result2.content)

@@ -74,7 +74,7 @@ def rewrite_query(query: str, user_id: str) -> str:
         {"question": query},
         config=obs.get_config(
             user_id=user_id,
-            tags=["rewrite_query", "Auth service"],
+            tags=["rewrite_query", "note service"],
         ),
     )
 
