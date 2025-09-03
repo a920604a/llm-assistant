@@ -8,3 +8,19 @@ providers:
     disableDeletion: false
     options:
       path: /var/lib/grafana/dashboards
+
+  - name: 'System Dashboards'
+    orgId: 1
+    folder: 'System Metrics'
+    type: file
+    disableDeletion: false
+    options:
+      path: /var/lib/grafana/dashboards/system
+
+  - name: 'App Dashboards'
+    orgId: 1
+    folder: 'App Metrics'
+    type: file
+    disableDeletion: false
+    options:
+      path: /var/lib/grafana/dashboards/app
