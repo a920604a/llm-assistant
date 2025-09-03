@@ -1,6 +1,7 @@
 # REST API routers
 from api.auto_metrics import observe_api
 from api.schemas.query import Query
+from arxiv_ingestion.flows.arxiv_rag_pipeline import rag  # <- lazy import
 from fastapi import APIRouter
 from logger import AppLogger
 from storage.redis_client import get_redis_system_setting
@@ -15,7 +16,6 @@ router = APIRouter()
 def ask_host(query: Query):
     q = query.text.strip()
     logger.info("ask_host %s", q)
-    from arxiv_ingestion.flows.arxiv_rag_pipeline import rag  # <- lazy import
 
     system_settings = get_redis_system_setting(query.user_id)
     top = system_settings.top_k
