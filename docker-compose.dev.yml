@@ -38,6 +38,8 @@ services:
     volumes:
       - ./note:/app
       - ./data/noteserver:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
     ports:
       - "8022:8000"
     env_file:
@@ -59,6 +61,8 @@ services:
       - ./arxiv:/app
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
       - ./data/arxiv_worker:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
     env_file:
       - ./.env # <- 指定要讀的環境變數檔
     networks:
@@ -94,6 +98,8 @@ services:
     volumes:
       - ./email:/app
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
     working_dir: /app # <-- 加上這行
     networks:
       - langfuse-otel-net
@@ -125,6 +131,8 @@ services:
       - OLLAMA_API_URL=http://ollama:11434
     volumes:
       - ./mcpclient:/app
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
     ports:
       - "8011:8000"
     depends_on:
@@ -133,3 +141,14 @@ services:
       - ./.env # <- 指定要讀的環境變數檔
     networks:
       - langfuse-otel-net
+  # imageservice:
+  #   build:
+  #     context: .
+  #     dockerfile: ./services/imageservice/Dockerfile.imageservices
+  #   image: imageservice:latest
+  #   container_name: imageservice
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5000:8000"
+  #   networks:
+  #     - langfuse-otel-net

@@ -1,9 +1,13 @@
 from datetime import datetime
 from typing import Optional
 
+from logger import AppLogger
 from storage import db_session
 from storage.postgres import ChatHistory, User
+from storage.set_user_token_spend import get_or_create_user
 from storage.storage_metrics import monitored_db
+
+logger = AppLogger(__name__).get_logger()
 
 
 @monitored_db
@@ -23,9 +27,8 @@ def insert_chat_history(
         # 確保 user 存在
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
-            from storage.crud.user import get_or_create_user
-
             user = get_or_create_user(db, user_id)
+        logger.info(f"{datetime.now().astimezone()}")
 
         chat = ChatHistory(
             user_id=user.id,
@@ -35,7 +38,7 @@ def insert_chat_history(
             output_token=output_token,
             latency_ms=latency_ms,
             model=model,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now().astimezone(),
         )
 
         db.add(chat)

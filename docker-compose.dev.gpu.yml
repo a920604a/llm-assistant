@@ -4,7 +4,7 @@ services:
       resources:
         reservations:
           devices:
-            - capabilities: [gpu]
+            - capabilities: [ gpu ]
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
@@ -14,5 +14,13 @@ services:
       resources:
         reservations:
           devices:
-            - capabilities: [gpu]
+            - capabilities: [ gpu ]
     runtime: nvidia
+  # imageservice:
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [ gpu ]

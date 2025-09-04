@@ -61,3 +61,17 @@ pytest
 tqdm
 firebase-admin
 redis
+
+
+# === Middleware (Starlette 內建) ===
+starlette==0.37.2
+
+# === Logging (可選) ===
+loguru==0.7.2
+
+# === Cache (可選) ===
+fastapi-cache2==0.2.1
+aioredis==2.0.1
+
+# === Rate Limiting (可選) ===
+slowapi==0.1.8

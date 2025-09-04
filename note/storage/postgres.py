@@ -2,11 +2,9 @@ from datetime import datetime
 
 from sqlalchemy import (
     ARRAY,
-    TIMESTAMP,
     Boolean,
     Column,
     Date,
-    DateTime,
     Float,
     ForeignKey,
     Integer,
@@ -15,6 +13,7 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.types import DateTime
 
 Base = declarative_base()
 
@@ -44,8 +43,9 @@ class ChatHistory(Base):
     output_token = Column(Integer)
     latency_ms = Column(Integer)
     model = Column(String(64))
-    created_at = Column(TIMESTAMP, server_default=func.now())
-
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
     # 與 User 建立 ORM 關聯
     user = relationship("User", back_populates="chat_histories", passive_deletes=True)
 
@@ -94,5 +94,9 @@ class Paper(Base):
     pdf_cached_path = Column(Text, nullable=True)
     pdf_downloaded = Column(Boolean, default=False)
     pdf_parsed = Column(Boolean, default=False)
-    created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )

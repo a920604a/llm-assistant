@@ -1,6 +1,7 @@
-from sqlalchemy import TIMESTAMP, Boolean, Column, Date, Integer, String, Text, func
+from sqlalchemy import Boolean, Column, Date, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.types import DateTime
 
 Base = declarative_base()
 
@@ -20,5 +21,9 @@ class Paper(Base):
     pdf_cached_path = Column(Text, nullable=True)
     pdf_downloaded = Column(Boolean, default=False)
     pdf_parsed = Column(Boolean, default=False)
-    created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )

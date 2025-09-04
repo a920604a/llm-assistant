@@ -27,7 +27,7 @@ CREATE TABLE chat_history (
     output_token INT,
     latency_ms INT, -- 延遲時間
     model VARCHAR(64),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
@@ -40,7 +40,7 @@ CREATE TABLE notes (
     id SERIAL PRIMARY KEY,
     filename VARCHAR(255) NOT NULL,
     s3_key VARCHAR(512) NOT NULL,
-    upload_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    upload_time TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     user_id VARCHAR(255) NOT NULL,
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
@@ -58,8 +58,8 @@ CREATE TABLE papers (
     pdf_cached_path TEXT,
     pdf_downloaded BOOLEAN DEFAULT FALSE,
     pdf_parsed BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 可加索引，加速查詢

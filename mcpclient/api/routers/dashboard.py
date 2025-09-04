@@ -3,7 +3,8 @@ from datetime import date
 from api.auto_metrics import observe_api
 from api.schemas.DashboardStats import DashboardStats
 from api.verify_token import verify_firebase_token
-from fastapi import APIRouter, Depends, HTTPException
+from core.limiter import limiter
+from fastapi import APIRouter, Depends, HTTPException, Request
 from logger import AppLogger
 from services.user import get_user_data
 
@@ -25,11 +26,13 @@ fake_db = {
 
 
 @router.get("/api/dashboard/stats", response_model=DashboardStats)
+@limiter.limit("20/minute")  # 每分鐘 20 次
 @observe_api
 # async def get_dashboard_stats(user_id: str):
-async def get_dashboard_stats(user_id: str = Depends(verify_firebase_token)):
+async def get_dashboard_stats(
+    request: Request, user_id: str = Depends(verify_firebase_token)
+):
     # user_data = fake_db.get("user123")
-    logger.info(f"user_data {user_id}")
 
     user_data = get_user_data(user_id)
     if not user_data:

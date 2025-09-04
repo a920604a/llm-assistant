@@ -1,43 +1,12 @@
 from api.routers import chat_history, dashboard, query, setting
+from core.middleware import setup_middlewares
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from logger import AppLogger
-
-# from prometheus_fastapi_instrumentator import Instrumentator, metrics
-#
-from prometheus_fastapi_instrumentator import Instrumentator, metrics
-
-logger = AppLogger(__name__).get_logger()
-
 
 app = FastAPI(title="MCP Client Service")
 
-# Instrumentator().instrument(app).expose(app)
-instrumentator = (
-    Instrumentator()
-    .add(
-        metrics.default(
-            metric_namespace="llm_assistance",  # Don't user -
-            metric_subsystem="mcpclient",
-            custom_labels={"environment": "mcpclient"},
-        )
-    )
-    .instrument(app)
-    .expose(app)
-)
+# === 設定中間件 ===
+setup_middlewares(app)
 
-origins = [
-    "http://localhost",
-    "http://localhost:5173",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # 先允許所有,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 app.include_router(query.router, tags=["query"])
 app.include_router(dashboard.router, tags=["dashboard"])
