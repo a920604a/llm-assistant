@@ -16,7 +16,7 @@ MONITOR_DEV_COMPOSE = docker compose -f docker-compose.monitor.dev.yml
 MONITOR_COMPOSE = docker compose -f docker-compose.monitor.yml
 DOCKER_FRONTEND_COMPOSE = docker compose -f docker-compose.frontend.yml
 
-PY_DIRS = note mcpclient
+PY_DIRS = note mcpclient email arxiv
 
 NETWORKS = monitor-net app-net langfuse-otel-net
 
@@ -127,7 +127,7 @@ format:
 
 # 3️⃣ 代碼檢查
 lint:
-	pylint $(PY_DIRS) || true
+	pylint --rcfile=.pylintrc $(PY_DIRS) || true
 	python -m bandit -r $(PY_DIRS) || true
 
 

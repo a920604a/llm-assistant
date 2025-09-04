@@ -7,7 +7,6 @@ from logger import AppLogger
 from prometheus_fastapi_instrumentator import Instrumentator, metrics
 from slowapi import _rate_limit_exceeded_handler
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 logger = AppLogger(__name__).get_logger()
@@ -36,9 +35,6 @@ def setup_middlewares(app: FastAPI):
         TrustedHostMiddleware,
         allowed_hosts=["localhost", "127.0.0.1", "mcpclient"],
     )
-
-    # === Session ===
-    app.add_middleware(SessionMiddleware, secret_key="super-secret-session-key")
 
     # === Logging Middleware ===
     class LoggingMiddleware(BaseHTTPMiddleware):

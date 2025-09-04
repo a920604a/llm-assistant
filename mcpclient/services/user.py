@@ -7,7 +7,7 @@ def get_user_data(user_id: str):
     # last_query_date: date
     # total_queries: int
     # remaining_tokens: int
-    resp = requests.get(f"{NOTE_API_URL}/api/user/{user_id}")
+    resp = requests.get(f"{NOTE_API_URL}/api/user/{user_id}", timeout=7)
 
     resp.raise_for_status()
     return resp.json()

@@ -18,6 +18,7 @@ def call_ollama(prompt: str) -> str:
             "prompt": prompt,
             "stream": False,
         },
+        timeout=300,
     )
     logger.info(f"response {response}")
     response.raise_for_status()
