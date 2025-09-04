@@ -3,11 +3,9 @@ from datetime import datetime
 from config import DATABASE_URL
 from sqlalchemy import (
     ARRAY,
-    TIMESTAMP,
     Boolean,
     Column,
     Date,
-    DateTime,
     Float,
     ForeignKey,
     Integer,
@@ -17,6 +15,7 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy.types import DateTime
 
 engine = create_engine(DATABASE_URL, echo=False)
 
@@ -80,5 +79,9 @@ class Paper(Base):
     pdf_cached_path = Column(Text, nullable=True)
     pdf_downloaded = Column(Boolean, default=False)
     pdf_parsed = Column(Boolean, default=False)
-    created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
