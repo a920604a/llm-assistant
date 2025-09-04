@@ -1,0 +1,31 @@
+FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
+
+# 選用快速 apt mirror（如果網路常卡住）
+ENV DEBIAN_FRONTEND=noninteractive
+
+ENV TZ=Asia/Taipei
+
+RUN sed -i 's|archive.ubuntu.com|mirror.sjtu.edu.cn|g' /etc/apt/sources.list \
+ && apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config \
+    cmake \
+    build-essential \
+    libprotobuf-dev \
+    protobuf-compiler \
+    git \
+    ffmpeg \
+    libgl1 \
+    libsndfile1 \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# 先安裝 requirements，避免 code 改動就重新安裝依賴
+COPY services/imageservice/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+ && pip install --no-cache-dir -r requirements.txt
+
+# 再複製 app 進來
+COPY ./image ./app
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000" , "--reload"]

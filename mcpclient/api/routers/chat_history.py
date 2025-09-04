@@ -3,7 +3,8 @@ from datetime import datetime
 from api.auto_metrics import observe_api
 from api.schemas.history import ChatMessage
 from api.verify_token import verify_firebase_token
-from fastapi import APIRouter, Depends
+from core.limiter import limiter
+from fastapi import APIRouter, Depends, Request
 from logger import AppLogger
 from services.fetch_chat_history import fetch_chat
 
@@ -29,8 +30,11 @@ fake_db = [
 
 
 @router.get("/api/chat/history", response_model=list[ChatMessage])
+@limiter.limit("5/minute")  # 每分鐘 5 次
 @observe_api
-async def get_chat_history(user_id: str = Depends(verify_firebase_token), limit=5):
-    logger.info(f"Fetching chat history for user {user_id}")
+async def get_chat_history(
+    request: Request, user_id: str = Depends(verify_firebase_token), limit=5
+):
+    logger.info(f"Fetching chat history for user {user_id} {request}")
     # TODO: 根據 user_id 過濾資料
     return fetch_chat(user_id, limit)

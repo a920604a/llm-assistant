@@ -23,6 +23,11 @@ torchvision
 langchain>=0.1.17
 langchain-community>=0.0.17
 langchain-openai>=0.0.8
+jieba
+
+diffusers
+accelerate
+safetensors
 
 
 # ML
@@ -32,11 +37,15 @@ xgboost
 # === Embeddings / Vector DB ===
 qdrant-client
 fastembed
-sentence-transformers
+sentence-transformers==5.1.0
 
 # === OCR / Image Processing ===
 pillow
 pytesseract
+
+# === SQL DB ===
+sqlalchemy==2.0.19
+psycopg2-binary==2.9.6
 
 # === Data Processing ===
 

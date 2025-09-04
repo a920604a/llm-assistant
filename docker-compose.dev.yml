@@ -133,3 +133,14 @@ services:
       - ./.env # <- 指定要讀的環境變數檔
     networks:
       - langfuse-otel-net
+  # imageservice:
+  #   build:
+  #     context: .
+  #     dockerfile: ./services/imageservice/Dockerfile.imageservices
+  #   image: imageservice:latest
+  #   container_name: imageservice
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5000:8000"
+  #   networks:
+  #     - langfuse-otel-net

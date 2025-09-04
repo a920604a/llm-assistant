@@ -2,15 +2,21 @@
 from api.auto_metrics import observe_api
 from api.schemas.user import UserQuery
 from api.verify_token import verify_firebase_token  # 解析 Firebase token
-from fastapi import APIRouter, Depends
+from core.limiter import limiter
+from fastapi import APIRouter, Depends, Request
 from services.aggregator import process_user_query
 
 router = APIRouter()
 
 
 @router.post("/api/ask")
+@limiter.limit("7/minute")  # 每分鐘 7 次
 @observe_api
-def ask_host(user_query: UserQuery, user_id: str = Depends(verify_firebase_token)):
+def ask_host(
+    request: Request,
+    user_query: UserQuery,
+    user_id: str = Depends(verify_firebase_token),
+):
     """
     Host API 入口：
     1. 接收使用者 query
