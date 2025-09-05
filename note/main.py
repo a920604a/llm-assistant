@@ -1,4 +1,4 @@
-from api.routers import chat_history, query, setting, user
+from api.routers import chat_history, ping, query, setting, user
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from logger import AppLogger
@@ -13,7 +13,7 @@ logger = AppLogger(__name__).get_logger()
 app = FastAPI(title="Note Server")
 Instrumentator().instrument(app).expose(app)
 
-origins = ["http://mcpclient:8000"]
+origins = ["http://apiGateway:8000"]
 
 
 # 設定允許的來源
@@ -45,6 +45,7 @@ app.include_router(query.router, tags=["query"])
 app.include_router(user.router, tags=["user"])
 app.include_router(setting.router, tags=["setting"])
 app.include_router(chat_history.router, tags=["chat_history"])
+app.include_router(ping.router, tags=["Health"])
 
 
 # Startup event: 確保 Qdrant 啟動後再建立 collection

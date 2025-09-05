@@ -1,9 +1,7 @@
 import jieba
-from prefect import task
 from rank_bm25 import BM25Okapi
 
 
-@task(name="Hybrid Reranking Task")
 def re_ranking(
     chunks: list,
     query: str,

@@ -1,11 +1,14 @@
+import random
 import time
 from datetime import datetime, timedelta
 
 from prefect import flow, get_run_logger, task
 from services.fetch_new_papers import fetch_new_papers
 from services.fetch_paper_content import fetch_paper_content_from_qdrant
+from services.filter_already_sent_papers import filter_already_sent_papers
 from services.generate_summary import generate_summary
 from services.get_subscribed_users import get_subscribed_users
+from services.record_sent_papers import record_sent_papers
 from services.send_email import send_email_sync
 from storage import db_session
 
@@ -15,13 +18,13 @@ from storage import db_session
 
 
 @task(name="Fetch Papers")
-def fetch_papers_task(days: int = 1, limit: int = 5) -> list[dict]:
+def fetch_papers_task(days: int = 1) -> list[dict]:
     logger = get_run_logger()
 
     start = time.time()
     with db_session() as db:
         papers = fetch_new_papers(
-            db, since_date=datetime.utcnow() - timedelta(days=days), limit=limit
+            db, since_date=datetime.utcnow() - timedelta(days=days)
         )
         # 轉成 dict list
         papers_data = [
@@ -39,7 +42,7 @@ def fetch_papers_task(days: int = 1, limit: int = 5) -> list[dict]:
 
 
 @task(name="Fetch Paper Content")
-def fetch_paper_content(papers: list[dict]) -> dict[str, str]:
+def fetch_paper_content_task(papers: list[dict]) -> dict[str, str]:
     """
     從 Qdrant 裡抓取每篇 paper 的 raw_content，
     回傳 {arxiv_id: raw_content} dict
@@ -56,7 +59,7 @@ def fetch_paper_content(papers: list[dict]) -> dict[str, str]:
             f"Paper {p['arxiv_id']}: "
             f"Title: {p['title'] or 'No Title'}, "
             f"Authors: {', '.join(p['authors']) if p['authors'] else 'N/A'}, "
-            f"Abstract: {p['abstract'][:200] + '...' if p['abstract'] else 'N/A'}, "
+            f"Abstract: {p['abstract'][:50] + '...' if p['abstract'] else 'N/A'}, "
             f"PDF URL: {p['pdf_url']}"
         )
         logger.debug(f"Paper data: {p}")
@@ -96,28 +99,50 @@ def get_users_task():
     return users
 
 
-@task(name="Generate Summary")
-def generate_summary_task(
-    papers: tuple[list[dict], dict[str, str]],
-    user: dict,
-):
+# ----------------------
+# Per-User Task 封裝流程
+# ----------------------
+
+
+@task(name="Process User Task", retries=3, retry_delay_seconds=5)
+def process_user_task(user: dict, papers: list[dict], content_map: dict):
+    """
+    - user: dict, 包含 user_id, email, translate, user_language
+    - papers: list[dict] 今天分配給這個 user 的論文
+    - content_map: dict[arxiv_id, raw_content]
+    """
     logger = get_run_logger()
+    user_id = user.get("user_id")
+    email = user.get("email")
 
-    start = time.time()
-    logger.info("Generating summary")
-    summary = generate_summary(papers, user)
-    logger.info(f"Summary generated in {time.time() - start:.2f}s")
-    return summary
+    if not email:
+        logger.warning(f"User {user_id} has no email, skipping")
+        return {"user_id": user_id, "status": "skipped", "reason": "no email"}
 
+    if not papers:
+        logger.info(f"No papers assigned to user {user_id}, skipping")
+        return {"user_id": user_id, "status": "skipped", "reason": "no papers"}
 
-@task(name="Send Email", retries=3, retry_delay_seconds=5)
-def send_email_task(subject: str, recipients: list[str], body: str):
-    logger = get_run_logger()
+    # 生成 summary
     try:
-        send_email_sync(subject, recipients, body)
+        summary = generate_summary((papers, content_map), user)
     except Exception as e:
-        logger.error(f"Failed to send email to {recipients}: {e}")
-        raise e
+        logger.error(f"Failed to generate summary for user {user_id}: {e}")
+        return {"user_id": user_id, "status": "failed", "reason": f"summary error: {e}"}
+
+    # 發送 email
+    try:
+        send_email_sync("Daily Paper Summary", [email], summary)
+    except Exception as e:
+        logger.error(f"Failed to send email to {email}: {e}")
+        return {"user_id": user_id, "status": "failed", "reason": f"email error: {e}"}
+
+    # 記錄已寄送
+    arxiv_ids = [p["arxiv_id"] for p in papers if p.get("arxiv_id")]
+    record_sent_papers(user_id, arxiv_ids)
+
+    logger.info(f"Sent {len(papers)} papers to user {user_id} ({email})")
+    return {"user_id": user_id, "status": "success", "sent_count": len(papers)}
 
 
 # ----------------------
@@ -134,32 +159,31 @@ def daily_papers_flow(top_k: int = 3):
 
     # Fetch all subscribed user emails, user_id, translate, and user_language
     users = get_users_task()
-    papers = fetch_papers_task(days=30, limit=top_k)
-    logger.info(f" papers data {papers}")
-    if len(papers) == 0:
-        logger.info("No new papers found, skipping email sending")
+    papers = fetch_papers_task(days=30)
+    if not papers:
+        logger.info("No new papers found, skipping flow")
         return
 
-    papers_content_map = fetch_paper_content(papers)
-    logger.info(f"Fetched content for {papers_content_map} ")
+    content_map = fetch_paper_content_task(papers)
 
-    # 對每個 user 建立個人化流程
-    send_tasks = []
-    for u in users:
-        email = u.get("email")
-        if not email:
-            logger.warning(f"User {u.get('user_id')} has no email, skipping")
+    for user in users:
+        user_unsent_papers = filter_already_sent_papers(
+            user["user_id"], papers
+        )  # 返回 dict list
+        logger.info(f"user {user['user_id']}")
+        logger.info(f"user_unsent_papers   {len(user_unsent_papers)}")
+        if not user_unsent_papers:
+            logger.info(f"user {user['user_id']} - All papers have been sent, skipping")
             continue
 
-        # 個人化 summary task
-        summary = generate_summary_task((papers, papers_content_map), u)
-        send_task = send_email_task("Daily Paper Summary", [email], summary)
-        send_tasks.append(send_task)
+        # 打亂順序
+        random.shuffle(user_unsent_papers)
 
-    # 等待所有發信完成
-    for t in send_tasks:
-        if t is not None:
-            t.result()  # 只有 t 不為 None 才呼叫
+        # 取 top_k
+        assigned_papers = user_unsent_papers[:top_k]
+        # 發送給使用者
+        result = process_user_task(user, assigned_papers, content_map)
+        logger.info(result)
 
     logger.info(f"Daily papers flow completed in {time.time() - start_flow:.2f}s")
 

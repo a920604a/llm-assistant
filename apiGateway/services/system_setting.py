@@ -1,6 +1,6 @@
 import requests
 from api.schemas.SystemSetting import DEFAULT_SETTINGS, SystemSettings
-from config import NOTE_API_URL
+from config import settings
 from logger import AppLogger
 from redis_client import get_redis_system_setting
 
@@ -12,10 +12,12 @@ def get_setting(user_id: str) -> SystemSettings:
     return _cache if _cache else DEFAULT_SETTINGS
 
 
-def post_setting(user_id: str, settings: SystemSettings) -> dict:
+def post_setting(user_id: str, systemSettings: SystemSettings) -> dict:
     # Update user settings in the database or any other source
-    payload = {"user_id": user_id, "new_settings": settings.dict()}
-    resp = requests.post(f"{NOTE_API_URL}/api/settings", json=payload, timeout=5)
+    payload = {"user_id": user_id, "new_settings": systemSettings.dict()}
+    resp = requests.post(
+        f"{settings.NOTE_API_URL}/api/settings", json=payload, timeout=5
+    )
     if resp.status_code == 200:
         return {"status": True, "message": "Settings updated successfully"}
     else:

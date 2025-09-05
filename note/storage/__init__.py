@@ -1,10 +1,10 @@
 from contextlib import contextmanager
 
-from config import DATABASE_URL
+from config import settings
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-engine = create_engine(DATABASE_URL, echo=False)
+engine = create_engine(settings.DATABASE_URL, echo=False)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

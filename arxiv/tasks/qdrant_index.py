@@ -86,7 +86,9 @@ def qdrant_index_task(papers: List[ArxivPaper]):
 
             payload = {**metadata, "text": chunk, "chunk_idx": chunk_idx}
 
-            points.append(models.PointStruct(id=idx, vector=vector, payload=payload))
+            point = models.PointStruct(id=idx, vector=vector, payload=payload)
+            points.append(point)
+            batch_points.append(point)  # ✅ 把 point 加入 batch
             idx += 1
 
             # 每到 batch_size 就上傳一次

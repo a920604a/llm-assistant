@@ -1,4 +1,4 @@
-from config import MODEL_NAME, OLLAMA_API_URL
+from config import settings
 from langchain_core.messages.ai import AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
@@ -16,7 +16,9 @@ def llm_context(
     user_id: str = "anonymous",
 ) -> AIMessage:
     chat_model = ChatOllama(
-        model=MODEL_NAME, temperature=temperature, base_url=OLLAMA_API_URL
+        model=settings.MODEL_NAME,
+        temperature=temperature,
+        base_url=settings.OLLAMA_API_URL,
     )
 
     prompt = ChatPromptTemplate.from_template(
@@ -56,7 +58,9 @@ def llm_context(
 
 
 def rewrite_query(query: str, user_id: str) -> str:
-    chat_model = ChatOllama(model=MODEL_NAME, temperature=0.6, base_url=OLLAMA_API_URL)
+    chat_model = ChatOllama(
+        model=settings.MODEL_NAME, temperature=0.6, base_url=settings.OLLAMA_API_URL
+    )
 
     prompt_template = """
     You are a professional query rewriting assistant.

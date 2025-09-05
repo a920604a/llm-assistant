@@ -48,6 +48,12 @@ services:
       - arxiv-worker
     networks:
       - langfuse-otel-net
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')\"" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   arxiv-worker:
     # Celery Worker → 負責執行任務
@@ -121,16 +127,16 @@ services:
     networks:
       - langfuse-otel-net
 
-  mcpclient:
+  apiGateway:
     build:
       context: .
-      dockerfile: ./services/mcpclient/Dockerfile.mcpclient
-    image: mcpclient:latest
-    container_name: mcpclient
+      dockerfile: ./services/apiGateway/Dockerfile.apiGateway
+    image: apigateway:latest
+    container_name: apiGateway
     environment:
       - OLLAMA_API_URL=http://ollama:11434
     volumes:
-      - ./mcpclient:/app
+      - ./apiGateway:/app
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     ports:
@@ -141,6 +147,12 @@ services:
       - ./.env # <- 指定要讀的環境變數檔
     networks:
       - langfuse-otel-net
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')\"" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
   # imageservice:
   #   build:
   #     context: .

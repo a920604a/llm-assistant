@@ -23,4 +23,5 @@ def ask_host(query: Query):
     logger.info("ask_host %s, top_k=%s, user_language=%s", q, top, lang)
 
     llm_reply = rag(query=q, system_settings=system_settings, user_id=query.user_id)
+
     return llm_reply

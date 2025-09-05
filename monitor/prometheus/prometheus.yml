@@ -21,7 +21,7 @@ scrape_configs:
 
   - job_name: 'mcp_client'
     static_configs:
-      - targets: ['mcpclient:8000']
+      - targets: ['apiGateway:8000']
     relabel_configs:
       - source_labels: ['__address__']
         target_label: 'service'
@@ -43,7 +43,7 @@ scrape_configs:
       - targets:
           # App 內部服務
           - 'http://noteserver:8000/docs'
-          - 'http://mcpclient:8000/docs'
+          - 'http://apiGateway:8000/docs'
           - 'http://open-webui:8080'
           - 'http://note-storage:9001'
           # 其他服務模組

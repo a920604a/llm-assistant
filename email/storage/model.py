@@ -85,3 +85,15 @@ class Paper(Base):
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class UserSentPaper(Base):
+    __tablename__ = "user_sent_papers"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(String, nullable=False)
+    arxiv_id = Column(String, nullable=False)
+    sent_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    def __repr__(self):
+        return f"<UserSentPaper(user_id={self.user_id}, arxiv_id={self.arxiv_id}, sent_at={self.sent_at})>"

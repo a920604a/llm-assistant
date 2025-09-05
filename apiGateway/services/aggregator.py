@@ -1,5 +1,5 @@
 from api.schemas.user import UserQuery
-from config import NOTE_API_URL
+from config import settings
 from logger import AppLogger
 from redis_client import get_redis_system_setting
 from services.llm_flow import llm_flow
@@ -29,7 +29,7 @@ def process_user_query(user_query: UserQuery, user_id: str):
         logger.info("呼叫 MCP Server（筆記服務）")
 
         note_result = call_note_server(
-            NOTE_API_URL,
+            settings.NOTE_API_URL,
             {"text": query, "user_id": user_id},
         )
         logger.info(f"note_result {note_result[:200]}")

@@ -45,7 +45,7 @@
 ├── frontend/                 # React Vite app
 ├── data/, database/          # Database & storage initialization
 ├── docs/                     # 技術文件、實作歷程
-├── mcpclient/                # MCP Client backend service
+├── apiGateway/                # MCP Client backend service
 ├── image/                    # Image-related scripts (未來擴充)
 ├── speech/                   # Speech service backend (未來擴充)
 ├── arxiv/                    # Arxiv service (Arxiv ingestion)
@@ -56,7 +56,7 @@
 │   ├── arxivservice/
 │   ├── emailservice/
 │   ├── imageservice/
-│   ├── mcpclient/
+│   ├── apiGateway/
 │   ├── noteservice/
 │   └── speechservice/
 ├── terraform/                # 可選 IaC 腳本
@@ -198,7 +198,7 @@ classDef data fill:#C0C0C0,stroke:#333,stroke-width:1px
 1. 前往 [Firebase Console](https://console.firebase.google.com/) 建立專案
 2. 啟用 **Authentication**（Google 登入）
 3. 建立 Service Account 並下載 `serviceAccountKey.json`
-4. 放置於 `mcpclient/serviceAccountKey.json` `email/serviceAccountKey.json`
+4. 放置於 `apiGateway/serviceAccountKey.json` `email/serviceAccountKey.json`
 
 > 若未提供 Key，系統將無法驗證使用者，也無法存取 Firebase 資料。
 

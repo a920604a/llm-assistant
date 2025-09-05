@@ -58,6 +58,6 @@ if __name__ == "__main__":
     arxiv_pipeline(
         date_from=(datetime.utcnow() - timedelta(days=30)).strftime("%Y%m%d"),
         date_to=datetime.utcnow().strftime("%Y%m%d"),
-        max_results=3,
+        max_results=10,
         download_pdfs=False,
     )

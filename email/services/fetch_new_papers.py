@@ -6,7 +6,7 @@ from storage.storage_metrics import monitored_db
 
 
 @monitored_db
-def fetch_new_papers(db: Session, since_date=None, limit: int = 5) -> list[Paper]:
+def fetch_new_papers(db: Session, since_date=None, limit: int = 500) -> list[Paper]:
     """
     從 papers table 抓取新論文
     - 條件: pdf_parsed = True 或 published_date >= 昨天

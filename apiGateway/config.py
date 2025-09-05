@@ -23,25 +23,21 @@ class Settings(BaseConfigSettings):
     app_version: str = "0.1.0"
     debug: bool = True
     environment: Literal["development", "staging", "production"] = "development"
-    service_name: str = "Note RAG api"
+    service_name: str = "API Gateway"
 
     # 外部服務 URL
     DATABASE_URL: str = "postgresql://user:password@note-db:5432/note"
     REDIS_URL: str = "redis://redis:6379/2"  # for user cache
+    NOTE_API_URL: str = "http://noteserver:8000"
+    SPEECH_API_URL: str = "http://imageserver:8000"
+    IMAGE_API_URL: str = "http://speechserver:8000"
     OLLAMA_API_URL: str = "http://ollama:11434"
-    QDRANT_URL: str = "http://note-qdrant:6333"
-
-    MINIO_ENDPOINT: str = "http://note-minio:9000"
-    MINIO_ACCESS_KEY: str = "note"
-    MINIO_SECRET_KEY: str = "note123"
-    MINIO_BUCKET: str = "notes-md"
 
     # 模型名稱
     MODEL_NAME: str = "gpt-oss:20b"
 
-    COLLECTION_NAME: str = "notes_collection"
-
-    UPLOAD_DIR: str = "/data/uploaded_files"
+    # Firebase key path
+    FIRBASE_KEY_PATH: str = "/app"
 
 
 # **全局唯一實例**

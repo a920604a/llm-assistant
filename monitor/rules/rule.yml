@@ -16,7 +16,7 @@ groups:
         for: 1m
         labels:
           severity: warning
-          service: mcpclient
+          service: apiGateway
           api: dashboard_stats
         annotations:
           summary: "API {{ $labels.api }} is called frequently"
@@ -27,7 +27,7 @@ groups:
         for: 1m
         labels:
           severity: warning
-          service: mcpclient
+          service: apiGateway
           api: dashboard_stats
         annotations:
           summary: "API {{ $labels.api }} is called frequently"
@@ -38,7 +38,7 @@ groups:
         for: 1m
         labels:
           severity: warning
-          service: mcpclient
+          service: apiGateway
           api: dashboard_stats
         annotations:
           summary: "API {{ $labels.api }} is called frequently"
@@ -48,7 +48,7 @@ groups:
         for: 1m
         labels:
           severity: warning
-          service: mcpclient
+          service: apiGateway
           api: dashboard_stats
         annotations:
           summary: "API {{ $labels.api }} is called frequently"

@@ -2,14 +2,14 @@ from typing import Any
 
 import redis
 from api.schemas.SystemSetting import SystemSettings
-from config import REDIS_URL
+from config import settings
 from storage.redis_metrics import monitored_redis
 
-redis_client = redis.from_url(REDIS_URL, decode_responses=True)  # 回傳字串
+redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)  # 回傳字串
 
 
 @monitored_redis
-def update_redis_system_setting(user_id: str, settings: SystemSettings) -> None:
+def update_redis_system_setting(user_id: str, systemSettings: SystemSettings) -> None:
     """
     更新 Redis 中的使用者系統設定，每個 field 個別存入 Hash。
     :param user_id: 使用者 ID
@@ -18,7 +18,7 @@ def update_redis_system_setting(user_id: str, settings: SystemSettings) -> None:
     key = f"system_setting:{user_id}"
 
     # 轉成 dict，並確保都變成 string，方便存入 Redis
-    settings_dict = {k: str(v) for k, v in settings.dict().items()}
+    settings_dict = {k: str(v) for k, v in systemSettings.dict().items()}
 
     # 使用 HMSET (在 redis-py 中是 hset 支援 mapping)
     redis_client.hset(key, mapping=settings_dict)

@@ -33,7 +33,7 @@ def setup_middlewares(app: FastAPI):
     # === TrustedHost ===
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=["localhost", "127.0.0.1", "mcpclient"],
+        allowed_hosts=["localhost", "127.0.0.1", "apiGateway"],
     )
 
     # === Logging Middleware ===
@@ -55,8 +55,8 @@ def setup_middlewares(app: FastAPI):
         .add(
             metrics.default(
                 metric_namespace="llm_assistance",
-                metric_subsystem="mcpclient",
-                custom_labels={"environment": "mcpclient"},
+                metric_subsystem="apiGateway",
+                custom_labels={"environment": "apiGateway"},
             )
         )
         .instrument(app)

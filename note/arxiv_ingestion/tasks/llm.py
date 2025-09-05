@@ -1,9 +1,7 @@
 from langchain_core.messages.ai import AIMessage
-from prefect import task
 from services.langchain_client import llm_context, rewrite_query
 
 
-@task
 def llm(
     context: str,
     prompt: str,
@@ -20,6 +18,5 @@ def llm(
     )
 
 
-@task
 def rewrite(query: str, user_id: str) -> str:
     return rewrite_query(query, user_id)
