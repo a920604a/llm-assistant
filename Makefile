@@ -38,16 +38,16 @@ net-create:
 # 啟動所有容器（背景執行）
 up:
 	$(OBS_COMPOSE) up -d
-	sleep 5
+# 	sleep 5
 	$(STORAGE_COMPOSE) up -d
-	sleep 5
+# 	sleep 5
 	$(DOCKER_COMPOSE) up -d
-	sleep 5
-	$(MONITOR_DEV_COMPOSE) up -d
-	sleep 5
-	$(MONITOR_COMPOSE) up -d
-	sleep 5
-	$(DOCKER_FRONTEND_COMPOSE) up -d
+# 	sleep 5
+# 	$(MONITOR_DEV_COMPOSE) up -d
+# 	sleep 5
+# 	$(MONITOR_COMPOSE) up -d
+# 	sleep 5
+# 	$(DOCKER_FRONTEND_COMPOSE) up -d
 
 
 up-front:

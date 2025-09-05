@@ -1,6 +1,6 @@
-from arxiv_ingestion.config import COLLECTION_NAME
 from arxiv_ingestion.db.qdrant import qdrant_client
 from arxiv_ingestion.services.embedding import get_embedding
+from config import settings
 from prefect import task
 from qdrant_client import models
 
@@ -52,7 +52,7 @@ def retrieval(
 
     # Step 2: Qdrant search
     query_result = qdrant_client.search(
-        collection_name=COLLECTION_NAME,
+        collection_name=settings.COLLECTION_NAME,
         query_vector=query_vector,
         query_filter=filter_cond,
         limit=top_k,
@@ -64,7 +64,7 @@ def retrieval(
     chunks_info_str = "\n".join(
         [f"{chunk['title']} ({chunk['arxiv_id']})" for chunk in results]
     )
-    msg = f"Retrieved {len(results)} chunks from collection '{COLLECTION_NAME}':\n{chunks_info_str}"
+    msg = f"Retrieved {len(results)} chunks from collection '{settings.COLLECTION_NAME}':\n{chunks_info_str}"
 
     return (
         results,

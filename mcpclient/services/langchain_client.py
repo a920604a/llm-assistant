@@ -1,4 +1,4 @@
-from config import MODEL_NAME, OLLAMA_API_URL
+from config import settings
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 from langfuse import get_client
@@ -21,7 +21,9 @@ def llm(
     user_language: str = "English",
     user_id: str = "anonymous",
 ) -> str:
-    chat_model = ChatOllama(model=MODEL_NAME, temperature=0.6, base_url=OLLAMA_API_URL)
+    chat_model = ChatOllama(
+        model=settings.MODEL_NAME, temperature=0.6, base_url=settings.OLLAMA_API_URL
+    )
 
     # obs.set_user(user_id)
     # obs.set_tags(["translation", "Auth service"])
@@ -71,7 +73,9 @@ def llm(
 
 @obs.observe_fn
 def rewrite_query(query: str, user_id: str) -> str:
-    chat_model = ChatOllama(model=MODEL_NAME, temperature=0.6, base_url=OLLAMA_API_URL)
+    chat_model = ChatOllama(
+        model=settings.MODEL_NAME, temperature=0.6, base_url=settings.OLLAMA_API_URL
+    )
 
     prompt_template = """
     You are a professional query rewriting assistant.

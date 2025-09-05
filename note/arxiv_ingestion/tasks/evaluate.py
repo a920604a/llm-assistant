@@ -1,7 +1,7 @@
-from arxiv_ingestion.config import COLLECTION_NAME
 from arxiv_ingestion.db.qdrant import qdrant_client
 from arxiv_ingestion.services.embedding import get_embedding
 from arxiv_ingestion.services.metrics import hit_rate, mrr_at_k, ndcg_at_k
+from config import settings
 from prefect import task
 
 
@@ -12,7 +12,7 @@ def generate_pseudo_ground_truth(query: str, top_n: int = 5):
     query_emb = get_embedding(query)
 
     results = qdrant_client.search(
-        collection_name=COLLECTION_NAME,
+        collection_name=settings.COLLECTION_NAME,
         query_vector=query_emb,
         limit=top_n * 2,
         with_payload=True,
