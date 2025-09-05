@@ -1,11 +1,9 @@
 from arxiv_ingestion.db.qdrant import qdrant_client
 from arxiv_ingestion.services.embedding import get_embedding
 from config import settings
-from prefect import task
 from qdrant_client import models
 
 
-@task
 # def retrieval(query: str, top_k: int = 5, course: str = "data-engineering-zoomcamp"):
 def retrieval(
     query: str,

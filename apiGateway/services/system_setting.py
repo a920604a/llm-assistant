@@ -1,5 +1,6 @@
 import requests
 from api.schemas.SystemSetting import DEFAULT_SETTINGS, SystemSettings
+from config import settings
 from logger import AppLogger
 from redis_client import get_redis_system_setting
 
@@ -11,9 +12,9 @@ def get_setting(user_id: str) -> SystemSettings:
     return _cache if _cache else DEFAULT_SETTINGS
 
 
-def post_setting(user_id: str, settings: SystemSettings) -> dict:
+def post_setting(user_id: str, systemSettings: SystemSettings) -> dict:
     # Update user settings in the database or any other source
-    payload = {"user_id": user_id, "new_settings": settings.dict()}
+    payload = {"user_id": user_id, "new_settings": systemSettings.dict()}
     resp = requests.post(
         f"{settings.NOTE_API_URL}/api/settings", json=payload, timeout=5
     )

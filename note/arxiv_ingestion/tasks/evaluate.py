@@ -2,7 +2,6 @@ from arxiv_ingestion.db.qdrant import qdrant_client
 from arxiv_ingestion.services.embedding import get_embedding
 from arxiv_ingestion.services.metrics import hit_rate, mrr_at_k, ndcg_at_k
 from config import settings
-from prefect import task
 
 
 def generate_pseudo_ground_truth(query: str, top_n: int = 5):
@@ -23,7 +22,6 @@ def generate_pseudo_ground_truth(query: str, top_n: int = 5):
     return pseudo_gt
 
 
-@task
 def evaluate(reranked_chunks: list, query: str, top_k: int = 5) -> dict:
     """
     Evaluate retrieval + rerank 表現

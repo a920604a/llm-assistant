@@ -66,3 +66,10 @@ CREATE TABLE papers (
 CREATE INDEX idx_papers_published_date ON papers (published_date);
 
 CREATE INDEX idx_papers_categories ON papers USING GIN (categories);
+
+CREATE TABLE user_sent_papers (
+    id SERIAL PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    arxiv_id VARCHAR NOT NULL,
+    sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

@@ -13,7 +13,7 @@ resource "docker_container" "nginx" {
     external = 80
   }
   depends_on = [
-    docker_container.mcpclient
+    docker_container.apiGateway
   ]
   volumes {
     host_path      = abspath("${path.module}/../services/frontend/nginx.conf") # 修正路徑
@@ -76,9 +76,9 @@ resource "docker_container" "open_webui" {
   ]
 }
 
-resource "docker_container" "mcpclient" {
-  name  = "mcpclient"
-  image = "mcpclient:latest" # TODO , because custom docker image
+resource "docker_container" "apiGateway" {
+  name  = "apiGateway"
+  image = "apiGateway:latest" # TODO , because custom docker image
   networks_advanced {
     name = docker_network.llm_network.name
   }
@@ -89,7 +89,7 @@ resource "docker_container" "mcpclient" {
   }
 
   volumes {
-    host_path      = abspath("${path.module}/../mcpclient")
+    host_path      = abspath("${path.module}/../apiGateway")
     container_path = "/app"
   }
 

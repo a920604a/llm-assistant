@@ -13,7 +13,7 @@ logger = AppLogger(__name__).get_logger()
 app = FastAPI(title="Note Server")
 Instrumentator().instrument(app).expose(app)
 
-origins = ["http://mcpclient:8000"]
+origins = ["http://apiGateway:8000"]
 
 
 # 設定允許的來源

@@ -39,8 +39,8 @@ pytesseract
 # === Data Processing ===
 
 pandas==2.0.3
-pydantic>=1.10.16,<2.0.0
-pydantic-settings
+pydantic>=1.10.16
+pydantic-settings>=2.8.1
 prefect>=2.16.3
 
 # === Monitoring ===

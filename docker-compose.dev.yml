@@ -127,16 +127,16 @@ services:
     networks:
       - langfuse-otel-net
 
-  mcpclient:
+  apiGateway:
     build:
       context: .
-      dockerfile: ./services/mcpclient/Dockerfile.mcpclient
-    image: mcpclient:latest
-    container_name: mcpclient
+      dockerfile: ./services/apiGateway/Dockerfile.apiGateway
+    image: apigateway:latest
+    container_name: apiGateway
     environment:
       - OLLAMA_API_URL=http://ollama:11434
     volumes:
-      - ./mcpclient:/app
+      - ./apiGateway:/app
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     ports:

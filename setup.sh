@@ -2,7 +2,7 @@
 
 
 # 1️⃣ build 自訂 Docker image
-docker build -t mcpclient:latest ./ -f ./services/mcpclient/Dockerfile.mcpclient && \
+docker build -t apiGateway:latest ./ -f ./services/apiGateway/Dockerfile.apiGateway && \
 docker build -t noteserver:latest ./ -f ./services/noteservice/Dockerfile.noteserver && \
 docker build -t arxiv-worker:latest ./ -f ./services/arxivservice/Dockerfile.arxiv && \
 docker build -t arxiv-beat:latest ./ -f ./services/arxivservice/Dockerfile.arxiv && \
@@ -20,7 +20,7 @@ terraform init && \
 
 
 # 4️⃣ 檢查 image 是否成功
-docker images | grep -E "mcpclient|noteserver|arxiv-worker|email-worker|arxiv-beat|email-beat" && \
+docker images | grep -E "apiGateway|noteserver|arxiv-worker|email-worker|arxiv-beat|email-beat" && \
 
 # 5️⃣ Terraform 預覽
 terraform plan && \
@@ -33,7 +33,7 @@ terraform apply
 echo "🔍 檢查 container 狀態..."
 
 # 要檢查的 container 名稱
-containers=("mcpclient" "noteserver" "arxiv-worker" "email-worker" "arxiv-beat" "email-beat" "open-webui" "note-db" "note-qdrant" "redis" "flower")
+containers=("apiGateway" "noteserver" "arxiv-worker" "email-worker" "arxiv-beat" "email-beat" "open-webui" "note-db" "note-qdrant" "redis" "flower")
 
 for name in "${containers[@]}"; do
     status=$(docker inspect -f '{{.State.Status}}' "$name" 2>/dev/null || echo "not found")

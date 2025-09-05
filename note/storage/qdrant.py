@@ -18,7 +18,7 @@ def create_qdrant_collection():
         qdrant_client.create_collection(
             collection_name=settings.COLLECTION_NAME,
             vectors_config=models.VectorParams(
-                size=384, distance=models.Distance.COSINE
+                size=768, distance=models.Distance.COSINE
             ),
         )
         print(

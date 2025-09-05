@@ -44,7 +44,7 @@ repos:
 #           "-rn",
 #           "-sn",
 #           "note",
-#           "mcpclient"
+#           "apiGateway"
 #         ]
 
     # - id: pytest-check
@@ -60,7 +60,7 @@ repos:
 #   rev: 1.8.6
 #   hooks:
 #     - id: bandit
-#       args: ["-r", "note", "mcpclient"]  # 不指定 pyproject.toml，避免找不到設定檔錯誤
+#       args: ["-r", "note", "apiGateway"]  # 不指定 pyproject.toml，避免找不到設定檔錯誤
 #       additional_dependencies: ["bandit[toml]"]
 
 - repo: https://github.com/commitizen-tools/commitizen
