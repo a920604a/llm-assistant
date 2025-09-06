@@ -275,7 +275,7 @@ SMTP_REQUIRE_TLS=true
 
 
 1. 複製 `.env.example` → `.env`，填上自己的密鑰/帳密
-2. `make up` 或 `docker-compose up`
+2. `make net-create && make up`
 3. 應該就能快速重現相同環境 🎯
 
 ---

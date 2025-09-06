@@ -244,7 +244,7 @@ SMTP_REQUIRE_TLS=true
 Steps:
 
 1. Copy `.env.example` → `.env`, and fill in your credentials
-2. Run `make up` or `docker-compose up`
+2. Run `make net-create && make up`
 3. You should be able to reproduce the same environment 🎯
 
 ---
