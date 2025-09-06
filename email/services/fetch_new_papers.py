@@ -15,7 +15,7 @@ def fetch_new_papers(db: Session, since_date=None, limit: int = 500) -> list[Pap
         since_date = datetime.utcnow() - timedelta(days=30)  # 預設抓過去 30 天
     papers = (
         db.query(Paper)
-        .filter(Paper.pdf_parsed | (Paper.published_date >= since_date.date()))
+        .filter(Paper.pdf_parsed | (Paper.created_at >= since_date.date()))
         .limit(limit)
         .all()
     )

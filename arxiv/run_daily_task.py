@@ -12,7 +12,10 @@ logger = AppLogger(__name__).get_logger()
 def run_daily_pipeline(max_results=10, process_pdfs=True):
     logger.info("🚀 Worker started, triggering  Arxiv pipeline...")
     arxiv_pipeline(
-        date_from=(datetime.utcnow() - timedelta(days=30)).strftime("%Y%m%d"),
+        # date_from=(datetime.utcnow() - timedelta(days=30)).strftime("%Y%m%d"),
+        date_from=(datetime.utcnow() - timedelta(days=1)).strftime(
+            "%Y%m%d"
+        ),  #  production
         date_to=datetime.utcnow().strftime("%Y%m%d"),
         max_results=max_results,
         download_pdfs=process_pdfs,
