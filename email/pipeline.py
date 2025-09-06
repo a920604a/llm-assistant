@@ -159,7 +159,7 @@ def daily_papers_flow(top_k: int = 3):
 
     # Fetch all subscribed user emails, user_id, translate, and user_language
     users = get_users_task()
-    papers = fetch_papers_task(days=30)
+    papers = fetch_papers_task()
     if not papers:
         logger.info("No new papers found, skipping flow")
         return
