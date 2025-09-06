@@ -1,6 +1,6 @@
 # Arxiv Knowledge Assistant (Beta)
 
-[英文版](README_ZH.MD)
+[中文版](README_ZH.MD)
 
 ## 🎯 Course Project
 
