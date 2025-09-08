@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     MAIL_TLS: bool = Field(default=True, env="MAIL_TLS")
     MAIL_SSL: bool = Field(default=False, env="MAIL_SSL")
 
+    MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "http://note-minio:9000")
+    MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "note")
+    MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "note123")
+    MINIO_NOTE_BUCKET = os.getenv("MINIO_BUCKET", "notes-md")
+    MINIO_SUMMARY_BUCKET = os.getenv("MINIO_SUMMARY_BUCKET", "daily-summary")
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

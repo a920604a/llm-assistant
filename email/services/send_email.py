@@ -18,12 +18,29 @@ conf = ConnectionConfig(
 )
 
 
-def send_email_sync(subject: str, recipients: list[str], body: str):
+def send_email_sync(
+    subject: str,
+    recipients: list[str],
+    body: str,
+    attachments: list[dict] = None,  # [{"filename": "summary.pdf", "content": b"..."}]
+):
     async def _send():
         fm = FastMail(conf)
         for r in recipients:
             msg = MessageSchema(
-                subject=subject, recipients=[r], body=body, subtype="html"
+                subject=subject,
+                recipients=[r],
+                body=body,
+                subtype="html",
+                # FastMail attachments 需 list of dict [{"filename": ..., "content": bytes, "type": "application/pdf"}]
+                attachments=[
+                    {
+                        "filename": att["filename"],
+                        "content": att["content"],
+                        "type": "application/pdf",
+                    }
+                    for att in attachments or []
+                ],
             )
             await fm.send_message(msg)  # 直接 await 單封信
             logger.info(f"Email sent to {r}")
