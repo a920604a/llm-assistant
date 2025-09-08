@@ -98,7 +98,7 @@ services:
       dockerfile: ./services/emailservice/Dockerfile.email
     image: email-worker:latest
     container_name: email-worker
-    command: celery -A celery_app.celery_app worker --concurrency=4 --queues email -n worker.email_alarm@%h --loglevel=info
+    command: worker
     env_file:
       - ./.env
     volumes:
@@ -116,7 +116,7 @@ services:
       dockerfile: ./services/emailservice/Dockerfile.email
     image: email-beat:latest
     container_name: email-beat
-    command: celery -A celery_app.celery_app beat --loglevel=info
+    command: beat
     env_file:
       - ./.env
     depends_on:

@@ -132,7 +132,18 @@ def process_user_task(user: dict, papers: list[dict], content_map: dict):
 
     # 發送 email
     try:
-        send_email_sync("Daily Paper Summary", [email], summary)
+        # send_email_sync(
+        #     subject="每日論文摘要",
+        #     recipients=[email],
+        #     papers=papers,
+        #     summary_htmls=summary,
+        # )
+        send_email_sync(
+            subject="Daily Paper Summary",
+            recipients=[email],
+            body=summary,
+        )
+        logger.info(f"[User {user_id}] Email sent successfully")
     except Exception as e:
         logger.error(f"Failed to send email to {email}: {e}")
         return {"user_id": user_id, "status": "failed", "reason": f"email error: {e}"}
