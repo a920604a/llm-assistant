@@ -132,6 +132,12 @@ def process_user_task(user: dict, papers: list[dict], content_map: dict):
 
     # 發送 email
     try:
+        # send_email_sync(
+        #     subject="每日論文摘要",
+        #     recipients=[email],
+        #     papers=papers,
+        #     summary_htmls=summary,
+        # )
         send_email_sync(
             subject="Daily Paper Summary",
             recipients=[email],
