@@ -1,5 +1,6 @@
+import asyncio
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, AsyncGenerator, Dict, List
 
 import httpx
 from config import settings
@@ -87,43 +88,71 @@ class OllamaClient:
         except Exception as e:
             raise OllamaException(f"Error listing models: {e}")
 
+    # 普通非 streaming 生成
     async def generate(
-        self,
-        model: str = settings.MODEL_NAME,
-        prompt: str = "",
-        stream: bool = False,
-        **kwargs,
-    ) -> Optional[Dict[str, Any]]:
-        """
-        Generate text using specified model.
+        self, model: str = settings.MODEL_NAME, prompt: str = "", **kwargs
+    ) -> str:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            data = {"model": model, "prompt": prompt, "stream": False, **kwargs}
+            response = await client.post(f"{self.base_url}/api/generate", json=data)
+            if response.status_code == 200:
+                raw = response.json()["response"]
+                return clean_json_string(raw)
+            else:
+                raise OllamaException(f"Generation failed: {response.status_code}")
 
-        Args:
-            model: Model name to use
-            prompt: Input prompt for generation
-            stream: Whether to stream response (not implemented)
-            **kwargs: Additional generation parameters
+    # 原始 async generator 只負責 streaming
+    async def generate_stream(
+        self, model: str = settings.MODEL_NAME, prompt: str = "", **kwargs
+    ) -> AsyncGenerator[str, None]:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            data = {"model": model, "prompt": prompt, "stream": True, **kwargs}
+            async with client.stream(
+                "POST", f"{self.base_url}/api/generate", json=data
+            ) as response:
+                if response.status_code != 200:
+                    raise OllamaException(
+                        f"Streaming generation failed: {response.status_code}"
+                    )
+                async for line in response.aiter_lines():
+                    line = line.strip()
+                    if not line:
+                        continue
+                    import json
 
-        Returns:
-            Response dictionary or None if failed
-        """
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                data = {"model": model, "prompt": prompt, "stream": stream, **kwargs}
+                    try:
+                        chunk_data = json.loads(line)
+                        if "response" in chunk_data:
+                            yield clean_json_string(chunk_data["response"])
+                    except json.JSONDecodeError:
+                        yield line
 
-                response = await client.post(f"{self.base_url}/api/generate", json=data)
 
-                if response.status_code == 200:
-                    raw = response.json()["response"]
-                    cleaned = clean_json_string(raw)
-                    return cleaned
-                else:
-                    raise OllamaException(f"Generation failed: {response.status_code}")
+if __name__ == "__main__":
 
-        except httpx.ConnectError as e:
-            raise OllamaConnectionError(f"Cannot connect to Ollama service: {e}")
-        except httpx.TimeoutException as e:
-            raise OllamaTimeoutError(f"Ollama service timeout: {e}")
-        except OllamaException:
-            raise
-        except Exception as e:
-            raise OllamaException(f"Error generating with Ollama: {e}")
+    async def main():
+        client = OllamaClient()
+
+        # 1️⃣ 列出模型
+        models = await client.list_models()
+        print("=== Available models ===")
+        for m in models:
+            print(m)
+        print("-" * 40)
+
+        # 2️⃣ 非 streaming 生成
+        query = "什麼是 LangChain？"
+        full_result = await client.generate(prompt=query)
+        print("=== Full Response ===")
+        print(full_result)
+        print("-" * 40)
+
+        # 3️⃣ Streaming 生成
+        print("=== Streaming Response ===")
+        async for chunk in client.generate_stream(prompt=query):
+            # 邊拿邊印
+            print(chunk, end="", flush=True)
+        print("\n" + "-" * 40)
+
+    # 執行
+    asyncio.run(main())

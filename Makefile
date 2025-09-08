@@ -106,6 +106,12 @@ email-subscribe:
 rag:
 	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python arxiv_ingestion/flows/arxiv_rag_pipeline.py"
 
+langchain_client:
+	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/langchain_client.py"
+
+ollama_client:
+	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/ollama_client.py"
+
 
 # 移除所有 volumes (⚠️會清除資料)
 clean:

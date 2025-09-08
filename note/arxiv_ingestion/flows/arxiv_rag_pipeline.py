@@ -60,7 +60,17 @@ def rag(query: str, system_settings: SystemSettings, user_id: str = "anonymous")
 
 if __name__ == "__main__":
     query = "What is RAG?"
+
     answer = rag(
-        query, system_settings=SystemSettings(user_language="Traditional Chinese")
+        query,
+        system_settings=SystemSettings(
+            user_language="Traditional Chinese",
+            system_prompt="You are an assistant that answers in Traditional Chinese.",
+            translate=True,
+            top_k=5,
+            use_rag=True,
+            subscribe_email=False,
+            reranker_enabled=True,
+        ),
     )
     print(answer)
