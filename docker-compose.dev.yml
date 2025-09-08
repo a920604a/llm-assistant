@@ -40,6 +40,7 @@ services:
       - ./data/noteserver:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+      - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
     ports:
       - "8022:8000"
     env_file:
@@ -49,7 +50,11 @@ services:
     networks:
       - langfuse-otel-net
     healthcheck:
-      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')\"" ]
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:8000/api/health'')"',
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -148,7 +153,11 @@ services:
     networks:
       - langfuse-otel-net
     healthcheck:
-      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')\"" ]
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:8000/api/health'')"',
+        ]
       interval: 30s
       timeout: 10s
       retries: 3

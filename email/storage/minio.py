@@ -31,8 +31,13 @@ def create_bucket(bucket_name):
         )
         sys.exit(1)
     except ClientError as e:
-        print(f"[ERROR] Failed to create bucket '{bucket_name}': {e}", file=sys.stderr)
-        sys.exit(1)
+        error_code = e.response["Error"]["Code"]
+        if error_code in ("BucketAlreadyOwnedByYou", "BucketAlreadyExists"):
+            print(f"[INFO] Bucket '{bucket_name}' already exists (handled).")
+            return
+        else:
+            print(f"[ERROR] Failed to create bucket '{bucket_name}': {e}", file=sys.stderr)
+            sys.exit(1)
     except Exception as e:
         print(f"[ERROR] Unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
