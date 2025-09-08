@@ -89,17 +89,23 @@
 
 
 ```mermaid
-flowchart TB
-%% ======================
-%% 使用者入口
-%% ======================
-User[User]:::user --> Nginx[Nginx / API Gateway]:::frontend
-Nginx --> Client[Web UI / Frontend]:::frontend
+flowchart LR
 
-%% ======================
-%% API & Services
-%% ======================
-subgraph API[API & Services]
+subgraph Data[DataSource]
+  Arxiv
+end
+
+
+Arxiv --> Ingest
+
+
+subgraph Ingest[Data Ingestion Pipeline]
+  Scheduler[Daily Schedule]:::scheduler
+  IngestFlow[Fetch + Parse + Chunk + Embed + Index]:::pipeline1
+end
+
+
+subgraph API[API Layer]
   FastAPI[Client API for auth]:::api
   NoteServer[RAG Service]:::service
 end
@@ -107,74 +113,48 @@ end
 Client --> FastAPI
 FastAPI --> NoteServer
 
-%% ======================
-%% Storage
-%% ======================
-subgraph Storage[Storage]
-  MinIO[(MinIO : PDFs)]:::storage
-  PostgreSQL[(PostgreSQL : Metadata / Chats)]:::storage
-  Qdrant[(Qdrant : Vectors)]:::storage
+Storage e3@ --> Retrieve
+subgraph Retrieve[Retrieve pipeline]
+    Search[Hybrid Search ] --> Rerank
+    Rerank --> prompt
 end
 
-NoteServer --> MinIO
-NoteServer --> PostgreSQL
-NoteServer --> Qdrant
-FastAPI    --> LLM
-NoteServer --> LLM
+prompt e4@ --> LLM
 
-%% ======================
-%% LLM
-%% ======================
 subgraph LLM[LLM Engines]
   Ollama[Ollama]:::llm
 end
 
-%% ======================
-%% Ingestion Pipeline (Routine 1)
-%% ======================
-subgraph Ingest[Ingestion Pipeline]
-  Scheduler[Daily Schedule]:::scheduler
-  IngestFlow[Fetch + Parse + Chunk + Embed + Index]:::pipeline1
+subgraph Storage[Storage]
+  MinIO[(MinIO : PDFs)]:::storage
+  PostgreSQL[(PostgreSQL : Metadata / )]:::storage
+  Qdrant[(Qdrant : Vectors)]:::storage
 end
 
-subgraph Data[DataSource]
-Arxiv
-end
-Arxiv --> IngestFlow
+NoteServer e5@ --> Retrieve
+LLM --> API
+
+
+
 Scheduler --> IngestFlow
-IngestFlow --> MinIO
-IngestFlow --> PostgreSQL
-IngestFlow --> Qdrant
+IngestFlow e1@ --> Storage
 
-%% ======================
-%% Email Subscription Pipeline (Routine 2)
-%% ======================
+
 subgraph Subscription[Email Subscription Pipeline]
+    direction LR
   SubSched[Daily Schedule]:::scheduler
-  SubFlow[User Filter → Fetch Paper → Summarize → Send]:::pipeline2
+  SubFlow[Filter → Fetch Paper → Summarize → Send]:::pipeline2
+    SubSched --> SubFlow
 end
 
-SubSched --> SubFlow
-Storage --> SubFlow
-SubFlow --> User
+Storage e2@ --> Subscription 
 
-%% ======================
-%% Workers & Queue
-%% ======================
-subgraph Worker[Workers & Queue]
-  Queue1[Notes Queue]:::queue
-  Queue2[Email Queue]:::queue
-end
+e1@{ animation: slow }
+e2@{ animation: slow }
+e3@{ animation: fast }
+e4@{ animation: fast }
+e5@{ animation: fast }
 
-Scheduler --> Queue1
-SubSched --> Queue2
-Queue1 --> IngestFlow
-Queue2 --> SubFlow
-
-%% ======================
-%% 顏色樣式
-%% ======================
-classDef user fill:#FFD700,stroke:#333,stroke-width:1px
 classDef frontend fill:#87CEEB,stroke:#333,stroke-width:1px
 classDef api fill:#FFA500,stroke:#333,stroke-width:1px
 classDef service fill:#7FFFD4,stroke:#333,stroke-width:1px
@@ -185,6 +165,8 @@ classDef scheduler fill:#BA55D3,stroke:#333,stroke-width:1px
 classDef llm fill:#90EE90,stroke:#333,stroke-width:1px
 classDef queue fill:#D2691E,stroke:#333,stroke-width:1px
 classDef data fill:#C0C0C0,stroke:#333,stroke-width:1px
+
+
 
 
 ```
