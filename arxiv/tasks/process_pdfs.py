@@ -1,6 +1,6 @@
 from logger import AppLogger
 from prefect import task
-from services.arxiv_client import ArxivClient
+from services.common import get_cached_services
 from services.metadata_fetcher import MetadataFetcher
 from services.pdf_parser import PDFParserService
 
@@ -8,9 +8,8 @@ logger = AppLogger(__name__).get_logger()
 
 
 @task(retries=2)
-async def process_pdfs_task(
-    client: ArxivClient, papers: PDFParserService, download_pdfs: bool = True
-):
+async def process_pdfs_task(papers: PDFParserService, download_pdfs: bool = True):
+    client = get_cached_services()
     pdf_parser = PDFParserService()
     metadata_fetcher = MetadataFetcher(client, pdf_parser)  # client 已不需
     pdf_results = await metadata_fetcher.process_pdfs_batch(papers, download_pdfs)

@@ -19,10 +19,10 @@ def arxiv_pipeline(
 ):
     # logger = get_run_logger()
 
-    client, papers = fetch_papers_task(date_from, date_to, max_results)
+    papers = fetch_papers_task(date_from, date_to, max_results)
 
     if papers:
-        pdf_results = process_pdfs_task(client, papers, download_pdfs)
+        pdf_results = process_pdfs_task(papers, download_pdfs)
 
         if pdf_results.get("updated_papers"):
             papers = pdf_results["updated_papers"]
