@@ -33,7 +33,7 @@ def arxiv_pipeline(
     print(f"Stored {len(papers)} papers in DB")
 
     # 新增：先建立 Qdrant Index
-    indexed_count = qdrant_index_task(papers)
+    indexed_count, index_failed_papers = qdrant_index_task(papers)
     print(f"Qdrant Index {indexed_count}")
 
     stored_count = store_papers_task(papers)
@@ -58,6 +58,6 @@ if __name__ == "__main__":
     arxiv_pipeline(
         date_from=(datetime.utcnow() - timedelta(days=30)).strftime("%Y%m%d"),
         date_to=datetime.utcnow().strftime("%Y%m%d"),
-        max_results=10,
+        max_results=15,
         download_pdfs=False,
     )

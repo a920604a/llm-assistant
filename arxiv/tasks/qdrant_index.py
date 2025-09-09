@@ -54,51 +54,55 @@ def qdrant_index_task(papers: List[ArxivPaper]):
     batch_points: List[models.PointStruct] = []
 
     textExtractor = TextExtractor()
-
+    failed_papers = []
     for paper in papers:
-        buffer = io.BytesIO()
-        # 從 MinIO 下載 PDF 到記憶體
-        s3_client.download_fileobj(
-            MINIO_BUCKET, f"{paper.arxiv_id}/{paper.arxiv_id}.pdf", buffer
-        )
-        buffer.seek(0)
-        sections, all_text = textExtractor.extract(buffer)
+        try:
+            buffer = io.BytesIO()
+            # 從 MinIO 下載 PDF 到記憶體
+            s3_client.download_fileobj(
+                MINIO_BUCKET, f"{paper.arxiv_id}/{paper.arxiv_id}.pdf", buffer
+            )
+            buffer.seek(0)
+            sections, all_text = textExtractor.extract(buffer)
 
-        text = "\n".join(all_text)
-        print(f"{paper.arxiv_id} 抽取文字長度: {len(text)}")
+            text = "\n".join(all_text)
+            print(f"{paper.arxiv_id} 抽取文字長度: {len(text)}")
 
-        if not text:
+            if not text:
+                continue
+
+            metadata = {
+                "arxiv_id": paper.arxiv_id,
+                "abstract": paper.abstract,
+                "title": paper.title,
+                "authors": paper.authors,
+                "categories": paper.categories,
+                "published_date": paper.published_date,
+            }
+
+            # 切分 chunk
+            chunks = chunk_text(text)
+            for chunk_idx, chunk in enumerate(chunks):
+                vector = get_embedding(chunk)
+
+                payload = {**metadata, "text": chunk, "chunk_idx": chunk_idx}
+
+                point = models.PointStruct(id=idx, vector=vector, payload=payload)
+                points.append(point)
+                batch_points.append(point)  # ✅ 把 point 加入 batch
+                idx += 1
+
+                # 每到 batch_size 就上傳一次
+                if len(batch_points) >= QDRANT_BATCH_SIZE:
+                    qdrant_client.upsert(
+                        collection_name=COLLECTION_NAME, points=batch_points
+                    )
+                    logger.info(f"✅ 上傳 batch {len(batch_points)} points 到 Qdrant")
+                    batch_points = []
+        except Exception as e:
+            logger.error(f"❌ paper {paper.arxiv_id} 發生錯誤: {e}")
+            failed_papers.append(paper.arxiv_id)
             continue
-
-        metadata = {
-            "arxiv_id": paper.arxiv_id,
-            "abstract": paper.abstract,
-            "title": paper.title,
-            "authors": paper.authors,
-            "categories": paper.categories,
-            "published_date": paper.published_date,
-        }
-
-        # 切分 chunk
-        chunks = chunk_text(text)
-        for chunk_idx, chunk in enumerate(chunks):
-            vector = get_embedding(chunk)
-
-            payload = {**metadata, "text": chunk, "chunk_idx": chunk_idx}
-
-            point = models.PointStruct(id=idx, vector=vector, payload=payload)
-            points.append(point)
-            batch_points.append(point)  # ✅ 把 point 加入 batch
-            idx += 1
-
-            # 每到 batch_size 就上傳一次
-            if len(batch_points) >= QDRANT_BATCH_SIZE:
-                qdrant_client.upsert(
-                    collection_name=COLLECTION_NAME, points=batch_points
-                )
-                logger.info(f"✅ 上傳 batch {len(batch_points)} points 到 Qdrant")
-                batch_points = []
-
     # 上傳剩下的不足 batch 的 points
     if batch_points:
         qdrant_client.upsert(collection_name=COLLECTION_NAME, points=batch_points)
@@ -106,4 +110,4 @@ def qdrant_index_task(papers: List[ArxivPaper]):
     else:
         logger.info("⚠️ 無可上傳的 papers 到 Qdrant")
 
-    return len(points)
+    return len(points), failed_papers
