@@ -66,3 +66,43 @@ classDiagram
     PDFParserService --> FigureExtractor
 
 ```
+
+```mermaid
+classDiagram
+    class PdfContent {
+        +List~PaperSection~ sections
+        +List~PaperFigure~ figures
+        +List~PaperTable~ tables
+        +str raw_text
+        +List~str~ references
+        +ParserType parser_used
+        +Dict~str, Any~ metadata
+    }
+
+    class PaperSection {
+        +str title
+        +str content
+        +int level
+    }
+
+    class PaperFigure {
+        +str caption
+        +str id
+    }
+
+    class PaperTable {
+        +str caption
+        +str id
+    }
+
+    class ParserType {
+        <<enum>>
+        +DOCLING
+    }
+
+    PdfContent --> PaperSection : contains
+    PdfContent --> PaperFigure : contains
+    PdfContent --> PaperTable : contains
+    PdfContent --> ParserType : uses
+
+```
