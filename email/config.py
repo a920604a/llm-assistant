@@ -1,6 +1,8 @@
 import os
+from typing import ClassVar
 
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
 OLLAMA_API_URL = os.getenv("OLLAMA_API_URL", "http://localhost:11434")
 MODEL_NAME = "gpt-oss:20b"
@@ -29,11 +31,16 @@ class Settings(BaseSettings):
     MAIL_TLS: bool = Field(default=True, env="MAIL_TLS")
     MAIL_SSL: bool = Field(default=False, env="MAIL_SSL")
 
-    MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "http://note-minio:9000")
-    MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "note")
-    MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "note123")
-    MINIO_NOTE_BUCKET = os.getenv("MINIO_BUCKET", "notes-md")
-    MINIO_SUMMARY_BUCKET = os.getenv("MINIO_SUMMARY_BUCKET", "daily-summary")
+    # MINIO 常量，用 ClassVar 標記非 model field
+    MINIO_ENDPOINT: ClassVar[str] = os.getenv(
+        "MINIO_ENDPOINT", "http://note-minio:9000"
+    )
+    MINIO_ACCESS_KEY: ClassVar[str] = os.getenv("MINIO_ACCESS_KEY", "note")
+    MINIO_SECRET_KEY: ClassVar[str] = os.getenv("MINIO_SECRET_KEY", "note123")
+    MINIO_NOTE_BUCKET: ClassVar[str] = os.getenv("MINIO_BUCKET", "notes-md")
+    MINIO_SUMMARY_BUCKET: ClassVar[str] = os.getenv(
+        "MINIO_SUMMARY_BUCKET", "daily-summary"
+    )
 
     class Config:
         env_file = ".env"

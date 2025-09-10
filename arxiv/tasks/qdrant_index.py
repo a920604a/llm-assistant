@@ -1,15 +1,11 @@
-import io
-from typing import List
+from typing import Dict, List
 
-from config import COLLECTION_NAME, MINIO_BUCKET, QDRANT_BATCH_SIZE
-from db.minio import s3_client
+from config import COLLECTION_NAME, QDRANT_BATCH_SIZE
 from db.qdrant import qdrant_client
 from logger import AppLogger
-from prefect import task
 from qdrant_client import models
 from services.embedding import get_embedding
-from services.pdf_parser import TextExtractor
-from services.schemas import ArxivPaper
+from services.schemas import ArxivPaper, ParsedPaper
 
 logger = AppLogger(__name__).get_logger()
 
@@ -43,8 +39,10 @@ def chunk_text(
     return chunks
 
 
-@task(name="Qdrant Index Task")
-def qdrant_index_task(papers: List[ArxivPaper]):
+# @task(name="Qdrant Index Task")
+def qdrant_index_task(
+    papers: List[ArxivPaper], parsed_papers: Dict[str, ParsedPaper]
+) -> int:
     """
     將 papers 轉成向量並上傳到 Qdrant
     """
@@ -53,19 +51,11 @@ def qdrant_index_task(papers: List[ArxivPaper]):
 
     batch_points: List[models.PointStruct] = []
 
-    textExtractor = TextExtractor()
     failed_papers = []
     for paper in papers:
         try:
-            buffer = io.BytesIO()
-            # 從 MinIO 下載 PDF 到記憶體
-            s3_client.download_fileobj(
-                MINIO_BUCKET, f"{paper.arxiv_id}/{paper.arxiv_id}.pdf", buffer
-            )
-            buffer.seek(0)
-            sections, all_text = textExtractor.extract(buffer)
-
-            text = "\n".join(all_text)
+            parsed_paper = parsed_papers.get(paper.arxiv_id)
+            text = parsed_paper.pdf_content.raw_text
             print(f"{paper.arxiv_id} 抽取文字長度: {len(text)}")
 
             if not text:

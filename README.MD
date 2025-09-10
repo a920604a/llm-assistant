@@ -143,7 +143,7 @@ subgraph Subscription[Email Subscription Pipeline]
     SubSched --> SubFlow
 end
 
-Storage e2@ --> Subscription 
+Storage e2@ --> Subscription
 
 e1@{ animation: slow }
 e2@{ animation: slow }
@@ -295,3 +295,5 @@ make up
 ## 📜 License
 
 MIT License
+
+Thank you to arXiv for use of its open access interoperability.

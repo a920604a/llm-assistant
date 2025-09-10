@@ -5,10 +5,12 @@ from typing import List, Optional
 
 import fitz  # PyMuPDF
 import pdfplumber
-from config import MINIO_BUCKET, PDF_CACHE_DIR
+from config import MINIO_BUCKET
 from db.minio import s3_client, s3_file_exists
+from exceptions import PDFParsingException, PDFValidationError
 from logger import AppLogger
 from PIL import Image
+from services.docling import DoclingParser
 from services.schemas import (
     PaperFigure,
     PaperSection,
@@ -184,14 +186,24 @@ class PDFParserService:
     """PDF 解析服務：抽文字、表格與圖片"""
 
     def __init__(
-        self, cache_dir: str = PDF_CACHE_DIR, image_dir: str = "/data/arxiv_images"
+        self,
+        max_pages: int,
+        max_file_size_mb: int,
+        do_ocr: bool = False,
+        do_table_structure: bool = True,
     ):
-        self.cache_dir = Path(cache_dir)
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        """Initialize PDF parser service with configurable limits."""
+
+        self.docling_parser = DoclingParser(
+            max_pages=max_pages,
+            max_file_size_mb=max_file_size_mb,
+            do_ocr=do_ocr,
+            do_table_structure=do_table_structure,
+        )
 
         self.text_extractor = TextExtractor()
         self.table_extractor = TableExtractor()
-        self.figure_extractor = FigureExtractor(image_dir=image_dir)
+        self.figure_extractor = FigureExtractor(image_dir="/data/arxiv_images")
 
     def _parse_pdf_sync(
         self, arxiv_id: str, save_img_local: bool
@@ -235,10 +247,37 @@ class PDFParserService:
             return None
 
     async def parse_pdf(
-        self, arxiv_id: str, save_img_local: bool
+        self, arxiv_id: str, save_img_local: bool = True
     ) -> Optional[PdfContent]:
         """非同步解析 PDF"""
         print(f"paper.arxiv_id {arxiv_id}")
         return await asyncio.to_thread(
             self._parse_pdf_sync, arxiv_id, save_img_local=save_img_local
         )
+
+    async def parse2pdf(self, pdf_path: Path) -> Optional[PdfContent]:
+        """Parse PDF using Docling parser only.
+
+        :param pdf_path: Path to PDF file
+        :returns: PdfContent object or None if parsing failed
+        """
+        if not pdf_path.exists():
+            logger.error(f"PDF file not found: {pdf_path}")
+            raise PDFValidationError(f"PDF file not found: {pdf_path}")
+
+        try:
+            result = await self.docling_parser.parse_pdf(pdf_path)
+            if result:
+                logger.info(f"Parsed {pdf_path.name}")
+                return result
+            else:
+                logger.error(f"Docling parsing returned no result for {pdf_path.name}")
+                raise PDFParsingException(
+                    f"Docling parsing returned no result for {pdf_path.name}"
+                )
+
+        except (PDFValidationError, PDFParsingException):
+            raise
+        except Exception as e:
+            logger.error(f"Docling parsing error for {pdf_path.name}: {e}")
+            raise PDFParsingException(f"Docling parsing error for {pdf_path.name}: {e}")

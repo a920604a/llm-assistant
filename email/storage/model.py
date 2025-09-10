@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from config import DATABASE_URL
 from sqlalchemy import (
     ARRAY,
+    JSON,
     Boolean,
     Column,
     Date,
@@ -76,14 +77,22 @@ class Paper(Base):
     published_date = Column(Date, nullable=True)
     updated_date = Column(Date, nullable=True)
     pdf_url = Column(Text, nullable=True)
-    pdf_cached_path = Column(Text, nullable=True)
-    pdf_downloaded = Column(Boolean, default=False)
-    pdf_parsed = Column(Boolean, default=False)
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+
+    # Parsed PDF content (added for comprehensive storage)
+    raw_text = Column(Text, nullable=True)
+    sections = Column(JSON, nullable=True)
+    references = Column(JSON, nullable=True)
+    # PDF processing metadata
+    parser_used = Column(String, nullable=True)
+    parser_metadata = Column(JSON, nullable=True)
+    pdf_processed = Column(Boolean, default=False, nullable=False)
+    pdf_processing_date = Column(DateTime, nullable=True)
+    # Timestamps
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
     )
 
 
