@@ -80,9 +80,6 @@ class MetadataFetcher:
                 # Result is tuple: (download_success, parsed_paper)
                 download_success, parsed_paper = result
 
-                # paper.pdf_downloaded = download_success
-                # paper.pdf_parsed = parsed_success
-
                 if download_success:
                     results["downloaded"] += 1
 
@@ -142,7 +139,7 @@ class MetadataFetcher:
             async with download_semaphore:
                 print(f"Starting download: {paper.arxiv_id} ")
                 pdf_path = await self.arxiv_client.download_pdf(
-                    paper, force_download=True, force_upload_cloud=True
+                    paper, force_download=True, force_upload_cloud=False
                 )
 
                 if pdf_path:
@@ -156,11 +153,14 @@ class MetadataFetcher:
             # This allows other downloads to continue while this PDF is being parsed
             async with parse_semaphore:
                 logger.debug(f"Starting parse: {paper.arxiv_id}")
+                # Structured content with text, tables, figures
                 pdf_content = await self.pdf_parser.parse_pdf(
-                    arxiv_id=paper.arxiv_id
-                )  # Structured content with text, tables, figures
+                    pdf_path
+                )  # TODO: so far need force_download = True
 
-                # pdf_content = await self.pdf_parser.parse2pdf(pdf_path)
+                # pdf_content = await self.pdf_parser.parse2pdf(
+                #     pdf_path
+                # )  # TODO:  happened failed Docling parsing returned no result,  Skipping PDF processing due to size/page limits: PDF file too large:
                 if pdf_content:
                     # Create ArxivMetadata from the paper
                     arxiv_metadata = ArxivMetadata(
@@ -233,9 +233,7 @@ class MetadataFetcher:
 
                     # Add parsed content if available
                     if parsed_paper:
-                        logger.info(f"parsed_paper {parsed_paper}")
                         parsed_content = self._serialize_parsed_content(parsed_paper)
-                        logger.info(f"parsed_content {parsed_content}")
                         paper_data.update(parsed_content)
                         logger.debug(
                             f"Storing paper {paper.arxiv_id} with parsed content ({len(parsed_content.get('raw_text', '')) if parsed_content.get('raw_text') else 0} chars)"
@@ -255,45 +253,6 @@ class MetadataFetcher:
                         )
 
                     repo.upsert_paper(paper_data)
-                    logger.info(f"paper_data {paper_data}")
-
-                    # 用 ORM 建立或更新
-                    # obj = (
-                    #     session.query(Paper).filter_by(arxiv_id=paper.arxiv_id).first()
-                    # )
-                    # if not obj:
-                    #     obj = Paper(arxiv_id=paper.arxiv_id)
-                    #     session.add(obj)
-
-                    # # 更新欄位
-                    # obj.title = paper.title
-                    # obj.authors = paper.authors or []
-                    # obj.abstract = paper.abstract
-                    # obj.categories = paper.categories or []
-
-                    # # str -> date
-
-                    # obj.published_date = (
-                    #     parser.isoparse(paper.published_date).date()
-                    #     if paper.published_date
-                    #     else None
-                    # )
-                    # obj.updated_date = (
-                    #     parser.isoparse(paper.updated_date).date()
-                    #     if paper.updated_date
-                    #     else None
-                    # )
-
-                    # obj.pdf_url = paper.pdf_url
-
-                    # # Path -> str
-                    # obj.pdf_cached_path = (
-                    #     str(paper.pdf_cached_path) if paper.pdf_cached_path else None
-                    # )
-
-                    # obj.pdf_downloaded = paper.pdf_downloaded or False
-                    # obj.pdf_parsed = paper.pdf_parsed or False
-
                     stored_count += 1
                 except Exception as e:
                     logger.error(f"Failed to store {paper.arxiv_id} in DB: {e}")

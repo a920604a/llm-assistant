@@ -5,6 +5,7 @@ from db.minio import create_note_bucket
 from db.qdrant import create_qdrant_collection
 from logger import AppLogger
 from tasks.fetch_papers import fetch_papers_task
+from tasks.generate_report import generate_report_task
 from tasks.process_pdfs import process_pdfs_task
 from tasks.qdrant_index import qdrant_index_task
 
@@ -27,7 +28,6 @@ def arxiv_pipeline(
     start_time = datetime.now()
 
     # Step 1: Fetch paper metadata from arXiv
-    # papers = fetch_papers_task(date_from, date_to, max_results)
     papers = asyncio.run(fetch_papers_task(date_from, date_to, max_results))
 
     logger.info("fetch_papers_task")
@@ -44,29 +44,26 @@ def arxiv_pipeline(
     print(f"Stored {pdf_results['papers_stored']} papers in DB")
 
     # 新增：先建立 Qdrant Index
-    indexed_count, index_failed_papers = qdrant_index_task(
-        papers, pdf_results.get("parsed_papers", {})
-    )
+    indexed_count, _ = qdrant_index_task(papers, pdf_results.get("parsed_papers", {}))
     results["papers_indexed"] = indexed_count
     print(f"Qdrant Index {indexed_count}")
 
     # Calculate total processing time
     processing_time = (datetime.now() - start_time).total_seconds()
     results["processing_time"] = processing_time
-    # stored_count = store_papers_task(papers, pdf_results.get("parsed_papers", {}))
 
-    # result_summary = {
-    #     "papers_fetched": len(papers),
-    #     "pdfs_downloaded": pdf_results.get("downloaded", 0),
-    #     "pdfs_parsed": pdf_results.get("parsed", 0),
-    #     "papers_indexed": indexed_count,
-    #     "papers_stored": stored_count,
-    #     "errors": pdf_results.get("errors", []),
-    # }
+    result_summary = {
+        "papers_fetched": len(papers),
+        "pdfs_downloaded": pdf_results.get("downloaded", 0),
+        "pdfs_parsed": pdf_results.get("parsed", 0),
+        "papers_indexed": indexed_count,
+        "papers_stored": pdf_results["papers_stored"],
+        "errors": pdf_results.get("errors", []),
+    }
 
-    # # 呼叫日報告 task
-    # report = generate_report_task(result_summary)
-    # print(f"\n{report}")
+    # 呼叫日報告 task
+    report = generate_report_task(result_summary)
+    print(f"\n{report}")
 
 
 if __name__ == "__main__":

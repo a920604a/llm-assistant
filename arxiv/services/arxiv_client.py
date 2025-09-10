@@ -3,6 +3,7 @@ import asyncio
 import time
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 from typing import List, Optional
 from urllib.parse import quote, urlencode
@@ -206,7 +207,6 @@ class ArxivClient:
                 ) as client:
                     async with client.stream("GET", paper.pdf_url) as response:
                         response.raise_for_status()
-                        from io import BytesIO
 
                         pdf_bytes = BytesIO()
                         async for chunk in response.aiter_bytes():
