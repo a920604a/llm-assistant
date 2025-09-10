@@ -3,6 +3,7 @@ import asyncio
 import time
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 from typing import List, Optional
 from urllib.parse import quote, urlencode
@@ -23,9 +24,6 @@ class ArxivClient:
         self.pdf_cache_dir.mkdir(parents=True, exist_ok=True)
 
         self._last_request_time: Optional[float] = None
-
-        self.cache_dir = Path(settings.cache_dir)
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.base_url = settings.api_base_url
         self.category = settings.search_category
         self.max_results = settings.max_results
@@ -68,8 +66,6 @@ class ArxivClient:
             "sortOrder": sort_order,
         }
 
-        # url = f"{self.base_url}?{httpx.QueryParams(params)}"
-
         safe = ":+[]"  # Don't encode :, +, [, ] characters needed for arXiv queries
         url = f"{self.base_url}?{urlencode(params, quote_via=quote, safe=safe)}"
 
@@ -87,8 +83,6 @@ class ArxivClient:
                 resp.raise_for_status()
                 xml_data = resp.text
 
-            # with open("output.xml", "w", encoding="utf-8") as f:
-            #     f.write(xml_data)
             papers = self._parse_xml(xml_data)
             logger.info(f"Query returned {len(papers)} papers")
             return papers
@@ -186,7 +180,8 @@ class ArxivClient:
     async def download_pdf(
         self,
         paper: ArxivPaper,
-        force_download: bool = False,  # 是否存本地
+        force_download: bool = True,  # 是否存本地
+        force_upload_cloud: bool = True,
         max_retries: int = 3,
     ) -> Optional[Path]:
         if not paper.pdf_url:
@@ -212,7 +207,6 @@ class ArxivClient:
                 ) as client:
                     async with client.stream("GET", paper.pdf_url) as response:
                         response.raise_for_status()
-                        from io import BytesIO
 
                         pdf_bytes = BytesIO()
                         async for chunk in response.aiter_bytes():
@@ -223,17 +217,15 @@ class ArxivClient:
                 if force_download:
                     with open(pdf_path, "wb") as f:
                         f.write(pdf_bytes.getbuffer())
+                    logger.info(
+                        f"Successfully downloaded PDF: {pdf_path.name} in {pdf_path}"
+                    )
+                if force_upload_cloud:  # 上傳 MinIO
+                    s3_client.upload_fileobj(pdf_bytes, MINIO_BUCKET, object_name)
+                    logger.info(
+                        f"Successfully upload PDF: {pdf_path.name} in {MINIO_BUCKET}/{object_name}"
+                    )
 
-                # # 確認檔案存在後再上傳 MinIO
-                # if pdf_path.exists():
-                #     with open(pdf_path, "rb") as f:
-                #         s3_client.upload_fileobj(f, MINIO_BUCKET, object_name)
-                # 一定上傳 MinIO
-                s3_client.upload_fileobj(pdf_bytes, MINIO_BUCKET, object_name)
-
-                logger.info(
-                    f"Successfully downloaded PDF: {pdf_path.name} in {pdf_path}"
-                )
                 return pdf_path
 
             except (httpx.TimeoutException, httpx.HTTPError) as e:

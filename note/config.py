@@ -39,7 +39,7 @@ class Settings(BaseConfigSettings):
     # 模型名稱
     MODEL_NAME: str = "gpt-oss:20b"
 
-    COLLECTION_NAME: str = "notes_collection"
+    COLLECTION_NAME: str = "arxiv_collection"
 
     UPLOAD_DIR: str = "/data/uploaded_files"
 

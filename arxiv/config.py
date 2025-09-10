@@ -1,7 +1,8 @@
 import os
 
 from dotenv import load_dotenv
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
 load_dotenv()
 QDRANT_BATCH_SIZE = 200

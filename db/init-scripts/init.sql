@@ -49,15 +49,22 @@ CREATE TABLE papers (
     id SERIAL PRIMARY KEY,
     arxiv_id VARCHAR(32) UNIQUE NOT NULL,
     title TEXT NOT NULL,
-    authors TEXT[] NOT NULL,
+    authors TEXT [] NOT NULL,
     abstract TEXT,
-    categories TEXT[],
+    categories TEXT [],
     published_date DATE,
     updated_date DATE,
     pdf_url TEXT,
-    pdf_cached_path TEXT,
-    pdf_downloaded BOOLEAN DEFAULT FALSE,
-    pdf_parsed BOOLEAN DEFAULT FALSE,
+    -- Parsed PDF content
+    raw_text TEXT,
+    sections JSON,
+    "references" JSON,
+    -- PDF processing metadata
+    parser_used VARCHAR,
+    parser_metadata JSON,
+    pdf_processed BOOLEAN NOT NULL DEFAULT FALSE,
+    pdf_processing_date TIMESTAMP,
+    -- Timestamps
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

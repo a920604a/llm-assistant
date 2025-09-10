@@ -106,6 +106,9 @@ email-subscribe:
 rag:
 	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python arxiv_ingestion/flows/arxiv_rag_pipeline.py"
 
+retrieval:
+	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python arxiv_ingestion/tasks/retrieval.py"
+
 
 # 移除所有 volumes (⚠️會清除資料)
 clean:

@@ -1,7 +1,17 @@
-from sqlalchemy import Boolean, Column, Date, Integer, String, Text, func
+from datetime import datetime, timezone
+
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.types import DateTime
 
 Base = declarative_base()
 
@@ -18,12 +28,20 @@ class Paper(Base):
     published_date = Column(Date, nullable=True)
     updated_date = Column(Date, nullable=True)
     pdf_url = Column(Text, nullable=True)
-    pdf_cached_path = Column(Text, nullable=True)
-    pdf_downloaded = Column(Boolean, default=False)
-    pdf_parsed = Column(Boolean, default=False)
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+
+    # Parsed PDF content (added for comprehensive storage)
+    raw_text = Column(Text, nullable=True)
+    sections = Column(JSON, nullable=True)
+    references = Column(JSON, nullable=True)
+    # PDF processing metadata
+    parser_used = Column(String, nullable=True)
+    parser_metadata = Column(JSON, nullable=True)
+    pdf_processed = Column(Boolean, default=False, nullable=False)
+    pdf_processing_date = Column(DateTime, nullable=True)
+    # Timestamps
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
     )
