@@ -45,8 +45,8 @@ services:
       - "8022:8000"
     env_file:
       - ./.env # <- 指定要讀的環境變數檔
-    # depends_on:
-    #   - arxiv-worker
+    depends_on:
+      - arxiv-worker
     networks:
       - langfuse-otel-net
     healthcheck:
@@ -68,8 +68,8 @@ services:
       - ./arxiv:/app
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
       - ./data/arxiv_worker:/data
-      # - /etc/timezone:/etc/timezone:ro
-      # - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
     env_file:
       - ./.env # <- 指定要讀的環境變數檔
     networks:
