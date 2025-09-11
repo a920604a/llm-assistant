@@ -80,3 +80,5 @@ CREATE TABLE user_sent_papers (
     arxiv_id VARCHAR NOT NULL,
     sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX idx_user_sent_papers_user_id ON user_sent_papers (user_id);
