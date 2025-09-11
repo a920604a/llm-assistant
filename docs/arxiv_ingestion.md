@@ -1,18 +1,4 @@
 
-```mermaid
-flowchart LR
-  S[Scheduler Beat/Prefect] --> J{拉取 arXiv 清單}
-  J --> D[下載 PDF]
-  D --> E[抽取文字/頁碼]
-  E --> T[可選 翻譯 EN->ZH]
-  T --> C[Chunking]
-  C --> V[Embedding]
-  V -->|payload| Q[(Qdrant: Index papers)]
-  C --> P[(PostgreSQL: papers, chunks)]
-  D --> M[(MinIO: Store PDFs and images)]
-  J --> L[(Jobs/Logs)]
-
-```
 
 ```mermaid
 sequenceDiagram
@@ -104,5 +90,21 @@ classDiagram
     PdfContent --> PaperFigure : contains
     PdfContent --> PaperTable : contains
     PdfContent --> ParserType : uses
+
+```
+
+```mermaid
+flowchart TD
+    A[Prefect Task: fetch_papers_task] --> B[取得 ArxivClient 單例]
+    B --> C[建構 API 查詢 URL]
+    C --> D[檢查速率限制 / 等待必要時間]
+    D --> E[非同步 HTTP GET 請求 arXiv API]
+    E --> F{HTTP 請求結果}
+    F -->|成功| G[取得 XML 回應]
+    F -->|超時 / 錯誤| H[Prefect 自動重試]
+    G --> I[解析 XML]
+    I --> J[提取論文資訊: arxiv_id, title, authors, abstract, categories, PDF URL]
+    J --> K[生成 List of ArxivPaper]
+    K --> L[返回給 Prefect Task]
 
 ```

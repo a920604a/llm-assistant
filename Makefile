@@ -109,6 +109,9 @@ rag:
 retrieval:
 	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python arxiv_ingestion/tasks/retrieval.py"
 
+sample_qdrant:
+	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/sample_qdrant.py"
+
 
 # 移除所有 volumes (⚠️會清除資料)
 clean:

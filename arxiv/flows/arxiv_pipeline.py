@@ -43,7 +43,7 @@ def arxiv_pipeline(
         results["papers_stored"] = pdf_results["papers_stored"]
     print(f"Stored {pdf_results['papers_stored']} papers in DB")
 
-    # 新增：先建立 Qdrant Index
+    # Step 3: Qdrant Index
     indexed_count, _ = qdrant_index_task(papers, pdf_results.get("parsed_papers", {}))
     results["papers_indexed"] = indexed_count
     print(f"Qdrant Index {indexed_count}")
