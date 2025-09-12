@@ -11,18 +11,24 @@ const ChatPage = () => {
         if (!input.trim()) return
 
         const userMessage = { role: 'user' as const, content: input }
-        setMessages(prev => [...prev, userMessage])
+        const botMessage = { role: 'bot' as const, content: '' }
+        setMessages(prev => [...prev, userMessage, botMessage])
         setInput('')
         setLoading(true)
 
         try {
-            const res = await ask(input) // 呼叫後端
-            console.log('res', res)
-            if (res && res.reply) {
-                setMessages(prev => [...prev, { role: 'bot', content: res.reply }])
-            } else {
-                setMessages(prev => [...prev, { role: 'bot', content: '⚠️ 後端沒有回應' }])
+            // const res = await ask(input) // 呼叫後端
+            let botReply = ""
+            await ask(input, "stream", (chunk) => {
+                botReply += chunk
+                // 動態更新最後一個 bot 訊息
+                setMessages((prev) => {
+                    const newMsgs = [...prev]
+                    newMsgs[newMsgs.length - 1] = { role: "bot", content: botReply }
+                    return newMsgs
+                })
             }
+            )
         } catch (error) {
             console.error(error)
             setMessages(prev => [...prev, { role: 'bot', content: '❌ 發生錯誤，請稍後再試' }])

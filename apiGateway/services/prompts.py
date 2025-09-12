@@ -1,17 +1,7 @@
-from typing import Dict, List
-
 from api.schemas.SystemSetting import SystemSettings
 
 
-def build_prompt(query: str, retrieved_chunks: List[Dict]) -> str:
-    context = (
-        "\n".join([c["text"] for c in retrieved_chunks[:3]]) if retrieved_chunks else ""
-    )
-    prompt = f"User question: {query}\nRelevant context:\n{context}\nPlease answer the question based on the above context."
-    return prompt
-
-
-def build_system_prompt(
+def build_prompt(
     query: str, system_setting: SystemSettings, user_id: str = "anonymous"
 ):
     isTranslate = system_setting.translate
