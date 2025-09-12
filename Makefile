@@ -38,15 +38,10 @@ net-create:
 # 啟動所有容器（背景執行）
 up:
 	$(OBS_COMPOSE) up -d
-# 	sleep 5
 	$(STORAGE_COMPOSE) up -d
-# 	sleep 5
 	$(DOCKER_COMPOSE) up -d
-# 	sleep 5
 	$(MONITOR_DEV_COMPOSE) up -d
-# 	sleep 5
 	$(MONITOR_COMPOSE) up -d
-# 	sleep 5
 	$(DOCKER_FRONTEND_COMPOSE) up -d
 
 
@@ -87,12 +82,11 @@ shell:
 	$(DOCKER_COMPOSE) exec apiGateway bash
 
 # 測試 (需先裝 pytest)
-test:
-# 	$(DOCKER_COMPOSE) exec apiGateway /bin/sh -c "PYTHONPATH=/app pytest -v tests/"
-	$(DOCKER_COMPOSE) exec apiGateway /bin/sh -c "PYTHONPATH=/app python services/langchain_client.py"
+test-note:
+	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app pytest tests"
 
-# test:
-# 	$(DOCKER_COMPOSE) exec apiGateway /bin/sh -c "PYTHONPATH=/app pytest -v tests"
+test-apiGateway:
+	$(DOCKER_COMPOSE) exec apiGateway /bin/sh -c "PYTHONPATH=/app pytest tests"
 
 # integration_test:
 # 	$(DOCKER_COMPOSE) exec apiGateway /bin/sh -c "PYTHONPATH=/app pytest -v tests/integration"

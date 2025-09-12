@@ -66,5 +66,6 @@ python-dotenv==1.0.0
 matplotlib
 click
 pytest
+pytest-asyncio
 tqdm
 firebase-admin

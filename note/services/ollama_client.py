@@ -159,11 +159,7 @@ class OllamaClient:
                         if line.strip():
                             try:
                                 chunk = json.loads(line)
-                                # 如果裡面有 response 就直接 yield
-                                if "response" in chunk:
-                                    yield chunk
-                                else:
-                                    yield {"response": str(line), "done": False}
+                                yield chunk
                             except json.JSONDecodeError:
                                 logger.warning(
                                     f"Failed to parse streaming chunk: {line}"

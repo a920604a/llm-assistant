@@ -53,5 +53,6 @@ langfuse
 python-dotenv==1.0.0
 click
 pytest
+pytest-asyncio
 tqdm
 firebase-admin
