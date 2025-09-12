@@ -1,6 +1,7 @@
+import asyncio
 import json
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import httpx
 from config import settings
@@ -93,7 +94,7 @@ class OllamaClient:
         model: str = settings.MODEL_NAME,
         prompt: str = "",
         **kwargs,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> str:
         """
         Generate text using specified model.
 
@@ -112,9 +113,7 @@ class OllamaClient:
                 response = await client.post(f"{self.base_url}/api/generate", json=data)
 
                 if response.status_code == 200:
-                    raw = response.json()["response"]
-                    cleaned = clean_json_string(raw)
-                    return cleaned
+                    return response.json()
                 else:
                     raise OllamaException(f"Generation failed: {response.status_code}")
 
@@ -174,3 +173,52 @@ class OllamaClient:
             raise
         except Exception as e:
             raise OllamaException(f"Error in streaming generation: {e}")
+
+
+async def main():
+    client = OllamaClient()
+
+    # --------------------------
+    # 1️⃣ 健康檢查
+    # --------------------------
+    try:
+        health = await client.health_check()
+        logger.info(f"✅ Health check: {health}")
+    except Exception as e:
+        logger.info(f"❌ Health check failed: {e}")
+
+    # --------------------------
+    # 2️⃣ 列出模型
+    # --------------------------
+    try:
+        models = await client.list_models()
+        logger.info(f"✅ Available models: {models}")
+    except Exception as e:
+        logger.info(f"❌ List models failed: {e}")
+
+    # --------------------------
+    # 3️⃣ 生成文字
+    # --------------------------
+    try:
+        result = await client.generate(
+            model="gpt-oss:20b", prompt="Hello, who are you?"
+        )
+        logger.info(f"✅ Generate result: {result}")
+    except Exception as e:
+        logger.info(f"❌ Generate failed: {e}")
+
+    # --------------------------
+    # 4️⃣ 生成文字（串流）
+    # --------------------------
+    try:
+        logger.info("✅ Streaming result:")
+        async for chunk in client.generate_stream(
+            model="gpt-oss:20b", prompt="Tell me a story about a dragon"
+        ):
+            logger.info(f"Chunk: {chunk}")
+    except Exception as e:
+        logger.info(f"❌ Streaming failed: {e}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

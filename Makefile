@@ -96,7 +96,8 @@ lanhchain:
 
 	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/langchain_client.py"
 
-
+ollama-client:
+	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/ollama_client.py"
 
 ingest-arxiv:
 	$(DOCKER_COMPOSE) exec arxiv-worker /bin/bash -c "PYTHONPATH=/app python flows/arxiv_pipeline.py"

@@ -5,7 +5,6 @@ import httpx
 from config import settings
 from exceptions import OllamaConnectionError, OllamaException, OllamaTimeoutError
 from logger import AppLogger
-from utils import clean_json_string
 
 logger = AppLogger(__name__).get_logger()
 
@@ -103,9 +102,7 @@ class OllamaClient:
                 response = await client.post(f"{self.base_url}/api/generate", json=data)
 
                 if response.status_code == 200:
-                    raw = response.json()["response"]
-                    cleaned = clean_json_string(raw)
-                    return cleaned
+                    return response.json()
                 else:
                     raise OllamaException(f"Generation failed: {response.status_code}")
 
