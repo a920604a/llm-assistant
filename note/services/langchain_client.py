@@ -59,7 +59,9 @@ def llm_context(
 
 def rewrite_query(query: str, user_id: str) -> str:
     chat_model = ChatOllama(
-        model=settings.MODEL_NAME, temperature=0.6, base_url=settings.OLLAMA_API_URL
+        model=settings.MODEL_NAME,
+        temperature=0.6,
+        base_url=settings.OLLAMA_API_URL,
     )
 
     prompt_template = """

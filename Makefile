@@ -91,6 +91,13 @@ test-apiGateway:
 # integration_test:
 # 	$(DOCKER_COMPOSE) exec apiGateway /bin/sh -c "PYTHONPATH=/app pytest -v tests/integration"
 
+lanhchain:
+	$(DOCKER_COMPOSE) exec apiGateway /bin/bash -c "PYTHONPATH=/app python services/langchain_client.py"
+
+	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/langchain_client.py"
+
+
+
 ingest-arxiv:
 	$(DOCKER_COMPOSE) exec arxiv-worker /bin/bash -c "PYTHONPATH=/app python flows/arxiv_pipeline.py"
 

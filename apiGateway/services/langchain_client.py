@@ -117,37 +117,23 @@ def rewrite_query(query: str, user_id: str) -> str:
 if __name__ == "__main__":
     q = "What is LangChain？"
 
-    cache = {
-        "user_language": "zh",
-        "translate": True,
-        "system_prompt": "",
-        "top_k": 5,
-        "use_rag": True,
-        "subscribe_email": False,
-        "reranker_enabled": True,
-        "temperature": 0.7,
-    }
+    cache = SystemSettings(
+        user_language="zh",
+        translate=False,
+        system_prompt="you are a student",
+        top_k=5,
+        use_rag=True,
+        subscribe_email=False,
+        reranker_enabled=True,
+        temperature=0.6,  # Default temperature for LLM responses
+    )
+
     # 使用翻譯
     result = llm(q, cache, user_id="test_user")
     logger.info(result.content)
 
-    cache["translate"] = False
+    cache.translate = True
 
     # 不翻譯
     result2 = llm(q, cache, user_id="test_user")
     logger.info(result2.content)
-
-    # async def main():
-    #     query = "什麼是 LangChain？"
-    #     cache = {
-    #         "temperature": 0.7,
-    #         "system_prompt": "You are a helpful assistant.",
-    #         "translate": True,  # 是否翻譯
-    #         "user_language": "zh",  # 翻譯成的語言
-    #     }
-
-    #     async for chunk in llm_stream(query, cache, user_id="test_user"):
-    #         # chunk 是模型生成的部分文字
-    #         logger.info(chunk)  # 或 print(chunk, end="") 邊輸出邊顯示
-
-    # asyncio.run(main())
