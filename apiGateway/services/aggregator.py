@@ -52,7 +52,6 @@ async def generate_stream(query: str, user_id: str):
                 prompt=prompt, temperature=_cache.temperature
             ):
                 # 每一個 chunk 是模型生成的一部分文字
-                logger.info(f"Parse streaming chunk: {chunk}")
 
                 if chunk.get("response"):
                     text_chunk = chunk["response"]
