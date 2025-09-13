@@ -2,12 +2,12 @@ import json
 
 from api.schemas.SystemSetting import SystemSettings
 from arxiv_ingestion.tasks.evaluate import evaluate
-from arxiv_ingestion.tasks.llm import llm, rewrite
 from arxiv_ingestion.tasks.prompt import build_prompt, build_system_prompt
 from arxiv_ingestion.tasks.rerank import re_ranking
 from arxiv_ingestion.tasks.retrieval import retrieval
 from logger import AppLogger
-from services.ollama_client import OllamaClient
+from services.langchain_client import llm_context, rewrite_query
+from services.ollama.client import OllamaClient
 from services.store_chat_and_usage import store_chat_and_usage
 
 logger = AppLogger(__name__).get_logger()
@@ -16,7 +16,7 @@ logger = AppLogger(__name__).get_logger()
 # --- Full RAG pipeline ---
 def rag(query: str, system_settings: SystemSettings, user_id: str = "anonymous") -> str:
     logger.info("Step 0: Re write ")
-    llm_rewrite_query = rewrite(query, user_id)
+    llm_rewrite_query = rewrite_query(query, user_id)
 
     logger.info("Step 1: Retrieval")
     retrieved_chunks, msg = retrieval(llm_rewrite_query, top_k=system_settings.top_k)
@@ -42,7 +42,7 @@ def rag(query: str, system_settings: SystemSettings, user_id: str = "anonymous")
         context = ""
 
     logger.info(f"Step 5: LLM generation with context = {context}")
-    resp = llm(
+    resp = llm_context(
         context,
         llm_rewrite_query,
         user_language=system_settings.user_language,
@@ -68,7 +68,7 @@ async def rag_stream(
         ollama_clinet = OllamaClient()
 
         logger.info("Step 0: Re write ")
-        llm_rewrite_query = rewrite(query, user_id)
+        llm_rewrite_query = rewrite_query(query, user_id)
 
         logger.info("Step 1: Retrieval")
         retrieved_chunks, msg = retrieval(

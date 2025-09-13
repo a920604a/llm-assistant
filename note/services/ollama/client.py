@@ -1,21 +1,11 @@
 import asyncio
 import json
-import re
 from typing import Any, Dict, List
 
 import httpx
 from config import settings
 from exceptions import OllamaConnectionError, OllamaException, OllamaTimeoutError
 from logger import AppLogger
-
-
-def clean_json_string(s: str) -> str:
-    # 移除開頭的 ```json 與結尾的 ```
-    s = s.strip()
-    s = re.sub(r"^```json\s*", "", s)
-    s = re.sub(r"\s*```$", "", s)
-    return s
-
 
 logger = AppLogger(__name__).get_logger()
 

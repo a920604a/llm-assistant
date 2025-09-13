@@ -1,6 +1,6 @@
 import pytest
 from exceptions import OllamaException
-from services.ollama_client import OllamaClient
+from services.ollama.client import OllamaClient
 
 
 @pytest.mark.asyncio

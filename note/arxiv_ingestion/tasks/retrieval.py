@@ -1,8 +1,8 @@
-from arxiv_ingestion.db.qdrant import qdrant_client
 from arxiv_ingestion.services.embedding import get_embedding
 from config import settings
 from logger import AppLogger
 from qdrant_client import models
+from storage.qdrant import qdrant_client
 
 logger = AppLogger(__name__).get_logger()
 

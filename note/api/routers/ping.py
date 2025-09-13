@@ -4,7 +4,7 @@ from botocore.exceptions import ClientError
 from config import SettingsDep
 from fastapi import APIRouter, Request
 from qdrant_client.http.exceptions import UnexpectedResponse
-from services.ollama_client import OllamaClient
+from services.ollama.client import OllamaClient
 from sqlalchemy import text
 from storage import db_session
 from storage.minio import s3_client
