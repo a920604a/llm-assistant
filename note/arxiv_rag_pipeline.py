@@ -115,7 +115,6 @@ def ask_flow(
 
 async def rag_stream(
     ollama_client: OllamaDep,
-    langchain_client: LangchainDep,
     qdrant_client: QdrantDep,
     query: str,
     system_settings: SystemSettings,

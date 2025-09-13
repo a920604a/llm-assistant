@@ -71,7 +71,6 @@ async def ask_question(
 async def ask_question_stream(
     request: Query,
     ollama_client: OllamaDep,
-    langchain_client: LangchainDep,
     qdrant_client: QdrantDep,
 ):
     q = request.text.strip()
@@ -85,7 +84,6 @@ async def ask_question_stream(
     return StreamingResponse(
         rag_stream(
             ollama_client=ollama_client,
-            langchain_client=langchain_client,
             qdrant_client=qdrant_client,
             query=q,
             system_settings=system_settings,
