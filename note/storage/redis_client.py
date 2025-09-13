@@ -2,10 +2,12 @@ from typing import Any
 
 import redis
 from api.schemas.SystemSetting import SystemSettings
-from config import settings
+from config import get_settings
 from storage.redis_metrics import monitored_redis
 
-redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)  # 回傳字串
+redis_client = redis.from_url(
+    get_settings().redis_user.url, decode_responses=True
+)  # 回傳字串
 
 
 @monitored_redis

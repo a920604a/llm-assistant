@@ -1,3 +1,5 @@
+from typing import Any
+
 import jieba
 from rank_bm25 import BM25Okapi
 
@@ -8,7 +10,7 @@ def re_ranking(
     vector_weight: float = 0.6,
     bm25_weight: float = 0.3,
     field_weights: dict = None,
-):
+) -> list[dict[str, Any]]:
     """
     Hybrid reranking: vector similarity + BM25 text matching + 欄位加權
     chunks: list of payload dict，需包含 text/title/abstract 與向量相似度 score
@@ -38,9 +40,26 @@ def re_ranking(
 
         # 3️⃣ Combine scores
         total_score = vector_weight * vector_score + bm25_weight * bm25_total
-        scored_chunks.append((total_score, chunk))
+        chunk_with_score = chunk.copy()
+        chunk_with_score["vector_score"] = vector_score
+        chunk_with_score["bm25_score"] = bm25_total
+        chunk_with_score["total_score"] = total_score
+
+        scored_chunks.append((total_score, chunk_with_score))
 
     # 排序
     scored_chunks.sort(key=lambda x: x[0], reverse=True)
     reranked_chunks = [chunk for score, chunk in scored_chunks]
     return reranked_chunks
+
+
+# {
+#     "id": "doc2",
+#     "title": "深度學習應用",
+#     "abstract": "卷積神經網路在影像辨識的應用。",
+#     "text": "包含 CNN、RNN、Transformer 的案例。",
+#     "score": 0.75,
+#     "vector_score": 0.75,       # 向量分數
+#     "bm25_score": 2.1,          # BM25 欄位加權後分數
+#     "total_score": 1.38         # 最終分數 (排序依據)
+# }

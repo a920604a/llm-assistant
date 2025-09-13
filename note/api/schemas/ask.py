@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 class AskRequest(BaseModel):
     """Request model for RAG question answering."""
 
+    user_id: str = Field(..., description="User's id", min_length=1, max_length=1000)
     query: str = Field(
         ..., description="User's question", min_length=1, max_length=1000
     )
@@ -19,6 +20,7 @@ class AskRequest(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
+                "user_id": "RFGBDRFBGFNA",
                 "query": "What are transformers in machine learning?",
                 "top_k": 3,
                 "use_hybrid": True,

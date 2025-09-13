@@ -3,7 +3,7 @@ import json
 from typing import Any, Dict, List
 
 import httpx
-from config import settings
+from config import Settings
 from exceptions import OllamaConnectionError, OllamaException, OllamaTimeoutError
 from logger import AppLogger
 from services.ollama.prompts import RAGPromptBuilder, ResponseParser
@@ -14,10 +14,11 @@ logger = AppLogger(__name__).get_logger()
 class OllamaClient:
     """Client for interacting with Ollama local LLM service."""
 
-    def __init__(self):
+    def __init__(self, settings: Settings):
         """Initialize Ollama client with settings."""
         self.base_url = settings.OLLAMA_API_URL
-        self.timeout = httpx.Timeout(float(300))
+        self.model_name = settings.MODEL_NAME
+        self.timeout = httpx.Timeout(float(settings.OLLAMA_TIMEOUT))
         self.prompt_builder = RAGPromptBuilder()
         self.response_parser = ResponseParser()
 
@@ -84,7 +85,6 @@ class OllamaClient:
 
     async def generate(
         self,
-        model: str = settings.MODEL_NAME,
         prompt: str = "",
         **kwargs,
     ) -> str:
@@ -101,7 +101,7 @@ class OllamaClient:
         """
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                data = {"model": model, "prompt": prompt, **kwargs}
+                data = {"model": self.model_name, "prompt": prompt, **kwargs}
 
                 response = await client.post(f"{self.base_url}/api/generate", json=data)
 
@@ -119,9 +119,7 @@ class OllamaClient:
         except Exception as e:
             raise OllamaException(f"Error generating with Ollama: {e}")
 
-    async def generate_stream(
-        self, model: str = settings.MODEL_NAME, prompt: str = "", **kwargs
-    ):
+    async def generate_stream(self, prompt: str = "", **kwargs):
         """
         Generate text with streaming response.
 
@@ -135,9 +133,14 @@ class OllamaClient:
         """
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                data = {"model": model, "prompt": prompt, "stream": True, **kwargs}
+                data = {
+                    "model": self.model_name,
+                    "prompt": prompt,
+                    "stream": True,
+                    **kwargs,
+                }
 
-                logger.info(f"Starting streaming generation: model={model}")
+                logger.info(f"Starting streaming generation: model={self.model_name}")
 
                 async with client.stream(
                     "POST", f"{self.base_url}/api/generate", json=data
@@ -169,7 +172,9 @@ class OllamaClient:
 
 
 async def main():
-    client = OllamaClient()
+    from config import get_settings
+
+    client = OllamaClient(get_settings())
 
     # --------------------------
     # 1️⃣ 健康檢查

@@ -27,7 +27,7 @@ async def get_user_settings(user_id: str):
 # ---------------------------
 
 
-@router.post("/api/v1/settings", response_model=dict)
+@router.post("/api/v1/setting", response_model=dict)
 async def post_settings(req: PostSettingsRequest):
     logger.info("post_settings %s", req)
     post_setting(req.user_id, req.new_settings)

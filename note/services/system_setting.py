@@ -22,5 +22,5 @@ def post_setting(user_id: str, settings: SystemSettings) -> bool:
     logger.info(f"Updating settings for user {user_id}: {settings.dict()}")
     # save to redis
     update_redis_system_setting(user_id, settings)
-
+    # save to db
     return update(user_id, settings.dict(exclude_unset=True))
