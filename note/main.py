@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI):
     app.state.cache_paper_client = _clients["paper"]
 
     logger.info("🚀 startup_event triggered")
-    await run_in_threadpool(app.state.langchain_client.create_note_collection)
+    await run_in_threadpool(app.state.qdrant_client.create_collection)
     logger.info("✅ note_collection ready")
     await run_in_threadpool(app.state.minio_client.create_note_bucket)
     logger.info("✅ note_bucket ready")

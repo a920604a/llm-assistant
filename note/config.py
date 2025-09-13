@@ -101,10 +101,10 @@ class Settings(BaseConfigSettings):
 
     OLLAMA_API_URL: str = "http://ollama:11434"
     OLLAMA_TIMEOUT: int = 300
-    QDRANT_URL: str = "http://note-qdrant:6333"
     # 模型名稱
     MODEL_NAME: str = "gpt-oss:20b"
-
+    # Qdrant
+    QDRANT_URL: str = "http://note-qdrant:6333"
     COLLECTION_NAME: str = "arxiv_collection"
 
     UPLOAD_DIR: str = "/data/uploaded_files"

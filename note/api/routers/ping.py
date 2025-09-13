@@ -74,12 +74,12 @@ async def health_check(
             buckets = [
                 b["Name"] for b in minio_client.list_buckets().get("Buckets", [])
             ]
-            if settings.MINIO_BUCKET in buckets:
+            if settings.minio.bucket in buckets:
                 return ServiceStatus(status="healthy", message="MinIO reachable")
             else:
                 return ServiceStatus(
                     status="unhealthy",
-                    message=f"Bucket `{settings.MINIO_BUCKET}` not found",
+                    message=f"Bucket `{settings.minio.bucket}` not found",
                 )
         except ClientError as e:
             return ServiceStatus(status="unhealthy", message=str(e))
