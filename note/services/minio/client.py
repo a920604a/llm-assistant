@@ -1,10 +1,9 @@
-import logging
-
 import boto3
 from botocore.client import Config
 from config import Settings
+from logger import AppLogger
 
-logger = logging.getLogger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 class MinioClient:

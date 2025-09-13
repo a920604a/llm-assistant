@@ -1,14 +1,14 @@
 import hashlib
 import json
-import logging
 from datetime import timedelta
 from typing import Optional
 
 import redis
 from api.schemas.ask import AskRequest, AskResponse
 from config import RedisSettings
+from logger import AppLogger
 
-logger = logging.getLogger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 class CacheClient:
