@@ -13,13 +13,13 @@ export async function fetchDashboardStats(timeoutMs = 10000): Promise<DashboardS
     if (!auth.currentUser) return null;
 
     const token = await auth.currentUser.getIdToken();
-    console.log(`${BASE_URL}/dashboard/stats`);
+    console.log(`${BASE_URL}/v1/dashboard/stats`);
 
 
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeoutMs);
     try {
-        const res = await fetch(`${BASE_URL}/dashboard/stats`, {
+        const res = await fetch(`${BASE_URL}/v1/dashboard/stats`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },

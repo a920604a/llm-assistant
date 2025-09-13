@@ -13,7 +13,7 @@ export const getChatHistory = async (): Promise<ChatMessage[]> => {
     if (!auth.currentUser) return [] // 沒登入回傳空陣列
 
     try {
-        const res = await fetch(`${BASE_URL}/chat/history`, {
+        const res = await fetch(`${BASE_URL}/v1/chat/history`, {
             headers: {
                 "Authorization": `Bearer ${await auth.currentUser.getIdToken()}`
             }

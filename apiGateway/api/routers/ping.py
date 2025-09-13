@@ -10,7 +10,7 @@ from storage import db_session
 router = APIRouter()
 
 
-@router.get("/api/ping")
+@router.get("/api/v1/ping")
 @limiter.limit("20/minute")  # 每分鐘 20 次
 @observe_api
 async def ping(request: Request):
@@ -18,7 +18,7 @@ async def ping(request: Request):
     return {"status": "ok", "message": "pong"}
 
 
-@router.get("/api/health", response_model=HealthResponse)
+@router.get("/api/v1/health", response_model=HealthResponse)
 @limiter.limit("20/minute")  # 每分鐘 20 次
 @observe_api
 async def health_check(request: Request, settings: SettingsDep) -> HealthResponse:

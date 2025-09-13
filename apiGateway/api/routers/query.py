@@ -10,7 +10,7 @@ from services.aggregator import generate_stream, process_user_query
 router = APIRouter()
 
 
-@router.post("/api/ask")
+@router.post("/api/v1/ask")
 @limiter.limit("7/minute")  # 每分鐘 7 次
 @observe_api
 def ask_host(
@@ -41,7 +41,7 @@ def ask_host(
         )
 
 
-@router.post("/api/stream")
+@router.post("/api/v1/stream")
 @limiter.limit("7/minute")  # 每分鐘 7 次
 async def ask_question_stream(
     request: Request,

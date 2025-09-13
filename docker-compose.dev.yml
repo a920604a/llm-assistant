@@ -50,7 +50,7 @@ services:
     networks:
       - langfuse-otel-net
     healthcheck:
-      test: [ "CMD-SHELL", 'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:8000/api/health'')"' ]
+      test: [ "CMD-SHELL", 'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:8000/api/v1/health'')"' ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -149,7 +149,7 @@ services:
     networks:
       - langfuse-otel-net
     healthcheck:
-      test: [ "CMD-SHELL", 'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:8000/api/health'')"' ]
+      test: [ "CMD-SHELL", 'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:8000/api/v1/health'')"' ]
       interval: 30s
       timeout: 10s
       retries: 3

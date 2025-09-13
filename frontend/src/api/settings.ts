@@ -43,10 +43,10 @@ export async function getSystemSettings(timeoutMs = 10000): Promise<SystemSettin
     if (!auth.currentUser) return DEFAULT_SETTINGS;
 
     const token = await auth.currentUser.getIdToken();
-    console.log(`${BASE_URL}/user/settings`);
+    console.log(`${BASE_URL}/v1/user/settings`);
 
     try {
-        const res = await fetchWithTimeout(`${BASE_URL}/user/settings`, {
+        const res = await fetchWithTimeout(`${BASE_URL}/v1/user/settings`, {
             headers: { Authorization: `Bearer ${token}` },
         }, timeoutMs);
 
@@ -74,7 +74,7 @@ export async function updateSystemSettings(
     const token = await auth.currentUser.getIdToken();
 
     try {
-        const res = await fetchWithTimeout(`${BASE_URL}/user/settings`, {
+        const res = await fetchWithTimeout(`${BASE_URL}/v1/user/settings`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

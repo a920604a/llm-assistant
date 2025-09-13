@@ -1,5 +1,6 @@
 # REST API routers
 from api.auto_metrics import observe_api
+from api.schemas.ask import AskRequest, AskResponse
 from api.schemas.query import Query
 from arxiv_ingestion.flows.arxiv_rag_pipeline import rag, rag_stream
 from fastapi import APIRouter
@@ -11,10 +12,13 @@ logger = AppLogger(__name__).get_logger()
 
 router = APIRouter()
 
+ask_router = APIRouter(tags=["ask"])
+stream_router = APIRouter(tags=["stream"])
 
-@router.post("/api/query")
+
+@ask_router.post("/apiv1//ask", response_model=AskResponse)
 @observe_api
-def ask_host(query: Query):
+def ask_host(query: AskRequest) -> AskResponse:
     q = query.text.strip()
     logger.info("ask_host %s", q)
 
@@ -28,7 +32,7 @@ def ask_host(query: Query):
     return llm_reply
 
 
-@router.post("/api/stream")
+@stream_router.post("/api/v1/stream")
 async def ask_question_stream(query: Query):
     q = query.text.strip()
     logger.info("ask_host %s", q)

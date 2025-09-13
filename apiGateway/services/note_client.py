@@ -5,7 +5,7 @@ import requests
 
 
 def call_note_server(server_url: str, payload: dict):
-    resp = requests.post(f"{server_url}/api/query", json=payload, timeout=180)
+    resp = requests.post(f"{server_url}/api/ask", json=payload, timeout=180)
     resp.raise_for_status()
     return resp.json()
 

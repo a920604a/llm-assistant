@@ -1,8 +1,9 @@
-from api.routers import chat_history, ping, query, setting, user
+from api.routers import chat_history, ping, setting, user
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from logger import AppLogger
 from prometheus_fastapi_instrumentator import Instrumentator, metrics
+from src.routers.ask import ask_router, stream_router
 from starlette.concurrency import run_in_threadpool
 from storage.minio import create_note_bucket
 from storage.qdrant import create_qdrant_collection as create_note_collection
@@ -41,7 +42,11 @@ instrumentator = (
 
 # REST API routers
 
-app.include_router(query.router, tags=["query"])
+app.include_router(
+    ask_router, prefix="/api/v1", tags=["query"]
+)  # RAG question answering with LLM
+app.include_router(stream_router, prefix="/api/v1")  # Streaming RAG responses
+
 app.include_router(user.router, tags=["user"])
 app.include_router(setting.router, tags=["setting"])
 app.include_router(chat_history.router, tags=["chat_history"])

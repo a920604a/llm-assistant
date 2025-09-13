@@ -25,7 +25,7 @@ export async function ask(
     const id = setTimeout(() => controller.abort(), finalTimeout);
 
     try {
-        const endpoint = mode === "standard" ? `${BASE_URL}/ask` : `${BASE_URL}/stream`
+        const endpoint = mode === "standard" ? `${BASE_URL}/v1/ask` : `${BASE_URL}/v1/stream`
         console.log(endpoint)
 
         const res = await fetch(endpoint, {
@@ -65,7 +65,7 @@ export async function ask(
 
     } catch (err: any) {
         if (err.name === "AbortError") {
-            console.error(`Request 超時 (${timeoutMs} ms)`);
+            console.error(`Request 超時 (${finalTimeout} ms)`);
         } else {
             console.error("Fetch 發生錯誤:", err);
         }

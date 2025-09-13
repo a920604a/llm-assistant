@@ -6,6 +6,7 @@ import httpx
 from config import settings
 from exceptions import OllamaConnectionError, OllamaException, OllamaTimeoutError
 from logger import AppLogger
+from services.ollama.prompts import RAGPromptBuilder, ResponseParser
 
 logger = AppLogger(__name__).get_logger()
 
@@ -17,6 +18,8 @@ class OllamaClient:
         """Initialize Ollama client with settings."""
         self.base_url = settings.OLLAMA_API_URL
         self.timeout = httpx.Timeout(float(300))
+        self.prompt_builder = RAGPromptBuilder()
+        self.response_parser = ResponseParser()
 
     async def health_check(self) -> Dict[str, Any]:
         """

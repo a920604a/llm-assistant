@@ -29,7 +29,7 @@ fake_db = [
 ]
 
 
-@router.get("/api/chat/history", response_model=list[ChatMessage])
+@router.get("/api/v1/chat/history", response_model=list[ChatMessage])
 @limiter.limit("5/minute")  # 每分鐘 5 次
 @observe_api
 async def get_chat_history(

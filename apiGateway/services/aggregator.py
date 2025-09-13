@@ -5,7 +5,7 @@ from logger import AppLogger
 from redis_client import get_redis_system_setting
 from services.langchain_client import rewrite_query
 from services.llm_flow import llm_flow
-from services.mcp_client import call_note_server, call_note_stream_server
+from services.note_client import call_note_server, call_note_stream_server
 from services.ollama_client import OllamaClient
 from services.prompts import build_prompt
 

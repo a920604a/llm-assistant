@@ -13,7 +13,7 @@ logger = AppLogger(__name__).get_logger()
 router = APIRouter()
 
 
-@router.get("/api/user/settings", response_model=SystemSettings)
+@router.get("/api/v1/user/settings", response_model=SystemSettings)
 @limiter.limit("5/minute")  # 每分鐘 5 次
 @observe_api
 async def get_user_settings(
@@ -26,7 +26,7 @@ async def get_user_settings(
 # ---------------------------
 # 更新使用者設定
 # ---------------------------
-@router.post("/api/user/settings", response_model=dict)
+@router.post("/api/v1/user/settings", response_model=dict)
 @limiter.limit("10/minute")  # 每分鐘 5 次
 @observe_api
 async def post_settings(

@@ -13,14 +13,14 @@ from storage.qdrant import qdrant_client
 router = APIRouter()
 
 
-@router.get("/api/ping")
+@router.get("/api/v1/ping")
 @observe_api
 async def ping(request: Request):
     """Simple ping endpoint for basic connectivity tests."""
     return {"status": "ok", "message": "pong"}
 
 
-@router.get("/api/health", response_model=HealthResponse)
+@router.get("/api/v1/health", response_model=HealthResponse)
 @observe_api
 async def health_check(request: Request, settings: SettingsDep) -> HealthResponse:
     """Comprehensive health check endpoint for monitoring and load balancer probes.
