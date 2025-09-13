@@ -30,13 +30,13 @@ class Settings(BaseSettings):
     MAIL_SSL: bool = Field(default=bool(int(os.getenv("MAIL_SSL", 0))))
 
     MINIO_ENDPOINT: str = Field(
-        default=os.getenv("MINIO_ENDPOINT", "http://note-minio:9000")
+        default=os.getenv("MINIO__ENDPOINT", "http://note-minio:9000")
     )
-    MINIO_ACCESS_KEY: str = Field(default=os.getenv("MINIO_ACCESS_KEY", "note"))
-    MINIO_SECRET_KEY: str = Field(default=os.getenv("MINIO_SECRET_KEY", "note123"))
-    MINIO_NOTE_BUCKET: str = Field(default=os.getenv("MINIO_BUCKET", "notes-md"))
+    MINIO_ACCESS_KEY: str = Field(default=os.getenv("MINIO__ACCESS_KEY", "note"))
+    MINIO_SECRET_KEY: str = Field(default=os.getenv("MINIO__SECRET_KEY", "note123"))
+    MINIO_NOTE_BUCKET: str = Field(default=os.getenv("MINIO__BUCKET", "notes-md"))
     MINIO_SUMMARY_BUCKET: str = Field(
-        default=os.getenv("MINIO_SUMMARY_BUCKET", "daily-summary")
+        default=os.getenv("MINIO__SUMMARY_BUCKET", "daily-summary")
     )
 
     class Config:

@@ -8,7 +8,7 @@ logger = AppLogger(__name__).get_logger()
 
 class MinioClient:
     def __init__(self, settings: Settings):
-        self.settings = settings
+        self.settings = settings.minio
         self.client = boto3.client(
             "s3",
             endpoint_url=settings.MINIO_ENDPOINT,

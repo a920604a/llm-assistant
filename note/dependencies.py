@@ -4,6 +4,7 @@ from config import Settings, get_settings
 from fastapi import Depends, Request
 from services.cache.client import CacheClient
 from services.langchain.client import LangChainClient
+from services.langfuse.client import LangfuseTracer
 from services.minio.client import MinioClient
 from services.ollama.client import OllamaClient
 from services.qdrant.client import QdrantClient
@@ -39,6 +40,11 @@ def get_minio_client(request: Request) -> MinioClient:
     return request.app.state.minio_client
 
 
+def get_langfuse_tracer(request: Request) -> LangfuseTracer:
+    """Get Langfuse tracer from the request state."""
+    return request.app.state.langfuse_tracer
+
+
 # Dependency annotations
 QdrantDep = Annotated[QdrantClient, Depends(get_qdrant_client)]
 MinioDep = Annotated[MinioClient, Depends(get_minio_client)]
@@ -46,6 +52,7 @@ MinioDep = Annotated[MinioClient, Depends(get_minio_client)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 OllamaDep = Annotated[OllamaClient, Depends(get_ollama_client)]
 LangchainDep = Annotated[LangChainClient, Depends(get_langchain_client)]
+LangfuseDep = Annotated[LangfuseTracer, Depends(get_langfuse_tracer)]
 
 UserCacheDep = Annotated[CacheClient | None, Depends(get_user_cache_client)]
 PaperCacheDep = Annotated[CacheClient | None, Depends(get_paper_cache_client)]

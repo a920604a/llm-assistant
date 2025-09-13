@@ -10,6 +10,7 @@ from logger import AppLogger
 from prometheus_fastapi_instrumentator import Instrumentator, metrics
 from services.cache.factory import make_all_cache_clients
 from services.langchain.factory import make_langchain_client
+from services.langfuse.factory import make_langfuse_tracer
 from services.minio.factory import make_minio_client
 from services.ollama.factory import make_ollama_client
 from services.qdrant.factory import make_qdrant_client
@@ -43,14 +44,18 @@ async def lifespan(app: FastAPI):
     app.state.minio_client = make_minio_client()
     app.state.ollama_client = make_ollama_client()
     app.state.langchain_client = make_langchain_client()
-    # app.state.langfuse_tracer = make_langfuse_tracer()
-    # app.state.caches = make_all_cache_clients()
+    app.state.langfuse_tracer = make_langfuse_tracer()
     _clients = make_all_cache_clients()
     app.state.cache_user_client = _clients["user"]
     app.state.cache_paper_client = _clients["paper"]
 
-    logger.info("API ready")
+    logger.info("🚀 startup_event triggered")
+    await run_in_threadpool(app.state.langchain_client.create_note_collection)
+    logger.info("✅ note_collection ready")
+    await run_in_threadpool(app.state.minio_client.create_note_bucket)
+    logger.info("✅ note_bucket ready")
 
+    logger.info("API ready")
     yield
 
     # Cleanup
@@ -102,13 +107,3 @@ app.include_router(user.router, tags=["user"])
 app.include_router(setting.router, tags=["setting"])
 app.include_router(chat_history.router, tags=["chat_history"])
 app.include_router(ping.router, tags=["Health"])
-
-
-# Startup event: 確保 Qdrant 啟動後再建立 collection
-@app.on_event("startup")
-async def startup_event():
-    logger.info("🚀 startup_event triggered")
-    await run_in_threadpool(app.state.langchain_client.create_note_collection)
-    logger.info("✅ note_collection ready")
-    await run_in_threadpool(app.state.minio_client.create_note_bucket)
-    logger.info("✅ note_bucket ready")

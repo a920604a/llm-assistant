@@ -5,7 +5,7 @@ from typing import Optional
 
 import redis
 from api.schemas.ask import AskRequest, AskResponse
-from config import RedisSettings
+from config import RedisPaperSettings, RedisUserSettings
 from logger import AppLogger
 
 logger = AppLogger(__name__).get_logger()
@@ -14,7 +14,11 @@ logger = AppLogger(__name__).get_logger()
 class CacheClient:
     """Redis-based exact match cache for RAG queries."""
 
-    def __init__(self, redis_client: redis.Redis, settings: RedisSettings):
+    def __init__(
+        self,
+        redis_client: redis.Redis,
+        settings: RedisUserSettings | RedisPaperSettings,
+    ):
         self.redis = redis_client
         self.settings = settings
         self.ttl = timedelta(hours=settings.ttl_hour)

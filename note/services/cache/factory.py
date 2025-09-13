@@ -1,12 +1,19 @@
 import redis
-from config import RedisSettings, get_settings
+from config import (
+    BaseConfigSettings,
+    RedisPaperSettings,
+    RedisUserSettings,
+    get_settings,
+)
 from logger import AppLogger
 from services.cache.client import CacheClient
 
 logger = AppLogger(__name__).get_logger()
 
 
-def make_redis_client(redis_settings: RedisSettings) -> redis.Redis:
+def make_redis_client(
+    redis_settings: BaseConfigSettings | RedisUserSettings | RedisPaperSettings,
+) -> redis.Redis:
     """Create Redis client with connection pooling."""
 
     try:
@@ -32,7 +39,9 @@ def make_redis_client(redis_settings: RedisSettings) -> redis.Redis:
         raise
 
 
-def make_cache_client(settings: RedisSettings) -> CacheClient:
+def make_cache_client(
+    settings: BaseConfigSettings | RedisUserSettings | RedisPaperSettings,
+) -> CacheClient:
     """Create exact match cache client."""
     try:
         redis_client = make_redis_client(settings)
