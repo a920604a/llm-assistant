@@ -16,7 +16,7 @@ ask_router = APIRouter(tags=["ask"])
 stream_router = APIRouter(tags=["stream"])
 
 
-@ask_router.post("/apiv1//ask", response_model=AskResponse)
+@ask_router.post("/api/v1/ask", response_model=AskResponse)
 @observe_api
 def ask_host(query: AskRequest) -> AskResponse:
     q = query.text.strip()

@@ -1,7 +1,7 @@
 from api.auto_metrics import observe_api
 from api.schemas.health import HealthResponse, ServiceStatus
 from botocore.exceptions import ClientError
-from config import SettingsDep
+from dependencies import SettingsDep
 from fastapi import APIRouter, Request
 from qdrant_client.http.exceptions import UnexpectedResponse
 from services.ollama.client import OllamaClient

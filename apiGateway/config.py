@@ -1,8 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Literal
 
-from fastapi import Depends
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -47,6 +46,3 @@ settings = Settings()
 @lru_cache
 def get_settings() -> Settings:
     return settings
-
-
-SettingsDep = Annotated[Settings, Depends(get_settings)]

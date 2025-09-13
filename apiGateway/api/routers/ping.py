@@ -1,7 +1,7 @@
 from api.auto_metrics import observe_api
 from api.schemas.health import HealthResponse, ServiceStatus
-from config import SettingsDep
 from core.limiter import limiter
+from dependencies import SettingsDep
 from fastapi import APIRouter, Request
 from services.ollama_client import OllamaClient
 from sqlalchemy import text
