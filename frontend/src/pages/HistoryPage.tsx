@@ -44,7 +44,7 @@ const HistoryPage = () => {
             <div className="flex-1 overflow-auto flex flex-col space-y-3">
                 {history.map((msg) => (
                     <div
-                        key={msg.id}
+                        key={`${msg.id}-${msg.role}`}
                         className={`p-3 rounded max-w-md whitespace-pre-wrap ${msg.role === 'user'
                             ? 'bg-blue-100 self-end shadow'
                             : 'bg-gray-200 self-start shadow-sm'

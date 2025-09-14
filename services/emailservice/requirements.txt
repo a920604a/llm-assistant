@@ -54,12 +54,13 @@ prometheus_client
 opentelemetry-api
 opentelemetry-sdk
 opentelemetry-instrumentation-fastapi
-langfuse
+langfuse>=2.0.0,<3.0.0
 
 
 # === Utility ===
 python-dotenv==1.0.0
 pytest
+pytest-asyncio
 tqdm
 firebase-admin
 

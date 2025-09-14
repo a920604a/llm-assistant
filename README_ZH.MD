@@ -147,7 +147,7 @@ subgraph Subscription[Email Subscription Pipeline]
     SubSched --> SubFlow
 end
 
-Storage e2@ --> Subscription 
+Storage e2@ --> Subscription
 
 e1@{ animation: slow }
 e2@{ animation: slow }
@@ -203,9 +203,9 @@ REDIS_AUTH=REDIS_AUTH
 ### Object Storage (MinIO)
 
 ```bash
-MINIO_ENDPOINT=http://note-minio:9000
-MINIO_ACCESS_KEY=MINIO_ACCESS_KEY
-MINIO_SECRET_KEY=MINIO_SECRET_KEY
+MINIO__ENDPOINT=http://note-minio:9000
+MINIO__ACCESS_KEY=MINIO__ACCESS_KEY
+MINIO__SECRET_KEY=MINIO__SECRET_KEY
 MINIO_BUCKET=note-md
 ```
 

@@ -44,13 +44,13 @@ services:
     ports:
       - "8022:8000"
     env_file:
-      - ./.env # <- 指定要讀的環境變數檔
+      - .env # <- 指定要讀的環境變數檔
     depends_on:
       - arxiv-worker
     networks:
       - langfuse-otel-net
     healthcheck:
-      test: [ "CMD-SHELL", 'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:8000/api/health'')"' ]
+      test: [ "CMD-SHELL", 'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:8000/api/v1/health'')"' ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -64,6 +64,8 @@ services:
     image: arxiv-worker:latest
     container_name: arxiv-worker
     command: celery -A celery_app.celery_app worker --concurrency=4 --queues notes -n worker.ingest_arxiv@%h --loglevel=info
+    environment:
+      PREFECT_API_URL: http://orion:4200/api
     volumes:
       - ./arxiv:/app
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
@@ -71,7 +73,7 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     env_file:
-      - ./.env # <- 指定要讀的環境變數檔
+      - .env # <- 指定要讀的環境變數檔
     networks:
       - langfuse-otel-net
 
@@ -85,11 +87,26 @@ services:
     command: celery -A celery_app.celery_app beat --loglevel=info
     depends_on:
       - arxiv-worker
+    environment:
+      PREFECT_API_URL: http://orion:4200/api
     volumes:
       - ./arxiv:/app
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
     env_file:
-      - ./.env
+      - .env
+    networks:
+      - langfuse-otel-net
+
+  orion:
+    image: prefecthq/prefect:3-latest
+    container_name: prefect-orion
+    command: prefect server start --host 0.0.0.0 --port 4200
+    ports:
+      - "4200:4200" # Web UI + API
+    environment:
+      PREFECT_API_DATABASE_CONNECTION_URL: sqlite+aiosqlite:///prefect.db
+    volumes:
+      - ./data/prefect_data:/root/.prefect
     networks:
       - langfuse-otel-net
 
@@ -100,8 +117,10 @@ services:
     image: email-worker:latest
     container_name: email-worker
     command: worker
+    environment:
+      PREFECT_API_URL: http://orion:4200/api
     env_file:
-      - ./.env
+      - .env
     volumes:
       - ./email:/app
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
@@ -118,8 +137,10 @@ services:
     image: email-beat:latest
     container_name: email-beat
     command: beat
+    environment:
+      PREFECT_API_URL: http://orion:4200/api
     env_file:
-      - ./.env
+      - .env
     depends_on:
       - email-worker
     volumes:
@@ -145,11 +166,11 @@ services:
     depends_on:
       - noteserver
     env_file:
-      - ./.env # <- 指定要讀的環境變數檔
+      - .env # <- 指定要讀的環境變數檔
     networks:
       - langfuse-otel-net
     healthcheck:
-      test: [ "CMD-SHELL", 'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:8000/api/health'')"' ]
+      test: [ "CMD-SHELL", 'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:8000/api/v1/health'')"' ]
       interval: 30s
       timeout: 10s
       retries: 3

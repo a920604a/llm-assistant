@@ -3,6 +3,7 @@ from typing import Dict, List
 from config import COLLECTION_NAME, QDRANT_BATCH_SIZE
 from db.qdrant import qdrant_client
 from logger import AppLogger
+from prefect import task
 from qdrant_client import models
 from services.embedding import get_embedding
 from services.schemas import ArxivPaper, ParsedPaper
@@ -39,7 +40,7 @@ def chunk_text(
     return chunks
 
 
-# @task(name="Qdrant Index Task")
+@task(name="Qdrant Index Task")
 def qdrant_index_task(
     papers: List[ArxivPaper], parsed_papers: Dict[str, ParsedPaper]
 ) -> int:

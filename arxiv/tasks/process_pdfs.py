@@ -1,4 +1,5 @@
 from logger import AppLogger
+from prefect import task
 from services.common import get_cached_services
 from services.metadata_fetcher import MetadataFetcher
 from services.pdf_parser import PDFParserService
@@ -6,7 +7,7 @@ from services.pdf_parser import PDFParserService
 logger = AppLogger(__name__).get_logger()
 
 
-# @task(retries=2)
+@task(retries=2)
 async def process_pdfs_task(papers: PDFParserService, store_to_db: bool):
     client = get_cached_services()
     pdf_parser = PDFParserService(max_pages=20, max_file_size_mb=10)

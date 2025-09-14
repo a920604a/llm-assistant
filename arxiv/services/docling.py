@@ -1,4 +1,3 @@
-import logging
 from pathlib import Path
 from typing import Optional
 
@@ -7,13 +6,14 @@ from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import PdfPipelineOptions
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from exceptions import PDFParsingException, PDFValidationError
+from logger import AppLogger
 from services.schemas import (
     PaperSection,
     ParserType,
     PdfContent,
 )
 
-logger = logging.getLogger(__name__)
+logger = AppLogger(__name__).get_logger()
 
 
 class DoclingParser:

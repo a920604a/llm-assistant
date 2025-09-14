@@ -25,7 +25,7 @@ fake_db = {
 }
 
 
-@router.get("/api/dashboard/stats", response_model=DashboardStats)
+@router.get("/api/v1/dashboard/stats", response_model=DashboardStats)
 @limiter.limit("20/minute")  # 每分鐘 20 次
 @observe_api
 # async def get_dashboard_stats(user_id: str):

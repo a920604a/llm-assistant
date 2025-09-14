@@ -6,7 +6,7 @@ from services.fetch_chat import fetch_chat
 router = APIRouter()
 
 
-@router.get("/api/chat_history", response_model=list[ChatMessage])
+@router.get("/api/v1/chat_history", response_model=list[ChatMessage])
 @observe_api
 async def get_chat_history(user_id: str, limit=5):
     # TODO: 根據 user_id 過濾資料

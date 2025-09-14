@@ -6,7 +6,7 @@ from services.user_info import get_info
 router = APIRouter()
 
 
-@router.get("/api/user/{user_id}")
+@router.get("/api/v1/user/{user_id}")
 @observe_api
 def get_user_data(user_id: str):
     # user_id 是 str，如果要檢查是否為有效 id，視情況可轉 int 或用正則判斷

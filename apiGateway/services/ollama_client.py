@@ -1,10 +1,10 @@
+import json
 from typing import Any, Dict, List, Optional
 
 import httpx
 from config import settings
 from exceptions import OllamaConnectionError, OllamaException, OllamaTimeoutError
 from logger import AppLogger
-from utils import clean_json_string
 
 logger = AppLogger(__name__).get_logger()
 
@@ -82,7 +82,6 @@ class OllamaClient:
         self,
         model: str = settings.MODEL_NAME,
         prompt: str = "",
-        stream: bool = False,
         **kwargs,
     ) -> Optional[Dict[str, Any]]:
         """
@@ -91,7 +90,6 @@ class OllamaClient:
         Args:
             model: Model name to use
             prompt: Input prompt for generation
-            stream: Whether to stream response (not implemented)
             **kwargs: Additional generation parameters
 
         Returns:
@@ -99,14 +97,12 @@ class OllamaClient:
         """
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                data = {"model": model, "prompt": prompt, "stream": stream, **kwargs}
+                data = {"model": model, "prompt": prompt, **kwargs}
 
                 response = await client.post(f"{self.base_url}/api/generate", json=data)
 
                 if response.status_code == 200:
-                    raw = response.json()["response"]
-                    cleaned = clean_json_string(raw)
-                    return cleaned
+                    return response.json()
                 else:
                     raise OllamaException(f"Generation failed: {response.status_code}")
 
@@ -118,3 +114,49 @@ class OllamaClient:
             raise
         except Exception as e:
             raise OllamaException(f"Error generating with Ollama: {e}")
+
+    async def generate_stream(
+        self, model: str = settings.MODEL_NAME, prompt: str = "", **kwargs
+    ):
+        """
+        Generate text with streaming response.
+
+        Args:
+            model: Model name to use
+            prompt: Input prompt for generation
+            **kwargs: Additional generation parameters
+
+        Yields:
+            JSON chunks from streaming response
+        """
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                data = {"model": model, "prompt": prompt, "stream": True, **kwargs}
+
+                async with client.stream(
+                    "POST", f"{self.base_url}/api/generate", json=data
+                ) as response:
+                    if response.status_code != 200:
+                        raise OllamaException(
+                            f"Streaming generation failed: {response.status_code}"
+                        )
+
+                    async for line in response.aiter_lines():
+                        if line.strip():
+                            try:
+                                chunk = json.loads(line)
+                                yield chunk
+                            except json.JSONDecodeError:
+                                logger.warning(
+                                    f"Failed to parse streaming chunk: {line}"
+                                )
+                                continue
+
+        except httpx.ConnectError as e:
+            raise OllamaConnectionError(f"Cannot connect to Ollama service: {e}")
+        except httpx.TimeoutException as e:
+            raise OllamaTimeoutError(f"Ollama service timeout: {e}")
+        except OllamaException:
+            raise
+        except Exception as e:
+            raise OllamaException(f"Error in streaming generation: {e}")

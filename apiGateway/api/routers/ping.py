@@ -1,7 +1,7 @@
 from api.auto_metrics import observe_api
 from api.schemas.health import HealthResponse, ServiceStatus
-from config import SettingsDep
 from core.limiter import limiter
+from dependencies import SettingsDep
 from fastapi import APIRouter, Request
 from services.ollama_client import OllamaClient
 from sqlalchemy import text
@@ -10,7 +10,7 @@ from storage import db_session
 router = APIRouter()
 
 
-@router.get("/api/ping")
+@router.get("/api/v1/ping")
 @limiter.limit("20/minute")  # 每分鐘 20 次
 @observe_api
 async def ping(request: Request):
@@ -18,7 +18,7 @@ async def ping(request: Request):
     return {"status": "ok", "message": "pong"}
 
 
-@router.get("/api/health", response_model=HealthResponse)
+@router.get("/api/v1/health", response_model=HealthResponse)
 @limiter.limit("20/minute")  # 每分鐘 20 次
 @observe_api
 async def health_check(request: Request, settings: SettingsDep) -> HealthResponse:

@@ -1,27 +1,25 @@
-from api.schemas.user import UserQuery
+import json
+
 from config import settings
 from logger import AppLogger
 from redis_client import get_redis_system_setting
+from services.langchain_client import rewrite_query
 from services.llm_flow import llm_flow
-from services.mcp_client import call_note_server
+from services.note_client import call_note_server, call_note_stream_server
+from services.ollama_client import OllamaClient
+from services.prompts import build_prompt
 
 logger = AppLogger(__name__).get_logger()
 
 
-def process_user_query(user_query: UserQuery, user_id: str):
+def process_user_query(query: str, user_id: str) -> str:
     _cache = get_redis_system_setting(user_id=user_id)
     shortcut = not _cache.use_rag  # 是否使用快捷方式
-    user_language = _cache.user_language
-    isTranslate = _cache.translate  # 是否需要翻譯
-    logger.info(
-        f"process_user_query: user_id={user_id}, shortcut={shortcut}, user_language={user_language}, isTranslate={isTranslate}"
-    )
-
-    query = user_query.query
 
     # 呼叫 Ollama LLM（主要語言理解與生成）
+    logger.info(f"query {query}")
     if shortcut:
-        llm_reply = llm_flow(query, user_id, isTranslate, user_language)
+        llm_reply = llm_flow(query, user_id, _cache)
 
         return llm_reply
     else:  # rag
@@ -32,7 +30,56 @@ def process_user_query(user_query: UserQuery, user_id: str):
             settings.NOTE_API_URL,
             {"text": query, "user_id": user_id},
         )
-        logger.info(f"note_result {note_result[:200]}")
+        # logger.info(f"note_result {note_result[:200]}")
+        logger.info(f"note_result {note_result}")
 
         # Step 3: 整合結果
+
         return note_result
+
+
+async def generate_stream(query: str, user_id: str):
+    try:
+        ollama_clinet = OllamaClient()
+        _cache = get_redis_system_setting(user_id=user_id)
+        shortcut = not _cache.use_rag
+        logger.info(f"query {query}")
+        if shortcut:
+            query = rewrite_query(query=query, user_id=user_id)
+            prompt = build_prompt(query, _cache)
+            logger.info(f"prompt {prompt}")
+            # full_response = ""
+            # 丟到 LLM，使用 streaming 介面
+            async for chunk in ollama_clinet.generate_stream(
+                prompt=prompt, temperature=_cache.temperature
+            ):
+                # 每一個 chunk 是模型生成的一部分文字
+
+                if chunk.get("response"):
+                    text_chunk = chunk["response"]
+                    # full_response += text_chunk
+                    # yield f"data: {json.dumps({'chunk': text_chunk})}\n\n"
+                    yield text_chunk
+
+                if chunk.get("done", False):
+                    # yield f"data: {json.dumps({'answer': full_response, 'done': True})}\n\n"
+                    break
+
+        else:
+            # 呼叫 MCP Server（筆記服務）
+            logger.info("呼叫 MCP Server（筆記服務）")
+
+            async for chunk in call_note_stream_server(
+                settings.NOTE_API_URL,
+                {"text": query, "user_id": user_id},
+            ):
+                if chunk.get("response"):
+                    text_chunk = chunk["response"]
+                    yield text_chunk
+
+                if chunk.get("done", False):
+                    break
+
+    except Exception as e:
+        error_msg = {"error": str(e)}
+        yield f"data: {json.dumps(error_msg)}\n\n"

@@ -38,15 +38,10 @@ net-create:
 # 啟動所有容器（背景執行）
 up:
 	$(OBS_COMPOSE) up -d
-# 	sleep 5
 	$(STORAGE_COMPOSE) up -d
-# 	sleep 5
 	$(DOCKER_COMPOSE) up -d
-# 	sleep 5
 	$(MONITOR_DEV_COMPOSE) up -d
-# 	sleep 5
 	$(MONITOR_COMPOSE) up -d
-# 	sleep 5
 	$(DOCKER_FRONTEND_COMPOSE) up -d
 
 
@@ -87,16 +82,32 @@ shell:
 	$(DOCKER_COMPOSE) exec apiGateway bash
 
 # 測試 (需先裝 pytest)
-test:
-# 	$(DOCKER_COMPOSE) exec apiGateway /bin/sh -c "PYTHONPATH=/app pytest -v tests/"
-	$(DOCKER_COMPOSE) exec apiGateway /bin/sh -c "PYTHONPATH=/app python services/langchain_client.py"
+test-note:
+	$(DOCKER_COMPOSE) exec noteserver /bin/sh -c "PYTHONPATH=/app pytest tests"
 
-# test:
-# 	$(DOCKER_COMPOSE) exec apiGateway /bin/sh -c "PYTHONPATH=/app pytest -v tests"
+test-apiGateway:
+	$(DOCKER_COMPOSE) exec apiGateway /bin/sh -c "PYTHONPATH=/app pytest tests"
 
 # integration_test:
 # 	$(DOCKER_COMPOSE) exec apiGateway /bin/sh -c "PYTHONPATH=/app pytest -v tests/integration"
 
+
+# sample job
+lanhchain:
+	$(DOCKER_COMPOSE) exec apiGateway /bin/bash -c "PYTHONPATH=/app python services/langchain_client.py"
+
+	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/langchain_client.py"
+
+ollama-client:
+	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/ollama_client.py"
+
+retrieval:
+	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python arxiv_ingestion/tasks/retrieval.py"
+
+sample_qdrant:
+	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/qdrant/sample_qdrant.py"
+
+# pipeline
 ingest-arxiv:
 	$(DOCKER_COMPOSE) exec arxiv-worker /bin/bash -c "PYTHONPATH=/app python flows/arxiv_pipeline.py"
 
@@ -106,11 +117,6 @@ email-subscribe:
 rag:
 	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python arxiv_ingestion/flows/arxiv_rag_pipeline.py"
 
-retrieval:
-	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python arxiv_ingestion/tasks/retrieval.py"
-
-sample_qdrant:
-	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/sample_qdrant.py"
 
 
 # 移除所有 volumes (⚠️會清除資料)

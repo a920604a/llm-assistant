@@ -1,7 +1,9 @@
 from datetime import datetime
 
+from prefect import task
 
-# @task
+
+@task
 def generate_report_task(result_summary: dict) -> str:
     """
     產生日報告文字 (可擴充成 PDF, Markdown, Email...)

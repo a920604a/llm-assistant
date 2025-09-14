@@ -1,28 +1,31 @@
 from api.auto_metrics import observe_api
 from api.schemas.health import HealthResponse, ServiceStatus
 from botocore.exceptions import ClientError
-from config import SettingsDep
+from dependencies import MinioDep, QdrantDep, SettingsDep
 from fastapi import APIRouter, Request
 from qdrant_client.http.exceptions import UnexpectedResponse
-from services.ollama_client import OllamaClient
+from services.ollama.client import OllamaClient
 from sqlalchemy import text
 from storage import db_session
-from storage.minio import s3_client
-from storage.qdrant import qdrant_client
 
 router = APIRouter()
 
 
-@router.get("/api/ping")
+@router.get("/api/v1/ping")
 @observe_api
 async def ping(request: Request):
     """Simple ping endpoint for basic connectivity tests."""
     return {"status": "ok", "message": "pong"}
 
 
-@router.get("/api/health", response_model=HealthResponse)
+@router.get("/api/v1/health", response_model=HealthResponse)
 @observe_api
-async def health_check(request: Request, settings: SettingsDep) -> HealthResponse:
+async def health_check(
+    request: Request,
+    settings: SettingsDep,
+    qdrant_client: QdrantDep,
+    minio_client: MinioDep,
+) -> HealthResponse:
     """Comprehensive health check endpoint for monitoring and load balancer probes.
 
     :returns: Service health status with version and connectivity checks
@@ -68,13 +71,15 @@ async def health_check(request: Request, settings: SettingsDep) -> HealthRespons
 
     def _check_minio():
         try:
-            buckets = [b["Name"] for b in s3_client.list_buckets().get("Buckets", [])]
-            if settings.MINIO_BUCKET in buckets:
+            buckets = [
+                b["Name"] for b in minio_client.list_buckets().get("Buckets", [])
+            ]
+            if settings.minio.bucket in buckets:
                 return ServiceStatus(status="healthy", message="MinIO reachable")
             else:
                 return ServiceStatus(
                     status="unhealthy",
-                    message=f"Bucket `{settings.MINIO_BUCKET}` not found",
+                    message=f"Bucket `{settings.minio.bucket}` not found",
                 )
         except ClientError as e:
             return ServiceStatus(status="unhealthy", message=str(e))
@@ -86,7 +91,7 @@ async def health_check(request: Request, settings: SettingsDep) -> HealthRespons
 
     # Handle Ollama async check separately
     try:
-        ollama_client = OllamaClient()
+        ollama_client = OllamaClient(settings)
         ollama_health = await ollama_client.health_check()
         services["ollama"] = ServiceStatus(
             status=ollama_health["status"], message=ollama_health["message"]

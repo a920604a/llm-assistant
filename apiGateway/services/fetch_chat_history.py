@@ -5,7 +5,7 @@ from config import settings
 
 def fetch_chat(user_id: str, limit=10) -> list[ChatMessage]:
     resp = requests.get(
-        f"{settings.NOTE_API_URL}/api/chat_history",
+        f"{settings.NOTE_API_URL}/api/v1/chat_history",
         params={"user_id": user_id, "limit": limit},
         timeout=300,
     )
