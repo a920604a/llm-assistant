@@ -1,13 +1,14 @@
 from typing import List
 
 from logger import AppLogger
+from prefect import task
 from services.common import get_cached_services
 from services.schemas import ArxivPaper
 
 logger = AppLogger(__name__).get_logger()
 
 
-# @task(retries=3, retry_delay_seconds=10)
+@task(retries=3, retry_delay_seconds=10)
 async def fetch_papers_task(
     date_from: str, date_to: str, max_results: int = 5
 ) -> List[ArxivPaper]:

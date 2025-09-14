@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from db.minio import create_note_bucket
 from db.qdrant import create_qdrant_collection
 from logger import AppLogger
+from prefect import flow
 from tasks.fetch_papers import fetch_papers_task
 from tasks.generate_report import generate_report_task
 from tasks.process_pdfs import process_pdfs_task
@@ -12,6 +13,7 @@ from tasks.qdrant_index import qdrant_index_task
 logger = AppLogger(__name__).get_logger()
 
 
+@flow(name="arxiv-pipeline-flow")
 def arxiv_pipeline(
     date_from: str, date_to: str, max_results: int = 10, store_to_db: bool = True
 ):
@@ -72,5 +74,5 @@ if __name__ == "__main__":
     arxiv_pipeline(
         date_from=(datetime.utcnow() - timedelta(days=30)).strftime("%Y%m%d"),
         date_to=datetime.utcnow().strftime("%Y%m%d"),
-        max_results=3,
+        max_results=1,
     )

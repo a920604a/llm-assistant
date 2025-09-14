@@ -91,6 +91,8 @@ test-apiGateway:
 # integration_test:
 # 	$(DOCKER_COMPOSE) exec apiGateway /bin/sh -c "PYTHONPATH=/app pytest -v tests/integration"
 
+
+# sample job
 lanhchain:
 	$(DOCKER_COMPOSE) exec apiGateway /bin/bash -c "PYTHONPATH=/app python services/langchain_client.py"
 
@@ -99,6 +101,13 @@ lanhchain:
 ollama-client:
 	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/ollama_client.py"
 
+retrieval:
+	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python arxiv_ingestion/tasks/retrieval.py"
+
+sample_qdrant:
+	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/qdrant/sample_qdrant.py"
+
+# pipeline
 ingest-arxiv:
 	$(DOCKER_COMPOSE) exec arxiv-worker /bin/bash -c "PYTHONPATH=/app python flows/arxiv_pipeline.py"
 
@@ -108,11 +117,6 @@ email-subscribe:
 rag:
 	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python arxiv_ingestion/flows/arxiv_rag_pipeline.py"
 
-retrieval:
-	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python arxiv_ingestion/tasks/retrieval.py"
-
-sample_qdrant:
-	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/qdrant/sample_qdrant.py"
 
 
 # 移除所有 volumes (⚠️會清除資料)
