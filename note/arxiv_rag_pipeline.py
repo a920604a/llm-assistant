@@ -124,7 +124,6 @@ def ask_flow(
             final_prompt,
             query,
             user_language=system_settings.user_language,
-            user_id=user_id,
             system_prompt=system_settings.system_prompt,
         )
 

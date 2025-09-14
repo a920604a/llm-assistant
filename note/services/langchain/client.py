@@ -27,7 +27,6 @@ class LangChainClient:
         user_language: str = "Traditional Chinese",
         temperature: float = 0.5,
         system_prompt: str = "",
-        user_id: str = "anonymous",
     ) -> AIMessage:
         chat_model = ChatOllama(
             model=self.model_name,
