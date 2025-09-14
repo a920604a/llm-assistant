@@ -4,12 +4,9 @@ from langchain_core.messages.ai import AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 from logger import AppLogger
-from services.langfuse_client import LangfuseObs
 from services.prompts import RAGPromptBuilder, ResponseParser
 
 logger = AppLogger(__name__).get_logger()
-
-obs = LangfuseObs(mode="callback")  # langchain mode
 
 
 class LangChainClient:
@@ -64,11 +61,7 @@ class LangChainClient:
                 "context": context,
                 "question": query,
                 "user_language": user_language,
-            },
-            config=obs.get_config(
-                user_id=user_id,
-                tags=["llm_context", "note services"],
-            ),
+            }
         )
 
         return resp
@@ -92,12 +85,6 @@ class LangChainClient:
 
         prompt = ChatPromptTemplate.from_template(prompt_template)
         chain = prompt | chat_model
-        resp = chain.invoke(
-            {"question": query},
-            config=obs.get_config(
-                user_id=user_id,
-                tags=["rewrite_query", "note service"],
-            ),
-        )
+        resp = chain.invoke({"question": query})
 
         return resp.content

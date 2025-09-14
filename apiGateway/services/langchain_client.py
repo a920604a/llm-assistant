@@ -2,20 +2,11 @@ from api.schemas.SystemSetting import SystemSettings
 from config import settings
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
-from langfuse import get_client
 from logger import AppLogger
-from services.langfuse_client import LangfuseObs
 
 logger = AppLogger(__name__).get_logger()
 
-langfuse = get_client()
 
-
-obs = LangfuseObs(mode="callback")  # langchain mode
-# obs = LangfuseObs(mode="sdk")  # langchain mode
-
-
-@obs.observe_fn
 def llm(
     query: str,
     system_setting: SystemSettings,
@@ -31,10 +22,6 @@ def llm(
         temperature=temperature,
         base_url=settings.OLLAMA_API_URL,
     )
-
-    # obs.set_user(user_id)
-    # obs.set_tags(["translation", "Auth service"])
-    # obs.set_metadata({"user_language": user_language})
 
     if isTranslate:
         # 使用 user_language 指定語言
@@ -54,11 +41,7 @@ def llm(
                 "system_prompt": system_prompt,
                 "question": query,
                 "user_language": user_language,
-            },
-            config=obs.get_config(
-                user_id=user_id,
-                tags=["translation", "Auth service"],
-            ),
+            }
         )
     else:
         # 不翻譯，使用預設語言
@@ -72,18 +55,11 @@ def llm(
         """
         prompt = ChatPromptTemplate.from_template(prompt_template)
         chain = prompt | chat_model
-        resp = chain.invoke(
-            {"system_prompt": system_prompt, "question": query},
-            config=obs.get_config(
-                user_id=user_id,
-                tags=["Not translation", "Auth service"],
-            ),
-        )
+        resp = chain.invoke({"system_prompt": system_prompt, "question": query})
 
     return resp
 
 
-@obs.observe_fn
 def rewrite_query(query: str, user_id: str) -> str:
     chat_model = ChatOllama(
         model=settings.MODEL_NAME,
@@ -103,13 +79,7 @@ def rewrite_query(query: str, user_id: str) -> str:
 
     prompt = ChatPromptTemplate.from_template(prompt_template)
     chain = prompt | chat_model
-    resp = chain.invoke(
-        {"question": query},
-        config=obs.get_config(
-            user_id=user_id,
-            tags=["rewrite_query", "Auth service"],
-        ),
-    )
+    resp = chain.invoke({"question": query})
 
     return resp.content
 
