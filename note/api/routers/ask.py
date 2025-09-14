@@ -103,6 +103,7 @@ async def ask_question_stream(
             query=q,
             system_settings=system_settings,
             user_id=request.user_id,
+            langfuse_tracer=langfuse_tracer,
         ),
         media_type="text/plain",  # 前端 fetch 會逐段讀取
         headers={

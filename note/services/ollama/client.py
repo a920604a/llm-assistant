@@ -151,6 +151,7 @@ class OllamaClient:
                         )
 
                     async for line in response.aiter_lines():
+                        print(f"line {line}")
                         if line.strip():
                             try:
                                 chunk = json.loads(line)

@@ -1,15 +1,19 @@
 import json
+import time
 from typing import List, Tuple
 
 from api.schemas.ask import AskResponse
 from api.schemas.SystemSetting import SystemSettings
-from dependencies import LangchainDep, OllamaDep, QdrantDep
+from dependencies import LangchainDep, LangfuseDep, OllamaDep, QdrantDep
 from embedding import get_embedding
 from evaluate import evaluate
 from logger import AppLogger
 from services.langfuse.tracer import RAGTracer
 from services.rerank import re_ranking
-from services.store_chat_and_usage import store_chat_and_usage
+from services.store_chat_and_usage import (
+    store_chat_and_ollama_usage,
+    store_chat_and_usage,
+)
 
 logger = AppLogger(__name__).get_logger()
 
@@ -28,7 +32,7 @@ def retrieval_pipeline(
     logger.info("Step 0: Embedding")
     with rag_tracer.trace_embedding(trace, query=query) as embedding_span:
         query_embedding = get_embedding(query)
-        rag_tracer.end_embedding(embedding_span, query_embedding)
+    rag_tracer.end_embedding(embedding_span, query_embedding)
 
     logger.info("Step 1: Retrieval")
     with rag_tracer.trace_search(trace, query=query, top_k=5) as search_span:
@@ -146,36 +150,74 @@ async def rag_stream(
     qdrant_client: QdrantDep,
     query: str,
     system_settings: SystemSettings,
+    langfuse_tracer: LangfuseDep,
     user_id: str = "anonymous",
 ) -> str:
     try:
-        reranked_chunks, sources, reranked = retrieval_pipeline(
-            query, system_settings, qdrant_client
-        )
-
-        if not reranked_chunks:
-            yield f"data: {json.dumps({'answer': 'No relevant information found.', 'sources': [], 'done': True})}\n\n"
-
-        logger.info("Step 4: Build prompt")
-        # context = build_prompt(query, reranked)
-        try:
-            prompt_data = ollama_client.prompt_builder.create_structured_prompt(
-                query, reranked, system_settings.user_language
-            )
-            final_prompt = prompt_data["prompt"]
-        except Exception:
-            final_prompt = ollama_client.prompt_builder.create_rag_prompt(
-                query, reranked, system_settings.user_language
+        rag_tracer = RAGTracer(langfuse_tracer)
+        start_time = time.time()
+        with rag_tracer.trace_request(user_id, query) as trace:
+            reranked_chunks, sources, reranked = retrieval_pipeline(
+                query, system_settings, qdrant_client, rag_tracer, trace
             )
 
-        logger.info(f"Step 5: LLM stream generation with final_prompt = {final_prompt}")
+            if not reranked_chunks:
+                yield f"data: {json.dumps({'answer': 'No relevant information found.', 'sources': [], 'done': True})}\n\n"
 
-        async for chunk in ollama_client.generate_stream(
-            prompt=final_prompt, temperature=system_settings.temperature
-        ):
-            # 每一個 chunk 是模型生成的一部分文字
-            # logger.info(chunk)
-            yield json.dumps(chunk) + "\n"
+            logger.info("Step 4: Build prompt")
+            # context = build_prompt(query, reranked)
+            with rag_tracer.trace_prompt_construction(
+                trace, reranked_chunks
+            ) as prompt_span:
+                try:
+                    prompt_data = ollama_client.prompt_builder.create_structured_prompt(
+                        query, reranked, system_settings.user_language
+                    )
+                    final_prompt = prompt_data["prompt"]
+                except Exception:
+                    final_prompt = ollama_client.prompt_builder.create_rag_prompt(
+                        query, reranked, system_settings.user_language
+                    )
+
+                rag_tracer.end_prompt(prompt_span, final_prompt)
+
+            logger.info(
+                f"Step 5: LLM stream generation with final_prompt = {final_prompt}"
+            )
+            with rag_tracer.trace_generation(trace, "hybrid", final_prompt) as gen_span:
+                full_response = ""
+                final_chunk = None
+
+                async for chunk in ollama_client.generate_stream(
+                    prompt=final_prompt, temperature=system_settings.temperature
+                ):
+                    # 每一個 chunk 是模型生成的一部分文字
+
+                    if chunk.get("response"):
+                        text_chunk = chunk["response"]
+                        full_response += text_chunk
+                        yield json.dumps(chunk) + "\n\n"
+
+                    if chunk.get("done", False):
+                        rag_tracer.end_generation(gen_span, full_response, "hybrid")
+                        logger.info(f"full_response {full_response}")
+                        yield f"data: {json.dumps({'answer': full_response, 'done': True})}\n\n"
+
+                        final_chunk = chunk  # ← save last chunk
+                        break
+
+            rag_tracer.end_request(trace, full_response, time.time() - start_time)
+            if final_chunk:
+                usage = store_chat_and_ollama_usage(
+                    user_id,
+                    query,
+                    final_chunk=final_chunk,
+                    prompt=final_prompt,
+                    response=full_response,
+                )
+                print("Token Usage:", usage)
+        # store_chat_and_usage(user_id, query, final_prompt, resp)
+        # get_ollama_token_usage
 
     except Exception as e:
         error_msg = {"error": str(e)}
