@@ -2,12 +2,22 @@ import json
 
 import httpx
 import requests
+from api.schemas.ask import AskResponse
 
 
-def call_note_server(server_url: str, payload: dict):
+def call_note_server(server_url: str, payload: dict) -> str:
     resp = requests.post(f"{server_url}/api/v1/ask", json=payload, timeout=180)
     resp.raise_for_status()
-    return resp.json()
+    response = resp.json()
+    askResponse = AskResponse(
+        query=response["query"],
+        answer=response["answer"],
+        sources=response["sources"],
+        chunks_used=response["chunks_used"],
+        search_mode=response["search_mode"],
+    )
+
+    return askResponse.answer
 
 
 async def call_note_stream_server(server_url: str, payload: dict):

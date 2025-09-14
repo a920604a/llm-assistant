@@ -6,7 +6,7 @@ from services.store_chat_and_usage import store_chat_and_usage
 logger = AppLogger(__name__).get_logger()
 
 
-def llm_flow(query: str, user_id: str, system_setting: SystemSettings):
+def llm_flow(query: str, user_id: str, system_setting: SystemSettings) -> str:
     llm_rewrite_query = rewrite_query(query=query, user_id=user_id)
     resp = llm(llm_rewrite_query, system_setting, user_id)
     logger.info(f"llm_reply {resp}")

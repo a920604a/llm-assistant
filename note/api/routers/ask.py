@@ -60,7 +60,7 @@ async def ask_question(
     # Store response in exact match cache
     if paper_cache_client:
         try:
-            await paper_cache_client.store_response(request, response)
+            await paper_cache_client.store_response(ask_r, response)
         except Exception as e:
             logger.warning(f"Failed to store response in cache: {e}")
 

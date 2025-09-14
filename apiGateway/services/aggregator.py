@@ -12,7 +12,7 @@ from services.prompts import build_prompt
 logger = AppLogger(__name__).get_logger()
 
 
-def process_user_query(query: str, user_id: str):
+def process_user_query(query: str, user_id: str) -> str:
     _cache = get_redis_system_setting(user_id=user_id)
     shortcut = not _cache.use_rag  # 是否使用快捷方式
 
@@ -30,9 +30,11 @@ def process_user_query(query: str, user_id: str):
             settings.NOTE_API_URL,
             {"text": query, "user_id": user_id},
         )
-        logger.info(f"note_result {note_result[:200]}")
+        # logger.info(f"note_result {note_result[:200]}")
+        logger.info(f"note_result {note_result}")
 
         # Step 3: 整合結果
+
         return note_result
 
 

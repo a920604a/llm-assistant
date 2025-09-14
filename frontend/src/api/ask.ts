@@ -26,7 +26,7 @@ export async function ask(
 
     try {
         const endpoint = mode === "standard" ? `${BASE_URL}/v1/ask` : `${BASE_URL}/v1/stream`
-        console.log(endpoint)
+        console.log("Calling endpoint:", endpoint);
 
         const res = await fetch(endpoint, {
             method: "POST",
@@ -55,13 +55,19 @@ export async function ask(
                 const chunk = decoder.decode(value, { stream: true })
 
                 fullReply += chunk
-                onStreamChunk?.(chunk) // 呼叫 callback 更新前端
+                onStreamChunk?.(chunk) // 動態更新前端
             }
             return { reply: fullReply }
         }
 
         // ✅ Standard 模式
-        return await res.json()
+        const data = await res.json()  // ✅ 只讀一次
+        console.log("LLM 回覆", data)
+        // 在標準模式也呼叫 callback 以統一更新邏輯
+        if (onStreamChunk) {
+            onStreamChunk(data);
+        }
+        return { reply: data }
 
     } catch (err: any) {
         if (err.name === "AbortError") {

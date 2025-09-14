@@ -13,7 +13,7 @@ router = APIRouter()
 @router.post("/api/v1/ask")
 @limiter.limit("7/minute")  # 每分鐘 7 次
 @observe_api
-def ask_host(
+def ask_question(
     request: Request,
     user_query: UserQuery,
     user_id: str = Depends(verify_firebase_token),
@@ -31,7 +31,8 @@ def ask_host(
         if not query:
             return {"error": "Query 不可為空"}
 
-        result = process_user_query(query, user_id=user_id)
+        result: str = process_user_query(query, user_id=user_id)
+
         return result
     except HTTPException:
         raise
