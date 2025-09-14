@@ -44,7 +44,7 @@ services:
     ports:
       - "8022:8000"
     env_file:
-      - ./.env # <- 指定要讀的環境變數檔
+      - .env # <- 指定要讀的環境變數檔
     depends_on:
       - arxiv-worker
     networks:
@@ -71,7 +71,7 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     env_file:
-      - ./.env # <- 指定要讀的環境變數檔
+      - .env # <- 指定要讀的環境變數檔
     networks:
       - langfuse-otel-net
 
@@ -89,7 +89,7 @@ services:
       - ./arxiv:/app
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
     env_file:
-      - ./.env
+      - .env
     networks:
       - langfuse-otel-net
 
@@ -101,7 +101,7 @@ services:
     container_name: email-worker
     command: worker
     env_file:
-      - ./.env
+      - .env
     volumes:
       - ./email:/app
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
@@ -119,7 +119,7 @@ services:
     container_name: email-beat
     command: beat
     env_file:
-      - ./.env
+      - .env
     depends_on:
       - email-worker
     volumes:
@@ -145,7 +145,7 @@ services:
     depends_on:
       - noteserver
     env_file:
-      - ./.env # <- 指定要讀的環境變數檔
+      - .env # <- 指定要讀的環境變數檔
     networks:
       - langfuse-otel-net
     healthcheck:

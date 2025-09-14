@@ -60,7 +60,7 @@ class QdrantClient:
         size: int = 10,
         categories: Optional[List[str]] = None,
         min_score: float = 0.25,
-    ) -> tuple[List[Dict], List[str], str]:
+    ) -> tuple[List[Dict], List[str], str, List[str], int]:
         # Step 1: 建立 Qdrant filter
         must_conditions = []
 
@@ -86,7 +86,7 @@ class QdrantClient:
 
         # Extract essential data for LLM
         chunks = []
-        # arxiv_ids = []
+        arxiv_ids = []
         sources = set()
 
         # [ScoredPoint(id=2952, version=30, score=0.591295, payload= {'arxiv_id' : XXX, 'abstract': XXX, 'title': XXX, 'authors': XXX, 'categories': XXX, 'published_date': XXX, 'text': XXX, 'chunk_idx': XXX}
@@ -106,11 +106,11 @@ class QdrantClient:
             )
 
             if arxiv_id:
-                # arxiv_ids.append(arxiv_id)
+                arxiv_ids.append(arxiv_id)
                 arxiv_id_clean = arxiv_id.split("v")[0] if "v" in arxiv_id else arxiv_id
                 sources.add(f"https://arxiv.org/pdf/{arxiv_id_clean}.pdf")
 
             info_str = f"title: {payload['title']} \n Score: {hit.score}\n arxiv_id : {payload['arxiv_id']}"
             msg += f"Retrieved {len(chunks)} chunks from collection {self.settings.COLLECTION_NAME}\n{info_str}\n\n\n"
 
-        return chunks, list(sources), msg
+        return chunks, list(sources), msg, arxiv_ids, len(query_result)

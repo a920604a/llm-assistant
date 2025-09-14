@@ -29,7 +29,7 @@ const ChatPage = () => {
         setLoading(true);
 
         try {
-            await ask(input, "standard", (chunk) => {
+            await ask(input, "stream", (chunk) => {
                 setMessages(prev => {
                     const newMsgs = [...prev];
                     const lastMsg = newMsgs[newMsgs.length - 1];

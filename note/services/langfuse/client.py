@@ -30,7 +30,7 @@ class LangfuseTracer:
                     debug=self.settings.debug,
                 )
                 logger.info(
-                    f"Langfuse tracing initialized (host: {self.settings.host})"
+                    f"Langfuse tracingclient initialized (host: {self.settings.host})"
                 )
             except Exception as e:
                 logger.error(f"Failed to initialize Langfuse: {e}")

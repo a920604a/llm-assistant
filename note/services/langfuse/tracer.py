@@ -1,6 +1,5 @@
 """Simple, efficient Langfuse tracing utility for RAG pipeline."""
 
-import time
 from contextlib import contextmanager
 from typing import Dict, List
 
@@ -31,7 +30,6 @@ class RAGTracer:
     @contextmanager
     def trace_embedding(self, trace, query: str):
         """Query embedding operation with timing."""
-        start_time = time.time()
         span = self.tracer.create_span(
             trace=trace,
             name="query_embedding",
@@ -40,16 +38,36 @@ class RAGTracer:
         try:
             yield span
         finally:
-            duration = time.time() - start_time
             if span:
                 self.tracer.update_span(
                     span=span,
                     output={
-                        "embedding_duration_ms": round(duration * 1000, 2),
                         "success": True,
                     },
                 )
                 span.end()
+
+    def end_embedding(self, span, embedding_vector: list[float]):
+        """
+        End embedding span with the resulting vector and duration.
+
+        Args:
+            span: The span object created by trace_embedding
+            embedding_vector: The resulting embedding vector
+        """
+        if not span:
+            return
+
+        self.tracer.update_span(
+            span=span,
+            output={
+                "embedding_length": len(embedding_vector),
+                "embedding_vector_preview": embedding_vector[
+                    :10
+                ],  # 只取前10個元素避免過長
+            },
+        )
+        span.end()
 
     @contextmanager
     def trace_search(self, trace, query: str, top_k: int):
@@ -79,6 +97,83 @@ class RAGTracer:
                 "unique_papers": len(set(arxiv_ids)),
                 "total_hits": total_hits,
                 "arxiv_ids": list(set(arxiv_ids)),
+            },
+        )
+
+    @contextmanager
+    def trace_rerank(
+        self, trace, query: str, vector_weight: float = 0.6, bm25_weight: float = 0.3
+    ):
+        """
+        Rerank operation with timing (vector + BM25 hybrid).
+        """
+        span = self.tracer.create_span(
+            trace=trace,
+            name="rerank",
+            input_data={
+                "query": query,
+                "vector_weight": vector_weight,
+                "bm25_weight": bm25_weight,
+            },
+        )
+        try:
+            yield span
+        finally:
+            if span:
+                span.end()
+
+    def end_rerank(self, span, reranked_chunks: list[dict]):
+        """
+        End rerank span and report top results.
+        """
+        if not span:
+            return
+
+        self.tracer.update_span(
+            span=span,
+            output={
+                "reranked_chunk_count": len(reranked_chunks),
+                "top_chunk_ids": [c.get("arxiv_id") for c in reranked_chunks[:10]],
+                "top_scores": [c.get("total_score") for c in reranked_chunks[:10]],
+            },
+        )
+
+    @contextmanager
+    def trace_evaluate(self, trace, query: str, reranked_chunks: list, top_k: int = 5):
+        """
+        Evaluation of reranked results with timing.
+        """
+        span = self.tracer.create_span(
+            trace=trace,
+            name="rerank_evaluation",
+            input_data={
+                "query": query,
+                "top_k": top_k,
+                "reranked_chunks": reranked_chunks,
+            },
+        )
+        try:
+            yield span
+        finally:
+            if span:
+                span.end()
+
+    def end_evaluate(self, span, eval_metrics: dict):
+        """
+        End evaluation span and report metrics.
+        """
+        if not span:
+            return
+
+        self.tracer.update_span(
+            span=span,
+            output={
+                "ndcg": eval_metrics.get("ndcg"),
+                "mrr": eval_metrics.get("mrr"),
+                "hit_rate": eval_metrics.get("hit_rate"),
+                "ranked_ids": eval_metrics.get("ranked_ids", [])[
+                    :10
+                ],  # top 10 for logging
             },
         )
 

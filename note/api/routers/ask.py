@@ -1,12 +1,15 @@
 # REST API routers
+import time
+
 from api.auto_metrics import observe_api
 from api.schemas.ask import AskRequest, AskResponse
 from api.schemas.query import Query
 from arxiv_rag_pipeline import ask_flow, rag_stream
-from dependencies import LangchainDep, OllamaDep, PaperCacheDep, QdrantDep
+from dependencies import LangchainDep, LangfuseDep, OllamaDep, PaperCacheDep, QdrantDep
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from logger import AppLogger
+from services.langfuse.tracer import RAGTracer
 from storage.redis_client import get_redis_system_setting
 
 logger = AppLogger(__name__).get_logger()
@@ -23,10 +26,13 @@ async def ask_question(
     langchain_client: LangchainDep,
     qdrant_client: QdrantDep,
     paper_cache_client: PaperCacheDep,
+    langfuse_tracer: LangfuseDep,
 ) -> AskResponse:
     q = request.text.strip()
     logger.info("ask_question %s", q)
 
+    rag_tracer = RAGTracer(langfuse_tracer)
+    start_time = time.time()
     system_settings = get_redis_system_setting(request.user_id)
     top = system_settings.top_k
     lang = system_settings.user_language
@@ -40,31 +46,39 @@ async def ask_question(
         model="gpt-oss:20b",
     )
 
-    if paper_cache_client:
-        try:
-            cached_response = await paper_cache_client.find_cached_response(ask_r)
-            if cached_response:
-                logger.info("Returning cached response for exact query match")
-                return cached_response
-        except Exception as e:
-            logger.warning(f"Cache check failed, proceeding with normal flow: {e}")
+    with rag_tracer.trace_request(request.user_id, ask_r.query) as trace:
+        if paper_cache_client:
+            try:
+                cached_response = await paper_cache_client.find_cached_response(ask_r)
+                if cached_response:
+                    logger.info("Returning cached response for exact query match")
 
-    response = ask_flow(
-        query=q,
-        system_settings=system_settings,
-        langchain_client=langchain_client,
-        qdrant_client=qdrant_client,
-        user_id=ask_r.user_id,
-    )
+                    rag_tracer.end_request(
+                        trace, cached_response.answer, time.time() - start_time
+                    )
+                    return cached_response
+            except Exception as e:
+                logger.warning(f"Cache check failed, proceeding with normal flow: {e}")
 
-    # Store response in exact match cache
-    if paper_cache_client:
-        try:
-            await paper_cache_client.store_response(ask_r, response)
-        except Exception as e:
-            logger.warning(f"Failed to store response in cache: {e}")
+        response = ask_flow(
+            query=q,
+            system_settings=system_settings,
+            langchain_client=langchain_client,
+            qdrant_client=qdrant_client,
+            user_id=ask_r.user_id,
+            rag_tracer=rag_tracer,
+            trace=trace,
+        )
 
-    return response
+        # Store response in exact match cache
+        if paper_cache_client:
+            try:
+                await paper_cache_client.store_response(ask_r, response)
+            except Exception as e:
+                logger.warning(f"Failed to store response in cache: {e}")
+
+        rag_tracer.end_request(trace, response.answer, time.time() - start_time)
+        return response
 
 
 @stream_router.post("/api/v1/stream")
@@ -72,6 +86,7 @@ async def ask_question_stream(
     request: Query,
     ollama_client: OllamaDep,
     qdrant_client: QdrantDep,
+    langfuse_tracer: LangfuseDep,
 ):
     q = request.text.strip()
     logger.info("ask_question_stream %s", q)
