@@ -4,8 +4,8 @@ from langchain_core.messages.ai import AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 from logger import AppLogger
-from services.langchain.prompts import RAGPromptBuilder, ResponseParser
 from services.langfuse_client import LangfuseObs
+from services.prompts import RAGPromptBuilder, ResponseParser
 
 logger = AppLogger(__name__).get_logger()
 

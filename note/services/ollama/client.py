@@ -6,7 +6,7 @@ import httpx
 from config import Settings
 from exceptions import OllamaConnectionError, OllamaException, OllamaTimeoutError
 from logger import AppLogger
-from services.ollama.prompts import RAGPromptBuilder, ResponseParser
+from services.prompts import RAGPromptBuilder, ResponseParser
 
 logger = AppLogger(__name__).get_logger()
 

@@ -39,7 +39,9 @@ class RAGPromptBuilder:
             )
         return prompt_file.read_text().strip()
 
-    def create_rag_prompt(self, query: str, chunks: List[Dict[str, Any]]) -> str:
+    def create_rag_prompt(
+        self, query: str, chunks: List[Dict[str, Any]], user_language: str = "English"
+    ) -> str:
         """Create a RAG prompt with query and retrieved chunks.
 
         Args:
@@ -62,12 +64,17 @@ class RAGPromptBuilder:
             prompt += f"{chunk_text}\n\n"
 
         prompt += f"### Question:\n{query}\n\n"
-        prompt += "### Answer:\nProvide a natural, conversational response (not JSON) and cite sources using [arXiv:id] format.\n\n"
+        prompt += "### Answer:\n"
+        prompt += (
+            "Provide a natural, conversational response (not JSON), cite sources using [arXiv:id] format.\n\n"
+            f"and Translate to {user_language}. "
+            f"Output ONLY in {user_language}, formatted clearly for readability"
+        )
 
         return prompt
 
     def create_structured_prompt(
-        self, query: str, chunks: List[Dict[str, Any]]
+        self, query: str, chunks: List[Dict[str, Any]], user_language: str = "English"
     ) -> Dict[str, Any]:
         """Create a prompt for Ollama with structured output format.
 
@@ -78,7 +85,7 @@ class RAGPromptBuilder:
         Returns:
             Dictionary with prompt and format schema for Ollama
         """
-        prompt_text = self.create_rag_prompt(query, chunks)
+        prompt_text = self.create_rag_prompt(query, chunks, user_language)
 
         # Return prompt with Pydantic model schema for structured output
         return {

@@ -7,7 +7,6 @@ from dependencies import LangchainDep, OllamaDep, QdrantDep
 from embedding import get_embedding
 from evaluate import evaluate
 from logger import AppLogger
-from prompt import build_prompt
 from services.rerank import re_ranking
 from services.store_chat_and_usage import store_chat_and_usage
 
@@ -45,10 +44,7 @@ def retrieval_pipeline(
     eval_metrics = evaluate(qdrant_client, reranked, query, top_k=system_settings.top_k)
     logger.info(f"Evaluation metrics: {eval_metrics}")
 
-    logger.info("Step 4: Build context")
-    context = build_prompt(query, reranked)
-
-    return reranked, sources, context
+    return reranked, sources, reranked
 
 
 # --- Full RAG pipeline ---
@@ -61,7 +57,7 @@ def ask_flow(
 ) -> AskResponse:
     logger.info("Step 0: Re write ")
 
-    reranked_chunks, sources, context = retrieval_pipeline(
+    reranked_chunks, sources, reranked = retrieval_pipeline(
         query, system_settings, qdrant_client
     )
 
@@ -75,30 +71,28 @@ def ask_flow(
         )
         return response
 
-    # logger.info("Step 2: Re-ranking ")
-    # logger.info(msg)
-
-    # reranked = re_ranking(retrieved_chunks, query)
-
-    # logger.info("Step 3: Evaluation")
-    # eval_metrics = evaluate(qdrant_client,
-    #     reranked, query, top_k=system_settings.top_k
-    # )
-    # logger.info(f"Evaluation metrics: {eval_metrics}")
-
-    # logger.info("Step 4: Build context")
+    logger.info("Step 4: Build context")
     # context = build_prompt(query, reranked)
+    try:
+        prompt_data = langchain_client.prompt_builder.create_structured_prompt(
+            query, reranked, system_settings.user_language
+        )
+        final_prompt = prompt_data["prompt"]
+    except Exception:
+        final_prompt = langchain_client.prompt_builder.create_rag_prompt(
+            query, reranked, system_settings.user_language
+        )
 
-    logger.info(f"Step 5: LLM generation with context = {context}")
+    logger.info(f"Step 5: LLM generation with context = {final_prompt[100:]}")
     resp = langchain_client.llm_context(
-        context,
+        final_prompt,
         query,
         user_language=system_settings.user_language,
         user_id=user_id,
         system_prompt=system_settings.system_prompt,
     )
 
-    store_chat_and_usage(user_id, query, context, resp)
+    store_chat_and_usage(user_id, query, final_prompt, resp)
 
     # return answer
     # Prepare response
@@ -121,19 +115,32 @@ async def rag_stream(
     user_id: str = "anonymous",
 ) -> str:
     try:
-        reranked_chunks, sources, context = retrieval_pipeline(
+        reranked_chunks, sources, reranked = retrieval_pipeline(
             query, system_settings, qdrant_client
         )
 
         if not reranked_chunks:
             yield f"data: {json.dumps({'answer': 'No relevant information found.', 'sources': [], 'done': True})}\n\n"
 
-        logger.info(f"Step 5: LLM stream generation with context = {context}")
+        logger.info("Step 4: Build context")
+        # context = build_prompt(query, reranked)
+        try:
+            prompt_data = ollama_client.prompt_builder.create_structured_prompt(
+                query, reranked, system_settings.user_language
+            )
+            final_prompt = prompt_data["prompt"]
+        except Exception:
+            final_prompt = ollama_client.prompt_builder.create_rag_prompt(
+                query, reranked, system_settings.user_language
+            )
+
+        logger.info(f"Step 5: LLM stream generation with final_prompt = {final_prompt}")
 
         async for chunk in ollama_client.generate_stream(
-            prompt=context, temperature=system_settings.temperature
+            prompt=final_prompt, temperature=system_settings.temperature
         ):
             # 每一個 chunk 是模型生成的一部分文字
+            # logger.info(chunk)
             yield json.dumps(chunk) + "\n"
 
     except Exception as e:
@@ -141,9 +148,9 @@ async def rag_stream(
         yield f"data: {json.dumps(error_msg)}\n\n"
 
 
-if __name__ == "__main__":
-    query = "What is RAG?"
-    answer = ask_flow(
-        query, system_settings=SystemSettings(user_language="Traditional Chinese")
-    )
-    print(answer)
+# if __name__ == "__main__":
+#     query = "What is RAG?"
+#     answer = ask_flow(
+#         query, system_settings=SystemSettings(user_language="Traditional Chinese")
+#     )
+#     print(answer)

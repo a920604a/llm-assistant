@@ -62,7 +62,6 @@ export async function ask(
 
         // ✅ Standard 模式
         const data = await res.json()  // ✅ 只讀一次
-        console.log("LLM 回覆", data)
         // 在標準模式也呼叫 callback 以統一更新邏輯
         if (onStreamChunk) {
             onStreamChunk(data);
