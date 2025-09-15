@@ -8,6 +8,8 @@ from services.fetch_paper_content import fetch_paper_content_from_qdrant
 from services.filter_already_sent_papers import filter_already_sent_papers
 from services.generate_summary import generate_summary
 from services.get_subscribed_users import get_subscribed_users
+from services.record_sent_papers import record_sent_papers
+from services.send_email import send_email
 from storage import db_session
 
 # ----------------------
@@ -124,32 +126,26 @@ def process_user_task(user: dict, papers: list[dict], content_map: dict):
 
     # 生成 summary
     try:
-        _ = generate_summary((papers, content_map), user)
+        summary_html = generate_summary((papers, content_map), user)
     except Exception as e:
         logger.error(f"Failed to generate summary for user {user_id}: {e}")
         return {"user_id": user_id, "status": "failed", "reason": f"summary error: {e}"}
 
     # 發送 email
-    # try:
-    #     # send_email_sync(
-    #     #     subject="每日論文摘要",
-    #     #     recipients=[email],
-    #     #     papers=papers,
-    #     #     summary_htmls=summary,
-    #     # )
-    #     send_email(
-    #         subject="Daily Paper Summary",
-    #         recipients=[email],
-    #         body=summary,
-    #     )
-    #     logger.info(f"[User {user_id}] Email sent successfully")
-    # except Exception as e:
-    #     logger.error(f"Failed to send email to {email}: {e}")
-    #     return {"user_id": user_id, "status": "failed", "reason": f"email error: {e}"}
+    try:
+        send_email(
+            subject="Daily Paper Summary",
+            recipients=email,
+            body=summary_html,
+        )
+        logger.info(f"[User {user_id}] Email sent successfully")
+    except Exception as e:
+        logger.error(f"Failed to send email to {email}: {e}")
+        return {"user_id": user_id, "status": "failed", "reason": f"email error: {e}"}
 
-    # # 記錄已寄送
-    # arxiv_ids = [p["arxiv_id"] for p in papers if p.get("arxiv_id")]
-    # record_sent_papers(user_id, arxiv_ids)
+    # 記錄已寄送
+    arxiv_ids = [p["arxiv_id"] for p in papers if p.get("arxiv_id")]
+    record_sent_papers(user_id, arxiv_ids)
 
     # logger.info(f"Sent {len(papers)} papers to user {user_id} ({email})")
     return {"user_id": user_id, "status": "success", "sent_count": len(papers)}

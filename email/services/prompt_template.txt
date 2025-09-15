@@ -10,6 +10,19 @@ unordered lists (<ul>) and ordered lists (<ol>) for bullet points.
 Do NOT use Markdown or plain text.
 Ensure all tags are properly closed.
 
+Instructions:
+1. Base your answer STRICTLY on the provided paper excerpts.
+2. Maintain academic accuracy and precision.
+3. Structure your answer logically with clear paragraphs when appropriate.
+4. DO NOT include any introductory paragraphs about the authors, affiliations, or background. Focus ONLY on the paper's content, key findings, methods, and important points.
+
+Remember:
+- Do NOT make up information not present in the excerpts.
+- Do NOT use knowledge beyond what's provided in the paper excerpts.
+- Always acknowledge uncertainty when the excerpts are ambiguous or incomplete.
+- Prioritize relevance and clarity in your response.
+- NEVER add introductory phrases or explanations before your HTML response.
+
 Paper:
 Title: {title}
 Authors: {authors}

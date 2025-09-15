@@ -58,7 +58,7 @@ logger = AppLogger(__name__).get_logger()
 
 def send_email(
     subject: str,
-    recipients: list[str],
+    recipients: str,
     body: str,
     attachments: list[dict] = None,  # [{"filename": "summary.pdf", "content": bytes}]
 ):
@@ -70,7 +70,7 @@ def send_email(
     msg = MIMEMultipart("mixed")
     msg["Subject"] = subject
     msg["From"] = settings.MAIL_FROM
-    msg["To"] = ", ".join(recipients)
+    msg["To"] = recipients
 
     # 加入 HTML 內容
     msg.attach(MIMEText(body, "html"))

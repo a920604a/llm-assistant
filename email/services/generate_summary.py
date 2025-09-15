@@ -158,13 +158,13 @@ def generate_summary(
     template_path = pathlib.Path(__file__).parent / "template.html"
     template_text = template_path.read_text(encoding="utf-8")
     final_html = Template(template_text).substitute(papers_html=papers_html)
-    logger.info("-" * 50)
-    logger.info(papers_html)
+    # logger.info("-" * 50)
+    # logger.info(papers_html)
 
-    file_path = "daily_summary.html"
+    # file_path = "daily_summary.html"
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write(final_html)
+    # with open(file_path, "w", encoding="utf-8") as f:
+    #     f.write(final_html)
 
     logger.info("Summary generation completed.")
     return final_html

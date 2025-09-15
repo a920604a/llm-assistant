@@ -8,67 +8,116 @@
         body {
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            background-color: #f4f4f4;
+            background-color: #f0f4f8;
             margin: 0;
             padding: 20px;
         }
 
         h2 {
             text-align: center;
-            color: #333;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            background: linear-gradient(90deg, #6a11cb, #b5d0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .paper-summary {
-            border: 1px solid #ddd;
+            border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            border-radius: 10px;
-            background-color: #fff;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
+            background: linear-gradient(145deg, #ffffff, #e8f0fe);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+            cursor: pointer;
         }
 
         .paper-summary:hover {
-            transform: translateY(-3px);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(145deg, #e8f0fe, #d0e2ff);
         }
 
         .paper-title {
-            font-size: 1.3em;
+            font-size: 1.5em;
             font-weight: bold;
-            margin-bottom: 8px;
-            color: #1a1a1a;
+            margin-bottom: 10px;
+            color: #f6b387;
+            /* 深藍色 */
+            transition: color 0.3s;
+        }
+
+        .paper-title:hover {
+            color: #ff5722;
+            /* 橘色 hover */
         }
 
         .paper-meta {
             font-size: 0.9em;
-            color: #555;
+            color: #616161;
             margin-bottom: 12px;
         }
 
         .paper-meta a {
-            color: #1a73e8;
+            color: #1976d2;
             text-decoration: none;
+            font-weight: bold;
         }
 
         .paper-meta a:hover {
             text-decoration: underline;
         }
 
-        .paper-summary:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        .paper-summary p {
-            margin: 8px 0;
-        }
-
+        .paper-summary p,
         .paper-summary ul,
         .paper-summary ol {
-            margin: 8px 0 8px 20px;
+            margin: 8px 0;
+            color: #424242;
+            /* 統一段落與列表文字顏色 */
         }
 
-        .paper-summary strong {
-            color: #000;
+        /* 段落標籤小徽章 */
+        .label {
+            display: inline-block;
+            padding: 2px 6px;
+            font-size: 0.75em;
+            font-weight: bold;
+            border-radius: 4px;
+            margin-right: 6px;
+            color: #fff;
+        }
+
+        .label-authors {
+            background-color: #00796b;
+        }
+
+        .label-date {
+            background-color: #f57c00;
+        }
+
+        .label-pdf {
+            background-color: #1976d2;
+        }
+
+        .summary-content {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .toggle-btn {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-btn:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -81,6 +130,17 @@
     <!-- Papers Section End -->
 
     <p><em>本摘要僅供參考，最終請依原始論文與專業判斷。</em></p>
+
+    <script>
+        document.querySelectorAll('.paper-summary').forEach(function (card) {
+            card.addEventListener('click', function () {
+                const content = this.querySelector('.summary-content');
+                if (content) {
+                    content.style.display = content.style.display === 'none' ? 'block' : 'none';
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
