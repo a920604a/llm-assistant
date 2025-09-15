@@ -1,12 +1,8 @@
-import io
 import pathlib
-from datetime import datetime
 from string import Template
 
-from config import settings
 from prefect import get_run_logger
 from services.langchain_client import llm_summary
-from storage.minio import s3_client
 
 
 def fetch_paper_info(paper: dict, content_map: dict[str, str]) -> dict:
@@ -56,44 +52,11 @@ def summarize_paper(paper_info: dict, user: dict, logger) -> str:
         return "Summary generation failed."
 
 
-def save_summary_to_s3(html: str, arxiv_id: str) -> str:
-    """
-    將 HTML 上傳到 S3 / MinIO
-    :param html: 生成的 HTML 內容
-    :param s3_client: boto3.client("s3") 物件
-    :param bucket: S3 / MinIO bucket 名稱
-    :param object_name: 存到 S3 的路徑/檔名 (例如 "summaries/daily_paper_summary.html")
-    :return: S3 物件名稱
-    """
-    logger = get_run_logger()
-
-    today_str = datetime.today().strftime("%Y-%m-%d")
-    object_name = f"{arxiv_id}/summary_{today_str}.html"
-
-    try:
-        buffer = io.BytesIO(html.encode("utf-8"))
-        s3_client.upload_fileobj(
-            buffer,
-            settings.MINIO_NOTE_BUCKET,
-            object_name,
-            ExtraArgs={
-                "ContentType": "text/html",  # ✅ 讓瀏覽器知道是 HTML
-                "ContentDisposition": "inline",  # ✅ inline = 預覽, attachment = 強制下載
-                "CacheControl": "max-age=3600",  # （可選）瀏覽器快取
-            },
-        )
-        logger.info(f"Uploaded summary to s3://{object_name}")
-        return object_name
-    except Exception as e:
-        logger.error(f"Failed to upload summary to S3: {e}")
-        raise
-
-
 def generate_summary(
     papers_and_content: tuple[list[dict], dict[str, str]], user: dict
 ) -> str:
     """
-    將每篇論文生成 LLM 摘要，並整理成 HTML，附上 PDF 連結
+    將每篇論文生成 LLM 摘要，並整理成 HTML
     """
     papers, content_map = papers_and_content
     logger = get_run_logger()
