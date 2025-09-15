@@ -1,5 +1,7 @@
 import io
+import pathlib
 from datetime import datetime
+from string import Template
 
 from config import settings
 from prefect import get_run_logger
@@ -41,6 +43,7 @@ def fetch_paper_info(paper: dict, content_map: dict[str, str]) -> dict:
         "authors": paper.get("authors") or [],
         "abstract": paper.get("abstract") or "",
         "pdf_url": paper.get("pdf_url") or None,
+        "published_date": paper.get("published_date") or None,
     }
 
     arxiv_id = paper.get("arxiv_id")
@@ -127,50 +130,41 @@ def generate_summary(
         return "<p>No new papers today.</p>"
 
     logger.info(f"Generating summary for {len(papers)} papers...")
-    htmls = """
-    <html>
-    <head>
-        <style>
-            body { font-family: Arial, sans-serif; line-height: 1.5; }
-            .paper-summary { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; background-color: #f9f9f9; }
-            .paper-title { font-size: 1.2em; font-weight: bold; margin-bottom: 5px; }
-            .paper-meta { font-size: 0.9em; color: #555; margin-bottom: 10px; }
-            .paper-summary:nth-child(even) { background-color: #f1f1f1; }
-        </style>
-    </head>
-    <body>
-        <h2>今日論文摘要</h2>
-    """
+
+    papers_html = ""
 
     for idx, p in enumerate(papers, start=1):
         paper_info = fetch_paper_info(p, content_map)
         summary = summarize_paper(paper_info, user, logger)
-
         pdf_url = paper_info.get("pdf_url")
         pdf_link_html = (
-            f'<a href="{pdf_url}" target="_blank">Download PDF</a>'
-            if pdf_url
-            else "N/A"
+            f'<a href="{pdf_url}" target="_blank">Preview PDF</a>' if pdf_url else "N/A"
         )
 
-        html = f"""
+        papers_html += f"""
         <div class="paper-summary">
             <div class="paper-title">{idx}. {paper_info["title"]}</div>
             <div class="paper-meta">
-                Authors: {", ".join(paper_info.get("authors", []))} <br>
-                Published: {paper_info.get("published_date", "N/A")} <br>
-                PDF: {pdf_link_html}
+                <strong>Authors:</strong> {", ".join(paper_info.get("authors", []))} <br>
+                <strong>Published:</strong> {paper_info.get("published_date", "N/A")} <br>
+                <strong>PDF:</strong> {pdf_link_html}
             </div>
-            <p>{summary}</p>
+            <div class="paper-abstract">
+                {summary}
+            </div>
         </div>
         """
-        htmls += html
 
-    htmls += """
-    <p><em>本摘要僅供參考，最終請依原始論文與專業判斷。</em></p>
-    </body>
-    </html>
-    """
+    template_path = pathlib.Path(__file__).parent / "template.html"
+    template_text = template_path.read_text(encoding="utf-8")
+    final_html = Template(template_text).substitute(papers_html=papers_html)
+    logger.info("-" * 50)
+    logger.info(papers_html)
+
+    file_path = "daily_summary.html"
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(final_html)
 
     logger.info("Summary generation completed.")
-    return htmls
+    return final_html

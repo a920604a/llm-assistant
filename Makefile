@@ -107,6 +107,9 @@ retrieval:
 sample_qdrant:
 	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/qdrant/sample_qdrant.py"
 
+email-trial:
+	$(DOCKER_COMPOSE) exec email-worker /bin/bash -c "PYTHONPATH=/app python trial.py"
+
 # pipeline
 ingest-arxiv:
 	$(DOCKER_COMPOSE) exec arxiv-worker /bin/bash -c "PYTHONPATH=/app python flows/arxiv_pipeline.py"

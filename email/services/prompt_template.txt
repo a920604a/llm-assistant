@@ -1,0 +1,18 @@
+{system_prompt}
+You are a professional research assistant.
+Summarize the following paper concisely, in no more than {max_words} words.
+Keep it readable for an email newsletter.
+(Note: the text provided is the paper's {content_type})
+{translation_instruction}
+OUTPUT MUST BE HTML and email-friendly.
+Use headings (<h2>, <h3>), paragraphs (<p>), bold (<strong>), italics (<em>),
+unordered lists (<ul>) and ordered lists (<ol>) for bullet points.
+Do NOT use Markdown or plain text.
+Ensure all tags are properly closed.
+
+Paper:
+Title: {title}
+Authors: {authors}
+Content: {content}
+
+Include key findings, methods, and any important points as bullet points or numbered lists.
