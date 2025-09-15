@@ -38,6 +38,9 @@ def fetch_papers_task(days: int = 1) -> list[dict]:
             }
             for p in papers
         ]
+    logger.info(
+        f"Fetched papers published_date >= {datetime.utcnow() - timedelta(days=days)}"
+    )
     logger.info(f"Fetched {len(papers_data)} papers in {time.time() - start:.2f}s")
     return papers_data
 

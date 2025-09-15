@@ -42,5 +42,5 @@ def fetch_paper_content_from_qdrant(arxiv_id: str = None, title: str = None) -> 
         return ""
 
     contents = [p.payload.get("text", "") for p in points if p.payload]
-    logger.debug(f"Fetched raw_content length: {len(contents)}")
+    logger.info(f"Fetched raw_content length: {len(contents)}")
     return "\n".join(contents)
