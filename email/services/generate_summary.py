@@ -9,33 +9,6 @@ from services.langchain_client import llm_summary
 from storage.minio import s3_client
 
 
-def format_paper_html(paper: dict, summary: str) -> str:
-    """格式化單篇論文的 HTML 區塊"""
-    authors_str = ", ".join(paper.get("authors") or [])
-
-    # 防呆：避免 None / 空值
-    safe_title = paper.get("title") or "No Title"
-    safe_summary = summary or "Summary not available."
-    pdf_url = paper.get("pdf_url")
-
-    # title 當作連結
-    if pdf_url:
-        title_html = f'<h3><a href="{pdf_url}" target="_blank">{safe_title}</a></h3>'
-    else:
-        title_html = f"<h3>{safe_title}</h3>"
-
-    return f"""
-    <li>
-        {title_html}
-        <p><em>{authors_str}</em></p>
-        <div>
-            <strong>Summary:</strong>
-            <p>{safe_summary}</p>
-        </div>
-    </li>
-    """
-
-
 def fetch_paper_info(paper: dict, content_map: dict[str, str]) -> dict:
     """整理單篇論文資訊，包含 raw_content（若有）"""
     paper_info = {

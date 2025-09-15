@@ -19,6 +19,8 @@ def llm_summary(paper: Dict, user: dict, max_words: int = 300) -> str:
 
     title = paper.get("title", "No Title")
     authors = ", ".join(paper.get("authors") or [])
+    authors_str = ", ".join([a.replace("{", "{{").replace("}", "}}") for a in authors])
+
     content = paper.get("raw_content") or paper.get("abstract", "")
     content_type = "Full Content" if paper.get("raw_content") else "Abstract"
 
@@ -37,7 +39,7 @@ def llm_summary(paper: Dict, user: dict, max_words: int = 300) -> str:
         content_type=content_type,
         translation_instruction=translation_instruction,
         title=title,
-        authors=authors,
+        authors=authors_str,
         content=content,
     )
 
