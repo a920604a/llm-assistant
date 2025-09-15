@@ -35,7 +35,7 @@ add_prometheus_option(celery_app)
 celery_app.conf.beat_schedule = {
     "daily-arxiv-pipeline": {
         "task": "run_daily_arxiv_pipeline",
-        "schedule": crontab(hour=7, minute=30),  # for production
+        "schedule": crontab(hour=9, minute=0),  # for production
         # "schedule": crontab(minute="*/2"),  # for test
         # "schedule": crontab(hour="*"),  # for test
         # "schedule": crontab(minute=15),  # 或者每天每小時第 15 分鐘
