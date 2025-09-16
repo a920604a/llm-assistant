@@ -14,7 +14,7 @@ def llm_summary(paper: Dict, user: dict, max_words: int = 300) -> str:
 
     is_translate = user.get("translate", False)
     user_language = user.get("user_language", "English")
-    temperature = user.get("temperature", 0.5)
+    temperature = min(0.2, user.get("temperature", 0.5))
     system_prompt = user.get("system_prompt", "")
 
     title = paper.get("title", "No Title")

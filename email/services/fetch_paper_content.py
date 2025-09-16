@@ -34,6 +34,7 @@ def fetch_paper_content_from_qdrant(arxiv_id: str = None, title: str = None) -> 
     result = qdrant_client.scroll(
         collection_name=COLLECTION_NAME,
         scroll_filter=models.Filter(must=must_conditions),
+        limit=100,
     )
 
     points, _ = result

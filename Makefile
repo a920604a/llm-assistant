@@ -118,7 +118,7 @@ email-subscribe:
 	$(DOCKER_COMPOSE) exec email-worker /bin/bash -c "PYTHONPATH=/app python pipeline.py"
 
 rag:
-	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python arxiv_ingestion/flows/arxiv_rag_pipeline.py"
+	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python arxiv_rag_pipeline.py"
 
 
 

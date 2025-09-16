@@ -38,17 +38,16 @@ def trim_summary(summary: str, level: str) -> str:
     return summary
 
 
-def summarize_paper(paper_info: dict, user: dict, logger) -> str:
+def summarize_paper(paper_info: dict, user: dict) -> str:
     """呼叫 LLM 生成摘要，若失敗則 fallback"""
     try:
-        summary = llm_summary(paper_info, user)
+        summary = llm_summary(paper_info=paper_info, user=user, max_words=500)
         if not summary or not isinstance(summary, str):
             return "No summary available."
         # 根據 user["summary_level"] 決定輸出
         level = user.get("summary_level", "detailed")
         return trim_summary(summary, level)
-    except Exception as e:
-        logger.error(f"Failed to generate summary for '{paper_info['title']}': {e}")
+    except Exception:
         return "Summary generation failed."
 
 
@@ -71,7 +70,7 @@ def generate_summary(
 
     for idx, p in enumerate(papers, start=1):
         paper_info = fetch_paper_info(p, content_map)
-        summary = summarize_paper(paper_info, user, logger)
+        summary = summarize_paper(paper_info, user)
         pdf_url = paper_info.get("pdf_url")
         pdf_link_html = (
             f'<a href="{pdf_url}" target="_blank">Preview PDF</a>' if pdf_url else "N/A"

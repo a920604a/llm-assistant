@@ -14,7 +14,6 @@ class ParsingException(Exception):
     """Base exception for parsing-related errors."""
 
 
-# Week 2: PDF parsing exceptions (implemented)
 class PDFParsingException(ParsingException):
     """Base exception for PDF parsing-related errors."""
 
@@ -35,12 +34,10 @@ class PDFCacheException(Exception):
     """Exception raised for PDF cache-related errors."""
 
 
-# Week 3+: OpenSearch exceptions (placeholders for Week 1)
 class OpenSearchException(Exception):
     """Base exception for OpenSearch-related errors."""
 
 
-# Week 2+: ArXiv API exceptions
 class ArxivAPIException(Exception):
     """Base exception for arXiv API-related errors."""
 
@@ -57,7 +54,6 @@ class ArxivParseError(ArxivAPIException):
     """Exception raised when arXiv API response parsing fails."""
 
 
-# Week 2+: Metadata fetching exceptions
 class MetadataFetchingException(Exception):
     """Base exception for metadata fetching pipeline errors."""
 
@@ -82,6 +78,5 @@ class OllamaTimeoutError(OllamaException):
     """Exception raised when Ollama service times out."""
 
 
-# General application exceptions
 class ConfigurationError(Exception):
     """Exception raised when configuration is invalid."""

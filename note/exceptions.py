@@ -14,6 +14,5 @@ class OllamaTimeoutError(OllamaException):
     """Exception raised when Ollama service times out."""
 
 
-# General application exceptions
 class ConfigurationError(Exception):
     """Exception raised when configuration is invalid."""
