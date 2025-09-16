@@ -34,7 +34,7 @@ add_prometheus_option(celery_app)
 celery_app.conf.beat_schedule = {
     "daily_paper_summary": {
         "task": "send_daily_papers",
-        "schedule": crontab(hour=8, minute=45),  # 每天 10:00 AM
+        "schedule": crontab(hour=9, minute=30),  # 每天 10:00 AM
         # "schedule": crontab(minute=20),  # 或者每天每小時第 20 分鐘
         # "schedule": crontab(minute="*/2"),  # for test
         "args": (5,),  # top_k=1

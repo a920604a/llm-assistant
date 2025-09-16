@@ -43,7 +43,7 @@ def arxiv_pipeline(
         results["pdfs_parsed"] = pdf_results["parsed"]
         results["errors"].extend(pdf_results["errors"])
         results["papers_stored"] = pdf_results["papers_stored"]
-    print(f"Stored {pdf_results['papers_stored']} papers in DB")
+        print(f"Stored {pdf_results['papers_stored']} papers in DB")
 
     # Step 3: Qdrant Index
     indexed_count, _ = qdrant_index_task(papers, pdf_results.get("parsed_papers", {}))
@@ -56,10 +56,10 @@ def arxiv_pipeline(
 
     result_summary = {
         "papers_fetched": len(papers),
-        "pdfs_downloaded": pdf_results.get("downloaded", 0),
-        "pdfs_parsed": pdf_results.get("parsed", 0),
-        "papers_indexed": indexed_count,
-        "papers_stored": pdf_results["papers_stored"],
+        "pdfs_downloaded": results.get("pdfs_downloaded", 0),
+        "pdfs_parsed": results.get("pdfs_parsed", 0),
+        "papers_indexed": results.get("papers_indexed", 0),
+        "papers_stored": results.get("papers_stored", 0),
         "errors": pdf_results.get("errors", []),
     }
 

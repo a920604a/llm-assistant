@@ -43,7 +43,7 @@ def chunk_text(
 @task(name="Qdrant Index Task")
 def qdrant_index_task(
     papers: List[ArxivPaper], parsed_papers: Dict[str, ParsedPaper]
-) -> int:
+) -> tuple[int, List[str]]:
     """
     將 papers 轉成向量並上傳到 Qdrant
     """

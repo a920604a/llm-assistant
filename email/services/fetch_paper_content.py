@@ -34,7 +34,7 @@ def fetch_paper_content_from_qdrant(arxiv_id: str = None, title: str = None) -> 
     result = qdrant_client.scroll(
         collection_name=COLLECTION_NAME,
         scroll_filter=models.Filter(must=must_conditions),
-        limit=1,
+        limit=100,
     )
 
     points, _ = result
@@ -42,7 +42,6 @@ def fetch_paper_content_from_qdrant(arxiv_id: str = None, title: str = None) -> 
     if not points:
         return ""
 
-    payload = points[0].payload
-    raw_content = payload.get("text", "")
-    logger.debug(f"Fetched raw_content length: {len(raw_content)}")
-    return raw_content
+    contents = [p.payload.get("text", "") for p in points if p.payload]
+    logger.info(f"Fetched raw_content length: {len(contents)}")
+    return "\n".join(contents)

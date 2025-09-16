@@ -4,11 +4,15 @@ from typing import List, Tuple
 
 from api.schemas.ask import AskResponse
 from api.schemas.SystemSetting import SystemSettings
+from config import get_settings
 from dependencies import LangchainDep, LangfuseDep, OllamaDep, QdrantDep
 from embedding import get_embedding
 from evaluate import evaluate
 from logger import AppLogger
+from services.langchain.client import LangChainClient
+from services.langfuse.client import LangfuseTracer
 from services.langfuse.tracer import RAGTracer
+from services.qdrant.client import QdrantClient
 from services.rerank import re_ranking
 from services.store_chat_and_usage import (
     store_chat_and_ollama_usage,
@@ -215,17 +219,45 @@ async def rag_stream(
                     response=full_response,
                 )
                 print("Token Usage:", usage)
-        # store_chat_and_usage(user_id, query, final_prompt, resp)
-        # get_ollama_token_usage
 
     except Exception as e:
         error_msg = {"error": str(e)}
         yield f"data: {json.dumps(error_msg)}\n\n"
 
 
-# if __name__ == "__main__":
-#     query = "What is RAG?"
-#     answer = ask_flow(
-#         query, system_settings=SystemSettings(user_language="Traditional Chinese")
-#     )
-#     print(answer)
+if __name__ == "__main__":
+    from dependencies import LangchainDep, QdrantDep
+    from services.langfuse.tracer import RAGTracer
+
+    query = "What is RAG?"
+
+    # 初始化必要設定
+    system_settings = SystemSettings(
+        user_language="Traditional Chinese",
+        translate=True,
+        system_prompt="You are a helpful assistant.",
+        top_k=5,
+        use_rag=True,
+        subscribe_email=True,
+        reranker_enabled=True,
+        temperature=0.7,
+    )
+
+    # 依賴注入 (實際要改成你的專案初始化方式)
+    settings = get_settings()
+    qdrant_client = QdrantClient(settings)
+    langchain_client = LangChainClient(settings)
+    rag_tracer = RAGTracer(LangfuseTracer(settings))
+
+    # 呼叫流程
+    response = ask_flow(
+        query=query,
+        system_settings=system_settings,
+        langchain_client=langchain_client,
+        qdrant_client=qdrant_client,
+        rag_tracer=rag_tracer,
+    )
+
+    print("=== 最終回答 ===")
+    print(response.answer)
+    print("來源：", response.sources)

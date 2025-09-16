@@ -1,33 +1,47 @@
+import pathlib
 from typing import Dict
 
 from config import MODEL_NAME, OLLAMA_API_URL
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 
+PROMPT_FILE = pathlib.Path(__file__).parent / "prompt_template.txt"
 
-def llm_summary(
-    paper: Dict,
-    user: dict,
-    max_words: int = 300,
-) -> str:
-    """
-    將單篇論文生成 concise summary，最多 max_words 字。
-    paper: dict 含 title, authors, abstract, (optional) raw_content
-    """
+
+def llm_summary(paper: Dict, user: dict, max_words: int = 300) -> str:
     if not paper:
         return "No paper provided."
 
-    isTranslate = user.get("translate", False)
+    is_translate = user.get("translate", False)
     user_language = user.get("user_language", "English")
-    temperature = user.get("temperature", 0.5)
+    temperature = min(0.2, user.get("temperature", 0.5))
     system_prompt = user.get("system_prompt", "")
 
     title = paper.get("title", "No Title")
-    authors = ", ".join(paper.get("authors", []))
+    authors = ", ".join(paper.get("authors") or [])
+    authors_str = ", ".join([a.replace("{", "{{").replace("}", "}}") for a in authors])
 
-    # 優先使用 raw_content，否則 fallback 到 abstract
     content = paper.get("raw_content") or paper.get("abstract", "")
     content_type = "Full Content" if paper.get("raw_content") else "Abstract"
+
+    translation_instruction = ""
+    if is_translate:
+        translation_instruction = (
+            f"Translate the summary to {user_language}. Output ONLY in {user_language}."
+        )
+
+    # 讀取 prompt template
+    template_text = PROMPT_FILE.read_text(encoding="utf-8")
+
+    prompt_template = template_text.format(
+        system_prompt=system_prompt,
+        max_words=max_words,
+        content_type=content_type,
+        translation_instruction=translation_instruction,
+        title=title,
+        authors=authors_str,
+        content=content,
+    )
 
     chat_model = ChatOllama(
         model=MODEL_NAME,
@@ -35,35 +49,15 @@ def llm_summary(
         base_url=OLLAMA_API_URL,
     )
 
-    # Prompt 組裝
-    prompt_lines = [
-        system_prompt,
-        "You are a professional research assistant.",
-        f"Summarize the following paper concisely, in no more than {max_words} words.",
-        "Keep it readable for an email newsletter.",
-        f"(Note: the text provided is the paper's {content_type})",
-    ]
-    if isTranslate:
-        prompt_lines.append(
-            f"Translate the summary to {user_language}. Output ONLY in {user_language}, formatted clearly for readability with headings, bullet points, and numbering."
-        )
-
-    prompt_lines.append(
-        "Paper:\nTitle: {title}\nAuthors: {authors}\nContent: {content}"
-    )
-
-    prompt_template = "\n".join(prompt_lines)
     prompt = ChatPromptTemplate.from_template(prompt_template)
     chain = prompt | chat_model
 
-    input_vars = {
-        "title": title,
-        "authors": authors,
-        "content": content,
-    }
-    if isTranslate:
-        input_vars["user_language"] = user_language
-
-    resp = chain.invoke(input_vars)
-
-    return resp.content.strip()
+    try:
+        resp = chain.invoke({})
+        html_summary = resp.content.strip()
+        html_summary = "\n".join(
+            [line for line in html_summary.splitlines() if line.strip()]
+        )
+        return html_summary
+    except Exception as e:
+        return f"<p><strong>Summary generation failed:</strong> {e}</p>"

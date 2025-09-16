@@ -63,7 +63,7 @@ services:
       dockerfile: ./services/arxivservice/Dockerfile.arxiv
     image: arxiv-worker:latest
     container_name: arxiv-worker
-    command: celery -A celery_app.celery_app worker --concurrency=4 --queues notes -n worker.ingest_arxiv@%h --loglevel=info
+    command: worker
     environment:
       PREFECT_API_URL: http://orion:4200/api
     volumes:
@@ -84,7 +84,7 @@ services:
       dockerfile: ./services/arxivservice/Dockerfile.arxiv
     image: arxiv-beat:latest
     container_name: arxiv-beat
-    command: celery -A celery_app.celery_app beat --loglevel=info
+    command: beat
     depends_on:
       - arxiv-worker
     environment:

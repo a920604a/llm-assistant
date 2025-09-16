@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from storage.model import Paper
 from storage.storage_metrics import monitored_db
@@ -15,7 +16,7 @@ def fetch_new_papers(db: Session, since_date=None, limit: int = 500) -> list[Pap
         since_date = datetime.utcnow() - timedelta(days=30)  # 預設抓過去 30 天
     papers = (
         db.query(Paper)
-        .filter(Paper.pdf_processed | (Paper.published_date >= since_date.date()))
+        .filter(and_(Paper.pdf_processed, Paper.published_date >= since_date.date()))
         .limit(limit)
         .all()
     )
