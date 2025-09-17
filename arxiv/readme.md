@@ -14,7 +14,7 @@ arxiv_ingestion/
 │   ├── models.py              # ORM models for entities (Paper, User, etc.)
 │   └── qdrant.py              # Qdrant client setup and utilities for vector DB
 │
-├── flows/                     
+├── flows/
 │   └── arxiv_pipeline.py      # Main pipeline for fetching, processing, and storing ArXiv papers
 │
 ├── services/                  # External services and processing modules
@@ -32,6 +32,53 @@ arxiv_ingestion/
     └── qdrant_index.py        # Task to index paper chunks into Qdrant
 
 ```
+
+
+---
+
+### Layer-by-Layer Breakdown
+
+**Pipeline Layer (`flows/arxiv_pipeline.py`)**
+
+* Orchestrates the full workflow for fetching, processing, and storing ArXiv papers
+* Coordinates Prefect tasks to ensure sequential execution and dependency management
+* Handles integration points between data retrieval, processing, embedding, and storage
+
+**Tasks Layer (`tasks/`)**
+
+* Modular building blocks for the pipeline
+* `fetch_papers.py`: Fetches newly published papers from ArXiv
+* `generate_report.py`: Generates summary reports from paper content
+* `process_pdfs.py`: Parses PDF files to extract text or structured sections
+* `qdrant_index.py`: Indexes paper chunks into Qdrant vector database for retrieval
+
+**Services Layer (`services/`)**
+
+* Implements core business logic and processing utilities
+* `arxiv_client.py`: Queries ArXiv API for paper metadata and PDFs
+* `embedding.py`: Generates embeddings from paper text for semantic search
+* `docling.py`: PDF parsing utilities and extraction logic
+* `metadata_fetcher.py`: Extracts and normalizes metadata from papers
+* `pdf_parser.py`: Converts PDFs into raw text or structured content
+* `schemas.py`: Pydantic models for validation and type safety
+
+**Database & Storage Layer (`db/`)**
+
+* Handles data persistence and storage management
+* `PaperRepository.py`: CRUD operations for paper entities
+* `factory.py`: Database session creation and management
+* `minio.py`: MinIO client setup for storing PDF files
+* `models.py`: ORM models representing Papers, Users, and related entities
+* `qdrant.py`: Qdrant client and utilities for storing embeddings and enabling semantic search
+
+**Configuration & Utilities (`config.py`, `logger.py`, `exceptions.py`)**
+
+* `config.py`: Centralized configuration for API URLs, collection names, and environment variables
+* `logger.py`: Logging utilities for structured logging across the pipeline
+* `exceptions.py`: Custom exception classes for centralized error handling
+
+---
+
 
 
 
