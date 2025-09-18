@@ -1,10 +1,12 @@
 ```
 .
-├── celery_app.py                      # Celery configuration for task scheduling and background jobs
+
+├── deploy_flows.sh                    # deploy flow
+├── prefect_entrypoint.py             #  flow.serve 註冊 flow 並套用 schedule
 ├── config.py                          # Configuration settings (API keys, DB connections, environment variables)
+├── pipeline.py                        # Main pipeline orchestrating the process of fetching, summarizing, and emailing papers
 ├── email_alarm_task.py                # Task definition for sending paper summary emails (entry point for alerts)
 ├── logger.py                          # Centralized logging utilities
-├── pipeline.py                        # Main pipeline orchestrating the process of fetching, summarizing, and emailing papers
 ├── serviceAccountKey.json             # Firebase service account credentials for authentication
 │
 ├── services/                          # Core services for fetching, processing, and delivering papers

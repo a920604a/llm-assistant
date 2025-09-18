@@ -1,25 +1,14 @@
 # === Web API Framework ===
-fastapi>=0.111.0
-uvicorn[standard]==0.22.0
 aiofiles
 websockets
 websocket-client
-celery[redis]==5.3.0
-celery-prometheus
 
 # === AI / LLM / NLP ===
-openai
-google-generativeai
-openai-whisper
-transformers
-torch
-torchvision
+
 langchain>=0.1.17
 langchain-community>=0.0.17
 
 langchain-ollama
-jieba
-rank-bm25
 
 # ML
 scikit-learn==1.3.0
@@ -30,39 +19,32 @@ boto3
 
 # === Embeddings / Vector DB ===
 qdrant-client
-fastembed
-sentence-transformers==5.1.0
+sentence-transformers>=5.1.0
 
 # === SQL DB ===
-sqlalchemy==2.0.19
-psycopg2-binary==2.9.6
+sqlalchemy>=2.0.19
+psycopg2-binary>=2.9.6
 
 # === OCR / Image Processing ===
 pillow
 
 # === Data Processing ===
 
-pandas==2.0.3
-pydantic>=1.10.16,<2.0.0
-prefect>=2.16.3
+pandas>=2.0.3
+pydantic>=2.0.0
+# prefect>=3.0.0
 
 
 # === Monitoring ===
-prometheus-fastapi-instrumentator==7.1.0
 prometheus_client
 
-opentelemetry-api
-opentelemetry-sdk
-opentelemetry-instrumentation-fastapi
+
 langfuse>=2.0.0,<3.0.0
 
 
 # === Utility ===
-python-dotenv==1.0.0
+python-dotenv>=1.0.0
 pytest
 pytest-asyncio
 tqdm
 firebase-admin
-
-
-fastapi-mail==0.3.0

@@ -21,8 +21,7 @@ MINIO_ACCESS_KEY = os.getenv("MINIO__ACCESS_KEY", "note")
 MINIO_SECRET_KEY = os.getenv("MINIO__SECRET_KEY", "note123")
 MINIO_BUCKET = os.getenv("MINIO__BUCKET", "notes-md")
 
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
-CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/1")
+# CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/1")
 
 
 class DefaultSettings(BaseSettings):

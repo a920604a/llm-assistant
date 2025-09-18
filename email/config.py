@@ -14,12 +14,6 @@ FIREBASE_KEY_PATH = "/app"
 
 
 class Settings(BaseSettings):
-    # Celery / Redis
-    REDIS_BROKER: str = Field(
-        default="redis://localhost:6379/0", env="CELERY_BROKER_URL"
-    )
-    REDIS_BACKEND: str = Field(default="redis://redis:6379/3", env="REDIS_BACKEND")
-
     # 郵件設定
     MAIL_USERNAME: str = Field(default=os.getenv("MAIL_USERNAME"))
     MAIL_PASSWORD: str = Field(default=os.getenv("MAIL_PASSWORD"))
