@@ -137,14 +137,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-  # imageservice:
-  #   build:
-  #     context: .
-  #     dockerfile: ./services/imageservice/Dockerfile.imageservices
-  #   image: imageservice:latest
-  #   container_name: imageservice
-  #   restart: unless-stopped
-  #   ports:
-  #     - "5000:8000"
-  #   networks:
-  #     - langfuse-otel-net

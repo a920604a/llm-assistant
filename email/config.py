@@ -1,6 +1,7 @@
 import os
 
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
 OLLAMA_API_URL = os.getenv("OLLAMA_API_URL", "http://localhost:11434")
 MODEL_NAME = "gpt-oss:20b"

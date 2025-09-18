@@ -3,8 +3,8 @@ from prefect.schedules import Cron
 
 # 建立 Interval schedule
 # 建立 Interval schedule
-# 每天 15:00 台北時間 (等於 UTC 07:00)
-interval_schedule = Cron("0 7 * * *", timezone="UTC")
+# 每天 06:00 台北時間 (等於 UTC 22:00)
+interval_schedule = Cron("0 22 * * *", timezone="UTC")
 
 
 # 使用 flow.serve 註冊 flow 並套用 schedule

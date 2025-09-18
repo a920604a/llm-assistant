@@ -108,14 +108,14 @@ sample_qdrant:
 	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/qdrant/sample_qdrant.py"
 
 email-trial:
-	$(DOCKER_COMPOSE) exec email-worker /bin/bash -c "PYTHONPATH=/app python trial.py"
+	$(DOCKER_COMPOSE) exec email-flow /bin/bash -c "/opt/conda/envs/prefect/bin/python trial.py"
 
 # pipeline
 ingest-arxiv:
-	$(DOCKER_COMPOSE) exec arxiv-worker /bin/bash -c "PYTHONPATH=/app python flows/arxiv_pipeline.py"
+	$(DOCKER_COMPOSE) exec arxiv-flow /bin/bash -c "/opt/conda/envs/prefect/bin/python arxiv_pipeline.py"
 
 email-subscribe:
-	$(DOCKER_COMPOSE) exec email-worker /bin/bash -c "PYTHONPATH=/app python pipeline.py"
+	$(DOCKER_COMPOSE) exec email-flow /bin/bash -c "/opt/conda/envs/prefect/bin/python pipeline.py"
 
 rag:
 	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python arxiv_rag_pipeline.py"

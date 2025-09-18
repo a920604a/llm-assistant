@@ -18,5 +18,4 @@ prefect work-queue create email-queue --pool default || true
 
 # 部署 flow
 echo "Deploying flows..."
-# python /app/prefect_entrypoint.py || echo "Flow deployment failed, continuing..."
-python3 -m http.server 8080
+python /app/prefect_entrypoint.py

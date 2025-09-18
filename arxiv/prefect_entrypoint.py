@@ -10,8 +10,8 @@ date_from = (today - timedelta(days=30)).strftime("%Y%m%d")  # 過去 30 天
 
 
 # 建立 Interval schedule
-# 每天 14:01 台北時間 (等於 UTC 06:01)
-interval_schedule = Cron("5 6 * * *", timezone="UTC")
+# 每天 00:00 台北時間 (等於 UTC 16:00)
+interval_schedule = Cron("0 16 * * *", timezone="UTC")
 
 
 # 使用 flow.serve 註冊 flow 並套用 schedule
