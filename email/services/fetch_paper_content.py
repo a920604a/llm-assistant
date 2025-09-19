@@ -1,3 +1,5 @@
+import time
+
 from config import COLLECTION_NAME
 from prefect import get_run_logger
 from qdrant_client import models
@@ -9,6 +11,7 @@ def fetch_paper_content_from_qdrant(arxiv_id: str = None, title: str = None) -> 
     從 Qdrant 依 arxiv_id 或 title 抓取 raw_content
     """
     logger = get_run_logger()
+    start = time.time()
 
     must_conditions = []
     if arxiv_id:
@@ -43,5 +46,7 @@ def fetch_paper_content_from_qdrant(arxiv_id: str = None, title: str = None) -> 
         return ""
 
     contents = [p.payload.get("text", "") for p in points if p.payload]
-    logger.info(f"Fetched raw_content length: {len(contents)}")
+    logger.info(
+        f"[Fetch Paper Content From Qdrant Stage] Fetched raw_content length: {len(contents)} in {time.time() - start:.2f}s"
+    )
     return "\n".join(contents)

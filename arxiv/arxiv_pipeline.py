@@ -18,6 +18,9 @@ from tasks.qdrant_index import qdrant_index_task
 def arxiv_pipeline(
     date_from: str, date_to: str, max_results: int = 10, store_to_db: bool = True
 ):
+    create_qdrant_collection()
+    create_note_bucket()
+
     logger = get_run_logger()
 
     results = {
@@ -72,8 +75,8 @@ def arxiv_pipeline(
 
 
 if __name__ == "__main__":
-    create_qdrant_collection()
-    create_note_bucket()
+    # create_qdrant_collection()
+    # create_note_bucket()
     arxiv_pipeline(
         date_from=(datetime.utcnow() - timedelta(days=30)).strftime("%Y%m%d"),
         date_to=datetime.utcnow().strftime("%Y%m%d"),

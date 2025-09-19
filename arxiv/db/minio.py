@@ -6,10 +6,7 @@ from config import (
     MINIO_ENDPOINT,
     MINIO_SECRET_KEY,
 )
-from logger import AppLogger
-
-logger = AppLogger(__name__).get_logger()
-
+from prefect import get_run_logger
 
 # 初始化 MinIO (S3) 客戶端
 s3_client = boto3.client(
@@ -24,6 +21,8 @@ s3_client = boto3.client(
 
 # 建立 bucket（若不存在）
 def create_note_bucket():
+    logger = get_run_logger()
+
     logger.info(f"MINIO_ENDPOINT {MINIO_ENDPOINT}")
     logger.info(f"MINIO_ACCESS_KEY {MINIO_ACCESS_KEY}")
     logger.info(f"MINIO_SECRET_KEY {MINIO_SECRET_KEY}")

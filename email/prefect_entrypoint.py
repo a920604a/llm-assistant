@@ -7,7 +7,7 @@ from prefect.schedules import Cron
 interval_schedule = Cron("0 22 * * *", timezone="UTC")
 
 
-# 使用 flow.serve 註冊 flow 並套用 schedule
+# 建議建立一個 Flow wrapper，把 Firebase 初始化放在這裡
 daily_papers_flow.serve(
     schedule=interval_schedule,
     parameters={"top_k": 3},

@@ -1,12 +1,16 @@
 import pathlib
+import time
 from string import Template
 
 from prefect import get_run_logger
-from services.langchain_client import llm_summary
+from services.langchain_client import llm_html_foramt, llm_summary, llm_translate
 
 
 def fetch_paper_info(paper: dict, content_map: dict[str, str]) -> dict:
     """整理單篇論文資訊，包含 raw_content（若有）"""
+
+    logger = get_run_logger()
+
     paper_info = {
         "title": paper.get("title") or "No Title",
         "authors": paper.get("authors") or [],
@@ -17,7 +21,13 @@ def fetch_paper_info(paper: dict, content_map: dict[str, str]) -> dict:
 
     arxiv_id = paper.get("arxiv_id")
     if arxiv_id and arxiv_id in content_map:
+        logger.info(
+            f"fetch_paper_info arxiv_id = {arxiv_id} found in content_map {paper_info}"
+        )
         paper_info["raw_content"] = content_map[arxiv_id]
+
+    else:
+        logger.debug(f"fetch_paper_info arxiv_id ={arxiv_id} not found in content_map")
 
     return paper_info
 
@@ -38,17 +48,48 @@ def trim_summary(summary: str, level: str) -> str:
     return summary
 
 
-def summarize_paper(paper_info: dict, user: dict) -> str:
+def summarize_paper(paper_info: dict, user: dict, retries: int = 3) -> str:
     """呼叫 LLM 生成摘要，若失敗則 fallback"""
-    try:
-        summary = llm_summary(paper_info=paper_info, user=user, max_words=500)
-        if not summary or not isinstance(summary, str):
-            return "No summary available."
-        # 根據 user["summary_level"] 決定輸出
-        level = user.get("summary_level", "detailed")
-        return trim_summary(summary, level)
-    except Exception:
-        return "Summary generation failed."
+    logger = get_run_logger()
+    summary = ""
+    while len(summary) < 100 and retries > 0:
+        summary = llm_summary(paper=paper_info, user=user, max_words=1000)
+        if summary and isinstance(summary, str) and len(summary) >= 100:
+            break
+        retries -= 1
+        logger.info(f"Retrying summary generation, attempts left: {retries}")
+
+        if len(summary) < 100:
+            logger.warning(f"Summary seems too short: {summary}")
+
+    return summary
+
+
+def format_html(
+    paper_info: dict,
+    idx: int,
+    summary: str,
+) -> str:
+    pdf_url = paper_info.get("pdf_url")
+    pdf_link_html = (
+        f'<a href="{pdf_url}" target="_blank">Preview PDF</a>' if pdf_url else "N/A"
+    )
+
+    summary = llm_html_foramt(summary)
+
+    return f"""
+    <div class="paper-summary">
+        <div class="paper-title">{idx}. {paper_info["title"]}</div>
+        <div class="paper-meta">
+            <strong>Authors:</strong> {", ".join(paper_info.get("authors", []))} <br>
+            <strong>Published:</strong> {paper_info.get("published_date", "N/A")} <br>
+            <strong>PDF:</strong> {pdf_link_html}
+        </div>
+        <div class="paper-abstract">
+            {summary}
+        </div>
+    </div>
+    """
 
 
 def generate_summary(
@@ -57,8 +98,9 @@ def generate_summary(
     """
     將每篇論文生成 LLM 摘要，並整理成 HTML
     """
-    papers, content_map = papers_and_content
     logger = get_run_logger()
+    start = time.time()
+    papers, content_map = papers_and_content
 
     if not papers:
         logger.info("No papers to summarize.")
@@ -70,29 +112,26 @@ def generate_summary(
 
     for idx, p in enumerate(papers, start=1):
         paper_info = fetch_paper_info(p, content_map)
+        # Stage 1: 摘要
+        # Stage 2: 翻譯
+        # Stage 3: HTML 格式化
+
         summary = summarize_paper(paper_info, user)
-        pdf_url = paper_info.get("pdf_url")
-        pdf_link_html = (
-            f'<a href="{pdf_url}" target="_blank">Preview PDF</a>' if pdf_url else "N/A"
+        logger.info(f"summarize_paper {summary}")
+        summary = llm_translate(user, summary)
+
+        logger.info(f"llm_translate {summary}")
+
+        logger.info(
+            f"[Generate Summary Stage] Summary paper {paper_info['title']} the amount of text is {len(summary)}"
         )
 
-        papers_html += f"""
-        <div class="paper-summary">
-            <div class="paper-title">{idx}. {paper_info["title"]}</div>
-            <div class="paper-meta">
-                <strong>Authors:</strong> {", ".join(paper_info.get("authors", []))} <br>
-                <strong>Published:</strong> {paper_info.get("published_date", "N/A")} <br>
-                <strong>PDF:</strong> {pdf_link_html}
-            </div>
-            <div class="paper-abstract">
-                {summary}
-            </div>
-        </div>
-        """
+        papers_html += format_html(paper_info, idx, summary)
 
     template_path = pathlib.Path(__file__).parent / "template.html"
     template_text = template_path.read_text(encoding="utf-8")
     final_html = Template(template_text).substitute(papers_html=papers_html)
+
     # logger.info("-" * 50)
     # logger.info(papers_html)
 
@@ -101,5 +140,7 @@ def generate_summary(
     # with open(file_path, "w", encoding="utf-8") as f:
     #     f.write(final_html)
 
-    logger.info("Summary generation completed.")
+    logger.info(
+        f"[Generate Summary Stage] Summary generation completed in {time.time() - start:.2f}s"
+    )
     return final_html

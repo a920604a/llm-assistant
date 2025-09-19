@@ -2,6 +2,8 @@ import random
 import time
 from datetime import datetime, timedelta
 
+import firebase_admin
+from config import FIREBASE_KEY_PATH
 from prefect import flow, get_run_logger, task
 from services.fetch_new_papers import fetch_new_papers
 from services.fetch_paper_content import fetch_paper_content_from_qdrant
@@ -18,7 +20,7 @@ from storage import db_session
 
 
 @task(name="Fetch Papers")
-def fetch_papers_task(days: int = 1) -> list[dict]:
+def fetch_papers_task(days: int = 5) -> list[dict]:
     logger = get_run_logger()
 
     start = time.time()
@@ -41,7 +43,9 @@ def fetch_papers_task(days: int = 1) -> list[dict]:
     logger.info(
         f"Fetched papers published_date >= {datetime.utcnow() - timedelta(days=days)}"
     )
-    logger.info(f"Fetched {len(papers_data)} papers in {time.time() - start:.2f}s")
+    logger.info(
+        f"[Fetch Papers Stage] Fetched {len(papers_data)} papers in {time.time() - start:.2f}s"
+    )
     return papers_data
 
 
@@ -78,9 +82,12 @@ def fetch_paper_content_task(papers: list[dict]) -> dict[str, str]:
         )
         if raw_content:
             content_map[arxiv_id] = raw_content
+            logger.info(
+                f"Fetched raw content for {len(raw_content)} for {arxiv_id} papers"
+            )
 
     logger.info(
-        f"Fetched raw content for {len(content_map)} / {len(papers)} papers in {time.time() - start:.2f}s"
+        f"[Fetch Paper Content Stage] Fetched raw content for {len(content_map)} / {len(papers)} papers in {time.time() - start:.2f}s"
     )
     return content_map
 
@@ -99,7 +106,9 @@ def get_users_task():
         #         "translate": setting.translate,
         #         "user_language": setting.user_language,
         #     }]
-    logger.info(f"Found {len(users)} users in {time.time() - start:.2f}s")
+    logger.info(
+        f"[Get Subscribed Users Stage] Found {len(users)} users in {time.time() - start:.2f}s"
+    )
     return users
 
 
@@ -118,6 +127,7 @@ def process_user_task(user: dict, papers: list[dict], content_map: dict):
     logger = get_run_logger()
     user_id = user.get("user_id")
     email = user.get("email")
+    logger.info(f"[Process User Task Stage] user : {user_id} got {len(papers)} paper")
 
     if not email:
         logger.warning(f"User {user_id} has no email, skipping")
@@ -131,7 +141,9 @@ def process_user_task(user: dict, papers: list[dict], content_map: dict):
     try:
         summary_html = generate_summary((papers, content_map), user)
     except Exception as e:
-        logger.error(f"Failed to generate summary for user {user_id}: {e}")
+        logger.error(
+            f"[Process User Task Stage] Failed to generate summary for user {user_id}: {e}"
+        )
         return {"user_id": user_id, "status": "failed", "reason": f"summary error: {e}"}
 
     # 發送 email
@@ -150,7 +162,7 @@ def process_user_task(user: dict, papers: list[dict], content_map: dict):
     arxiv_ids = [p["arxiv_id"] for p in papers if p.get("arxiv_id")]
     record_sent_papers(user_id, arxiv_ids)
 
-    # logger.info(f"Sent {len(papers)} papers to user {user_id} ({email})")
+    logger.info(f"Sent {len(papers)} papers to user {user_id} ({email})")
     return {"user_id": user_id, "status": "success", "sent_count": len(papers)}
 
 
@@ -161,6 +173,12 @@ def process_user_task(user: dict, papers: list[dict], content_map: dict):
 
 @flow(name="Daily Papers Flow")
 def daily_papers_flow(top_k: int = 3):
+    # 初始化 Firebase
+    cred = firebase_admin.credentials.Certificate(
+        f"{FIREBASE_KEY_PATH}/serviceAccountKey.json"
+    )
+    firebase_admin.initialize_app(cred)
+
     logger = get_run_logger()
 
     start_flow = time.time()
@@ -190,6 +208,7 @@ def daily_papers_flow(top_k: int = 3):
 
         # 取 top_k
         assigned_papers = user_unsent_papers[:top_k]
+        logger.info(f"got top_k {top_k} paper, sorest paper {len(assigned_papers)}")
         # 發送給使用者
         result = process_user_task(user, assigned_papers, content_map)
         logger.info(result)
@@ -198,13 +217,13 @@ def daily_papers_flow(top_k: int = 3):
 
 
 if __name__ == "__main__":
-    import firebase_admin
-    from config import FIREBASE_KEY_PATH
+    # import firebase_admin
+    # from config import FIREBASE_KEY_PATH
 
-    # 初始化 Firebase
-    cred = firebase_admin.credentials.Certificate(
-        f"{FIREBASE_KEY_PATH}/serviceAccountKey.json"
-    )
-    firebase_admin.initialize_app(cred)
+    # # 初始化 Firebase
+    # cred = firebase_admin.credentials.Certificate(
+    #     f"{FIREBASE_KEY_PATH}/serviceAccountKey.json"
+    # )
+    # firebase_admin.initialize_app(cred)
 
-    daily_papers_flow(top_k=2)
+    daily_papers_flow(top_k=3)
