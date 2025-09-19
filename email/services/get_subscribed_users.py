@@ -10,7 +10,7 @@ from storage.storage_metrics import monitored_db
 
 
 @monitored_db
-@task(name="Get Subscribed User")
+@task(name="Get Subscribed User", cache_key_fn=None)
 def get_subscribed_users(db: Session) -> List[Dict]:
     logger = get_run_logger()
     """

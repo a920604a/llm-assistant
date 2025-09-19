@@ -86,6 +86,7 @@ def rewrite_query(query: str, user_id: str) -> str:
 
 if __name__ == "__main__":
     q = "What is LangChain？"
+    print(q)
 
     cache = SystemSettings(
         user_language="zh",

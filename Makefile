@@ -96,13 +96,9 @@ test-apiGateway:
 lanhchain:
 	$(DOCKER_COMPOSE) exec apiGateway /bin/bash -c "PYTHONPATH=/app python services/langchain_client.py"
 
-	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/langchain_client.py"
 
 ollama-client:
-	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/ollama_client.py"
-
-retrieval:
-	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python arxiv_ingestion/tasks/retrieval.py"
+	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/ollama/client.py"
 
 sample_qdrant:
 	$(DOCKER_COMPOSE) exec noteserver /bin/bash -c "PYTHONPATH=/app python services/qdrant/sample_qdrant.py"

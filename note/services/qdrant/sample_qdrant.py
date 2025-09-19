@@ -1,13 +1,14 @@
 import asyncio
 import os
 
+from config import get_settings
 from langchain.docstore.document import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
+from qdrant_client import QdrantClient
 from qdrant_client import models as model_qdrant
 from sentence_transformers import SentenceTransformer
-from storage.qdrant import qdrant_client
 
 
 class RagAgent:
@@ -21,7 +22,10 @@ class RagAgent:
         )
         self.documents = []
         self.collection_name = "test-rag-agent"
-        self.index = qdrant_client
+        self.index = QdrantClient(
+            url=get_settings().QDRANT_URL,
+            timeout=300,
+        )
         self.chat_model = ChatOllama(
             model="gpt-oss:20b", temperature=0.5, base_url="http://ollama:11434"
         )
