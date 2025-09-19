@@ -1,5 +1,6 @@
 # --- 基礎映像 ---
-FROM python:3.10-slim
+# FROM python:3.11-slim
+FROM prefecthq/prefect:3.4.18-python3.10-conda
 
 # --- 工作目錄 ---
 WORKDIR /app
@@ -8,6 +9,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     git \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # --- 複製依賴檔案 ---
@@ -20,5 +22,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # --- 複製程式碼 ---
 COPY ./email /app
 
-ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["worker"]  # 默認啟動 worker，docker-compose 可覆蓋為 beat
+
+# 預設 command 可以空著，由 docker-compose override
+CMD ["bash"]

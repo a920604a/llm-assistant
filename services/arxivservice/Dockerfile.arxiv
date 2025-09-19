@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM prefecthq/prefect:3.4.18-python3.10-conda
 
 WORKDIR /app
 
@@ -6,8 +6,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     git \
+    curl \
     && rm -rf /var/lib/apt/lists/*
-
 
 COPY services/arxivservice/requirements.txt ./requirements.txt
 
@@ -18,7 +18,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # --- 複製程式碼 ---
 COPY ./arxiv /app
 
-
-# CMD ["celery", "-A", "celery_app.celery_app", "worker", "--queues", "email", "-n", "worker.email_alarm@%h", "--loglevel=info"]
-ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["worker"]  # 默認啟動 worker，docker-compose 可覆蓋為 beat
+# 預設 command 可以空著，由 docker-compose override
+CMD ["bash"]

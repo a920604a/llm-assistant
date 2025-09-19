@@ -3,20 +3,26 @@ from datetime import datetime, timedelta
 
 from db.minio import create_note_bucket
 from db.qdrant import create_qdrant_collection
-from logger import AppLogger
-from prefect import flow
+from prefect import flow, get_run_logger
 from tasks.fetch_papers import fetch_papers_task
 from tasks.generate_report import generate_report_task
 from tasks.process_pdfs import process_pdfs_task
 from tasks.qdrant_index import qdrant_index_task
 
-logger = AppLogger(__name__).get_logger()
 
-
-@flow(name="arxiv-pipeline-flow")
+@flow(
+    name="arxiv-pipeline-flow",
+    retries=3,  # 遇到例外自動重試 3 次
+    retry_delay_seconds=60,  # 每次重試間隔 60 秒
+)
 def arxiv_pipeline(
     date_from: str, date_to: str, max_results: int = 10, store_to_db: bool = True
 ):
+    create_qdrant_collection()
+    create_note_bucket()
+
+    logger = get_run_logger()
+
     results = {
         "papers_fetched": 0,
         "pdfs_downloaded": 0,
@@ -43,12 +49,12 @@ def arxiv_pipeline(
         results["pdfs_parsed"] = pdf_results["parsed"]
         results["errors"].extend(pdf_results["errors"])
         results["papers_stored"] = pdf_results["papers_stored"]
-        print(f"Stored {pdf_results['papers_stored']} papers in DB")
+        logger.info(f"Stored {pdf_results['papers_stored']} papers in DB")
 
     # Step 3: Qdrant Index
     indexed_count, _ = qdrant_index_task(papers, pdf_results.get("parsed_papers", {}))
     results["papers_indexed"] = indexed_count
-    print(f"Qdrant Index {indexed_count}")
+    logger.info(f"Qdrant Index {indexed_count}")
 
     # Calculate total processing time
     processing_time = (datetime.now() - start_time).total_seconds()
@@ -65,12 +71,12 @@ def arxiv_pipeline(
 
     # 呼叫日報告 task
     report = generate_report_task(result_summary)
-    print(f"\n{report}")
+    logger.info(f"\n{report}")
 
 
 if __name__ == "__main__":
-    create_qdrant_collection()
-    create_note_bucket()
+    # create_qdrant_collection()
+    # create_note_bucket()
     arxiv_pipeline(
         date_from=(datetime.utcnow() - timedelta(days=30)).strftime("%Y%m%d"),
         date_to=datetime.utcnow().strftime("%Y%m%d"),

@@ -230,6 +230,7 @@ if __name__ == "__main__":
     from services.langfuse.tracer import RAGTracer
 
     query = "What is RAG?"
+    print(query)
 
     # 初始化必要設定
     system_settings = SystemSettings(

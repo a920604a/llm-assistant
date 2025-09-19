@@ -4,7 +4,7 @@ import { BASE_URL } from "./conf";
 
 export async function ask(
     query: string,
-    mode: "standard" | "stream" = "standard",
+    mode: "standard" | "stream" = "stream",
     onStreamChunk?: (chunk: string) => void
 ): Promise<{ reply: string } | null> {
 
@@ -18,7 +18,7 @@ export async function ask(
     };
 
     // 根據模式給不同的預設 timeout
-    const finalTimeout = (mode === "stream" ? 100000 : 60000);
+    const finalTimeout = (mode === "stream" ? 600000 : 120000);
 
 
     const controller = new AbortController();

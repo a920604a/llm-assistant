@@ -46,7 +46,7 @@ services:
     env_file:
       - .env # <- 指定要讀的環境變數檔
     depends_on:
-      - arxiv-worker
+      - arxiv-flow
     networks:
       - langfuse-otel-net
     healthcheck:
@@ -56,44 +56,24 @@ services:
       retries: 3
       start_period: 40s
 
-  arxiv-worker:
+  arxiv-flow:
     # Celery Worker → 負責執行任務
     build:
       context: .
       dockerfile: ./services/arxivservice/Dockerfile.arxiv
-    image: arxiv-worker:latest
-    container_name: arxiv-worker
-    command: worker
+    image: arxiv-flow:latest
+    container_name: arxiv-flow
+    command: bash /app/deploy_flows.sh
     environment:
       PREFECT_API_URL: http://orion:4200/api
     volumes:
       - ./arxiv:/app
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
       - ./data/arxiv_worker:/data
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - orion
     env_file:
       - .env # <- 指定要讀的環境變數檔
-    networks:
-      - langfuse-otel-net
-
-  arxiv-beat:
-    # Celery Beat → 負責發送定時任務給 Worker
-    build:
-      context: .
-      dockerfile: ./services/arxivservice/Dockerfile.arxiv
-    image: arxiv-beat:latest
-    container_name: arxiv-beat
-    command: beat
-    depends_on:
-      - arxiv-worker
-    environment:
-      PREFECT_API_URL: http://orion:4200/api
-    volumes:
-      - ./arxiv:/app
-      - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
-    env_file:
-      - .env
     networks:
       - langfuse-otel-net
 
@@ -110,15 +90,17 @@ services:
     networks:
       - langfuse-otel-net
 
-  email-worker:
+  email-flow:
     build:
       context: .
       dockerfile: ./services/emailservice/Dockerfile.email
-    image: email-worker:latest
-    container_name: email-worker
-    command: worker
+    image: email-flow:latest
+    container_name: email-flow
+    command: bash /app/deploy_flows.sh
     environment:
       PREFECT_API_URL: http://orion:4200/api
+    depends_on:
+      - orion
     env_file:
       - .env
     volumes:
@@ -126,26 +108,6 @@ services:
       - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-    working_dir: /app # <-- 加上這行
-    networks:
-      - langfuse-otel-net
-
-  email-beat:
-    build:
-      context: .
-      dockerfile: ./services/emailservice/Dockerfile.email
-    image: email-beat:latest
-    container_name: email-beat
-    command: beat
-    environment:
-      PREFECT_API_URL: http://orion:4200/api
-    env_file:
-      - .env
-    depends_on:
-      - email-worker
-    volumes:
-      - ./email:/app
-      - ./docker_cache/hf_cache:/root/.cache/huggingface # avoid space out, you don't need to add this.
     networks:
       - langfuse-otel-net
 
@@ -175,14 +137,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-  # imageservice:
-  #   build:
-  #     context: .
-  #     dockerfile: ./services/imageservice/Dockerfile.imageservices
-  #   image: imageservice:latest
-  #   container_name: imageservice
-  #   restart: unless-stopped
-  #   ports:
-  #     - "5000:8000"
-  #   networks:
-  #     - langfuse-otel-net

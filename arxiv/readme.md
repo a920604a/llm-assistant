@@ -2,7 +2,9 @@
 
 arxiv_ingestion/
 ├── readme.md                  # Project overview and setup instructions
-├── celery_app.py              # Celery configuration, used for scheduled jobs and pipeline orchestration
+├── deploy_flows.sh             # deploy flow
+├── prefect_entrypoint.py       #  flow.serve 註冊 flow 並套用 schedule
+├── arxiv_pipeline.py      # Main pipeline for fetching, processing, and storing ArXiv papers
 ├── config.py                  # Configuration settings (e.g., API URLs, collection names, environment variables)
 ├── logger.py                  # Centralized logging utilities
 ├── exceptions.py              # Custom exception classes for error handling
@@ -14,8 +16,6 @@ arxiv_ingestion/
 │   ├── models.py              # ORM models for entities (Paper, User, etc.)
 │   └── qdrant.py              # Qdrant client setup and utilities for vector DB
 │
-├── flows/
-│   └── arxiv_pipeline.py      # Main pipeline for fetching, processing, and storing ArXiv papers
 │
 ├── services/                  # External services and processing modules
 │   ├── arxiv_client.py        # Client for querying the ArXiv API

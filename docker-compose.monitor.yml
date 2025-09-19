@@ -93,20 +93,6 @@ services:
       - monitor-net
       - langfuse-otel-net
 
-  celery_exporter:
-    # 新增的 Celery Prometheus Exporter 服務
-    image: ghcr.io/danihodovic/celery-exporter:latest # 使用預構建的 Docker 鏡像
-    container_name: celery_exporter
-    ports:
-      - "127.0.0.1:9540:9808" # 將容器的 8000 端口映射到主機的 8000 端口
-    environment:
-      - CE_BROKER_URL=redis://redis:6379/0 # 連接到 Celery broker (Redis 服務)
-      - CE_LISTEN_PORT=9808 # Exporter 監聽的端口
-      - CE_ENABLE_EVENTS=true # 啟用事件監聽
-    networks:
-      - monitor-net
-      - langfuse-otel-net
-
   redis-exporter:
     image: oliver006/redis_exporter:v1.41.0
     container_name: redis_exporter

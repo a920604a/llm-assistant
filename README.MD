@@ -29,7 +29,7 @@ Users can query paper abstracts, PDFs, Q\&A history, and references. Developers 
 | Category          | Tools & Frameworks                                       |
 | ----------------- | -------------------------------------------------------- |
 | **Cloud / Infra** | Docker Compose, MinIO, PostgreSQL, Qdrant                |
-| **Backend / API** | FastAPI, Celery, Prefect 2                               |
+| **Backend / API** | FastAPI, Prefect 2                                       |
 | **Frontend**      | React + Vite                                             |
 | **Monitoring**    | Prometheus + Grafana, Logging                            |
 | **CI/CD**         | GitHub Actions (planned)                                 |
@@ -187,9 +187,6 @@ You must prepare a **Firebase Service Account Key**:
 DATABASE_URL=postgresql://user:password@note-db:5432/note
 
 REDIS_URL=redis://redis:6379/2
-CELERY_BROKER_URL=redis://redis:6379/0
-CELERY_RESULT_BACKEND=redis://redis:6379/1
-REDIS_BACKEND=redis://redis:6379/3
 REDIS_AUTH=REDIS_AUTH
 ```
 
@@ -265,7 +262,7 @@ Steps:
 | Retrieval evaluation | [Initial tests, not yet optimized](note/arxiv_ingestion/tasks/evaluate.py) |
 | LLM evaluation       | Supports multiple prompt templates                                         |
 | Interface            | [Web UI + Dashboard](http://localhost)                                     |
-| Ingestion pipeline   | [Celery Beat daily arXiv fetch](arxiv/flows/arxiv_pipeline.py)             |
+| Ingestion pipeline   | [Prefect daily arXiv fetch](arxiv/flows/arxiv_pipeline.py)             |
 | Monitoring           | [Grafana](http://localhost:3002)                                           |
 | Containerization     | [Full Docker Compose setup](docker-compose.dev.yml)                        |
 | Reproducibility      | Complete setup + requirements, Firebase key required                       |

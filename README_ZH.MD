@@ -194,9 +194,6 @@ classDef data fill:#C0C0C0,stroke:#333,stroke-width:1px
 DATABASE_URL=postgresql://user:password@note-db:5432/note
 
 REDIS_URL=redis://redis:6379/2                # Note server
-CELERY_BROKER_URL=redis://redis:6379/0        # Note Celery broker
-CELERY_RESULT_BACKEND=redis://redis:6379/1    # Note Celery result backend
-REDIS_BACKEND=redis://redis:6379/3            # 其他 Redis backend
 REDIS_AUTH=REDIS_AUTH
 ```
 
@@ -268,10 +265,10 @@ SMTP_REQUIRE_TLS=true
 | -------------------- |  ------------------------------------------ |
 | Problem description  |  功能與目標明確                                    |
 | Retrieval flow       |  [RAG + LLM 問答流程](docs/rag_chat.md)                             |
-| Retrieval evaluation |  [初步驗證，尚未最佳化](note/arxiv_ingestion/tasks/evaluate.py)  |
+| Retrieval evaluation |  [初步驗證，尚未最佳化](note/evaluate.py)  |
 | LLM evaluation       |  支援多種 Prompt                     |
 | Interface            |  [Web UI + Dashboard](http://localhost)                         |
-| Ingestion pipeline   |  [Celery Beat 自動抓取 arXiv](arxiv/flows/arxiv_pipeline.py)|
+| Ingestion pipeline   |  [Prefect 自動抓取 arXiv](arxiv/arxiv_pipeline.py)|
 | Monitoring           |  [grafana](http://localhost:3002)                   |
 | Containerization     |  [Docker-compose 完整管理](docker-compose.dev.yml)                        |
 | Reproducibility      |  完整 setup + requirements，Firebase Key 需自行提供 |

@@ -33,7 +33,7 @@ terraform apply
 echo "🔍 檢查 container 狀態..."
 
 # 要檢查的 container 名稱
-containers=("apiGateway" "noteserver" "arxiv-worker" "email-worker" "arxiv-beat" "email-beat" "open-webui" "note-db" "note-qdrant" "redis" "flower")
+containers=("apiGateway" "noteserver" "arxiv-worker" "email-worker" "arxiv-beat" "email-beat" "open-webui" "note-db" "note-qdrant" "redis")
 
 for name in "${containers[@]}"; do
     status=$(docker inspect -f '{{.State.Status}}' "$name" 2>/dev/null || echo "not found")

@@ -2,14 +2,10 @@ from typing import Dict, List
 
 from config import COLLECTION_NAME, QDRANT_BATCH_SIZE
 from db.qdrant import qdrant_client
-from logger import AppLogger
-from prefect import task
+from prefect import get_run_logger, task
 from qdrant_client import models
 from services.embedding import get_embedding
 from services.schemas import ArxivPaper, ParsedPaper
-
-logger = AppLogger(__name__).get_logger()
-
 
 # 可以依需要調整 chunk_size 與 overlap
 CHUNK_SIZE = 500  # token 或字數，根據你的 embedding 模型調整
@@ -47,6 +43,8 @@ def qdrant_index_task(
     """
     將 papers 轉成向量並上傳到 Qdrant
     """
+    logger = get_run_logger()
+
     points: List[models.PointStruct] = []
     idx = 0
 

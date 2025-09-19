@@ -1,7 +1,8 @@
+import time
 from typing import Dict, List
 
 from fastapi import HTTPException
-from prefect import get_run_logger
+from prefect import get_run_logger, task
 from services.get_user_email_from_firebase import get_user_email_from_firebase
 from sqlalchemy.orm import Session
 from storage.model import User, UserSetting
@@ -9,6 +10,7 @@ from storage.storage_metrics import monitored_db
 
 
 @monitored_db
+@task(name="Get Subscribed User", cache_key_fn=None)
 def get_subscribed_users(db: Session) -> List[Dict]:
     logger = get_run_logger()
     """
@@ -19,6 +21,9 @@ def get_subscribed_users(db: Session) -> List[Dict]:
     - translate
     - user_language
     """
+    logger = get_run_logger()
+    start = time.time()
+
     subscribed_users = []
     try:
         # join users 與 user_setting
@@ -50,5 +55,7 @@ def get_subscribed_users(db: Session) -> List[Dict]:
         logger.error(f"Error fetching subscribed users: {e}")
         raise e
 
-    logger.info(f"Total subscribed users fetched: {len(subscribed_users)}")
+    logger.info(
+        f"[Get Subscribed User Stage] Total subscribed users fetched: {len(subscribed_users)} in {time.time() - start:.2f}s"
+    )
     return subscribed_users
