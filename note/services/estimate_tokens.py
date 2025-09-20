@@ -10,23 +10,22 @@ def estimate_tokens(text: str) -> int:
 
 def get_token_estimate(resp, prompt: str):
     """
-    resp: AIMessage
+    resp: dict
     prompt: 組裝好的 prompt 字串
     """
     # Input token（prompt）
     prompt_tokens = estimate_tokens(prompt)
 
     # Output token（回傳內容）
-    output_tokens = estimate_tokens(resp.content)
+    output_tokens = estimate_tokens(resp.get("response", ""))
 
     total_tokens = prompt_tokens + output_tokens
 
     # 延遲
     latency_ms = None
-    if hasattr(resp, "response_metadata"):
-        total_duration_ns = resp.response_metadata.get("total_duration")
-        if total_duration_ns:
-            latency_ms = total_duration_ns / 1_000_000  # ns -> ms
+    total_duration_ns = resp.get("total_duration")
+    if total_duration_ns:
+        latency_ms = total_duration_ns / 1_000_000  # ns -> ms
 
     return {
         "prompt_tokens": prompt_tokens,

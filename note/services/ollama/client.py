@@ -101,7 +101,12 @@ class OllamaClient:
         """
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                data = {"model": self.model_name, "prompt": prompt, **kwargs}
+                data = {
+                    "model": self.model_name,
+                    "prompt": prompt,
+                    "stream": False,
+                    **kwargs,
+                }
 
                 response = await client.post(f"{self.base_url}/api/generate", json=data)
 
@@ -151,7 +156,6 @@ class OllamaClient:
                         )
 
                     async for line in response.aiter_lines():
-                        # print(f"line {line}")
                         if line.strip():
                             try:
                                 chunk = json.loads(line)
@@ -170,6 +174,102 @@ class OllamaClient:
             raise
         except Exception as e:
             raise OllamaException(f"Error in streaming generation: {e}")
+
+    async def generate_rag_answer(
+        self,
+        query: str,
+        chunks: List[Dict[str, Any]],
+        use_structured_output: bool = False,
+        temperature: float = 0.5,
+        user_language: str = "English",
+    ) -> Dict[str, Any]:
+        """
+        Generate a RAG answer using retrieved chunks.
+
+        Args:
+            query: User's question
+            chunks: Retrieved document chunks with metadata
+            model: Model to use for generation
+            use_structured_output: Whether to use Ollama's structured output feature
+
+        Returns:
+            Dictionary with answer, sources, confidence, and citations
+        """
+        try:
+            if use_structured_output:
+                # Use structured output with Pydantic model
+                prompt_data = self.prompt_builder.create_structured_prompt(
+                    query, chunks, user_language=user_language
+                )
+
+                logger.info(f"prompt_data {prompt_data}\n\n")
+                # Generate with structured format
+                response = await self.generate(
+                    prompt=prompt_data["prompt"],
+                    temperature=temperature,
+                    top_p=0.9,
+                    # format=prompt_data["format"],
+                )
+            else:
+                # Fallback to plain text mode
+                prompt = self.prompt_builder.create_rag_prompt(
+                    query, chunks, user_language=user_language
+                )
+
+                logger.info(f"promptprompt {prompt}")
+                # Generate without format restrictions
+                response = await self.generate(
+                    prompt=prompt,
+                    temperature=temperature,
+                    top_p=0.9,
+                )
+
+            if response and "response" in response:
+                answer_text = response["response"]
+                logger.info(f"Raw LLM response: {answer_text[:500]}")
+
+                if use_structured_output:
+                    # Try to parse structured response if enabled
+                    parsed_response = self.response_parser.parse_structured_response(
+                        answer_text
+                    )
+                    logger.info(f"Parsed response: {parsed_response}")
+                    return parsed_response, response
+                else:
+                    # For plain text response, build simple response structure
+                    sources = []
+                    seen_urls = set()
+                    for chunk in chunks:
+                        arxiv_id = chunk.get("arxiv_id")
+                        if arxiv_id:
+                            arxiv_id_clean = (
+                                arxiv_id.split("v")[0] if "v" in arxiv_id else arxiv_id
+                            )
+                            pdf_url = f"https://arxiv.org/pdf/{arxiv_id_clean}.pdf"
+                            if pdf_url not in seen_urls:
+                                sources.append(pdf_url)
+                                seen_urls.add(pdf_url)
+
+                    citations = list(
+                        set(
+                            chunk.get("arxiv_id")
+                            for chunk in chunks
+                            if chunk.get("arxiv_id")
+                        )
+                    )
+
+                    return {
+                        "answer": answer_text,
+                        "sources": sources,
+                        "confidence": "medium",
+                        "citations": citations[:5],
+                    }, response
+            else:
+                raise OllamaException("No response generated from Ollama")
+
+        except Exception as e:
+            logger.error(f"Error generating RAG answer: {e}")
+            raise OllamaException(f"Failed to generate RAG answer: {e}")
 
 
 async def main():

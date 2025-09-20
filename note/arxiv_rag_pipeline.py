@@ -1,3 +1,4 @@
+import asyncio
 import json
 import time
 from typing import List, Tuple
@@ -5,13 +6,12 @@ from typing import List, Tuple
 from api.schemas.ask import AskResponse
 from api.schemas.SystemSetting import SystemSettings
 from config import get_settings
-from dependencies import LangchainDep, LangfuseDep, OllamaDep, QdrantDep
 from logger import AppLogger
 from services.embedding import get_embedding
 from services.evaluate import evaluate
-from services.langchain.client import LangChainClient
 from services.langfuse.client import LangfuseTracer
 from services.langfuse.tracer import RAGTracer
+from services.ollama.client import OllamaClient
 from services.qdrant.client import QdrantClient
 from services.rerank import re_ranking
 from services.store_chat_and_usage import (
@@ -26,7 +26,7 @@ logger = AppLogger(__name__).get_logger()
 def retrieval_pipeline(
     query: str,
     system_settings: SystemSettings,
-    qdrant_client: QdrantDep,
+    qdrant_client: QdrantClient,
     rag_tracer: RAGTracer = None,
     trace=None,
     categories=None,
@@ -92,17 +92,15 @@ def retrieval_pipeline(
 
 
 # --- Full RAG pipeline ---
-def ask_flow(
+async def ask_flow(
     query: str,
     system_settings: SystemSettings,
-    langchain_client: LangchainDep,
-    qdrant_client: QdrantDep,
+    ollama_client: OllamaClient,
+    qdrant_client: QdrantClient,
     rag_tracer: RAGTracer,
     trace=None,
     user_id: str = "anonymous",
 ) -> AskResponse:
-    logger.info("Step 0: Re write ")
-
     reranked_chunks, sources, reranked = retrieval_pipeline(
         query, system_settings, qdrant_client, rag_tracer, trace
     )
@@ -121,35 +119,45 @@ def ask_flow(
     # context = build_prompt(query, reranked)
     with rag_tracer.trace_prompt_construction(trace, reranked_chunks) as prompt_span:
         try:
-            prompt_data = langchain_client.prompt_builder.create_structured_prompt(
+            prompt_data = ollama_client.prompt_builder.create_structured_prompt(
                 query, reranked, system_settings.user_language
             )
             final_prompt = prompt_data["prompt"]
+            logger.info(f"Structured final_prompt schema: {final_prompt}")
         except Exception:
-            final_prompt = langchain_client.prompt_builder.create_rag_prompt(
+            final_prompt = ollama_client.prompt_builder.create_rag_prompt(
                 query, reranked, system_settings.user_language
             )
+            logger.info(f"Structured final_prompt schema: {final_prompt}")
 
         rag_tracer.end_prompt(prompt_span, final_prompt)
 
     logger.info(f"Step 5: LLM generation with context = {final_prompt[100:]}")
     with rag_tracer.trace_generation(trace, "hybrid", final_prompt) as gen_span:
-        resp = langchain_client.llm_context(
-            final_prompt,
-            query,
+        # resp = langchain_client.llm_context(
+        #     query = query,
+        #     context = final_prompt,
+        #     user_language=system_settings.user_language,
+        #     system_prompt=system_settings.system_prompt,
+        # )
+        # rag_tracer.end_generation(gen_span, resp.content, "hybrid")
+
+        parsed_response, response = await ollama_client.generate_rag_answer(
+            query=query,
+            chunks=reranked,
             user_language=system_settings.user_language,
-            system_prompt=system_settings.system_prompt,
+            use_structured_output=False,
+            temperature=system_settings.temperature,
         )
+        rag_tracer.end_generation(gen_span, response, "hybrid")
 
-        rag_tracer.end_generation(gen_span, resp.content, "hybrid")
-
-    store_chat_and_usage(user_id, query, final_prompt, resp)
+    store_chat_and_usage(user_id, query, final_prompt, response)
 
     # return answer
     # Prepare response
     response = AskResponse(
         query=query,
-        answer=resp.content,
+        answer=parsed_response.get("answer", "Unable to generate answer"),
         sources=sources,
         chunks_used=len(reranked_chunks),
         search_mode="hybrid",
@@ -159,11 +167,11 @@ def ask_flow(
 
 
 async def rag_stream(
-    ollama_client: OllamaDep,
-    qdrant_client: QdrantDep,
+    ollama_client: OllamaClient,
+    qdrant_client: QdrantClient,
     query: str,
     system_settings: SystemSettings,
-    langfuse_tracer: LangfuseDep,
+    langfuse_tracer: LangfuseTracer,
     user_id: str = "anonymous",
     categories: List[str] = None,
 ) -> str:
@@ -183,15 +191,9 @@ async def rag_stream(
             with rag_tracer.trace_prompt_construction(
                 trace, reranked_chunks
             ) as prompt_span:
-                try:
-                    prompt_data = ollama_client.prompt_builder.create_structured_prompt(
-                        query, reranked, system_settings.user_language
-                    )
-                    final_prompt = prompt_data["prompt"]
-                except Exception:
-                    final_prompt = ollama_client.prompt_builder.create_rag_prompt(
-                        query, reranked, system_settings.user_language
-                    )
+                final_prompt = ollama_client.prompt_builder.create_rag_prompt(
+                    query, reranked, system_settings.user_language
+                )
 
                 rag_tracer.end_prompt(prompt_span, final_prompt)
 
@@ -236,11 +238,10 @@ async def rag_stream(
         yield f"data: {json.dumps(error_msg)}\n\n"
 
 
-if __name__ == "__main__":
-    from dependencies import LangchainDep, QdrantDep
+async def main():
     from services.langfuse.tracer import RAGTracer
 
-    query = "What is RAG?"
+    query = "TITAN: A Trajectory-Informed Technique for Adaptive Parameter Freezing  in Large-Scale VQE"
     print(query)
 
     # 初始化必要設定
@@ -258,14 +259,14 @@ if __name__ == "__main__":
     # 依賴注入 (實際要改成你的專案初始化方式)
     settings = get_settings()
     qdrant_client = QdrantClient(settings)
-    langchain_client = LangChainClient(settings)
+    ollama_client = OllamaClient(settings)
     rag_tracer = RAGTracer(LangfuseTracer(settings))
 
     # 呼叫流程
-    response = ask_flow(
+    response = await ask_flow(
         query=query,
         system_settings=system_settings,
-        langchain_client=langchain_client,
+        ollama_client=ollama_client,
         qdrant_client=qdrant_client,
         rag_tracer=rag_tracer,
     )
@@ -273,3 +274,7 @@ if __name__ == "__main__":
     print("=== 最終回答 ===")
     print(response.answer)
     print("來源：", response.sources)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

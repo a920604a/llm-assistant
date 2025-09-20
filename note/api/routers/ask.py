@@ -7,7 +7,6 @@ from api.schemas.query import Query
 from api.schemas.SystemSetting import SystemSettings
 from arxiv_rag_pipeline import ask_flow, rag_stream
 from dependencies import (
-    LangchainDep,
     LangfuseDep,
     OllamaDep,
     PaperCacheDep,
@@ -31,7 +30,7 @@ stream_router = APIRouter(tags=["stream"])
 @observe_api
 async def ask_question(
     request: Query,
-    langchain_client: LangchainDep,
+    ollama_client: OllamaDep,
     qdrant_client: QdrantDep,
     paper_cache_client: PaperCacheDep,
     user_cache_client: UserCacheDep,
@@ -70,10 +69,10 @@ async def ask_question(
             except Exception as e:
                 logger.warning(f"Cache check failed, proceeding with normal flow: {e}")
 
-        response = ask_flow(
+        response = await ask_flow(
             query=q,
             system_settings=system_settings,
-            langchain_client=langchain_client,
+            ollama_client=ollama_client,
             qdrant_client=qdrant_client,
             user_id=ask_r.user_id,
             rag_tracer=rag_tracer,
