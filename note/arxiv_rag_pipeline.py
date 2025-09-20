@@ -144,7 +144,7 @@ async def ask_flow(
             query=query,
             chunks=reranked,
             user_language=system_settings.user_language,
-            use_structured_output=True,
+            use_structured_output=False,
             temperature=system_settings.temperature,
         )
         rag_tracer.end_generation(gen_span, response, "hybrid")

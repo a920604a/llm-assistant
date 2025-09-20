@@ -85,13 +85,34 @@ class RAGPromptBuilder:
         Returns:
             Dictionary with prompt and format schema for Ollama
         """
-        prompt_text = self.create_rag_prompt(query, chunks, user_language)
+        prompt = f"{self.system_prompt}\n\n"
+        prompt += "### Context from Papers:\n\n"
 
-        # Return prompt with Pydantic model schema for structured output
-        return {
-            "prompt": prompt_text,
-            "format": RAGResponse.model_json_schema(),
-        }
+        for i, chunk in enumerate(chunks, 1):
+            # Get the actual chunk text
+            chunk_text = chunk.get("chunk_text", chunk.get("content", ""))
+            arxiv_id = chunk.get("arxiv_id", "")
+
+            # Only include minimal metadata - just arxiv_id for citation
+            prompt += f"[{i}. arXiv:{arxiv_id}]\n"
+            prompt += f"{chunk_text}\n\n"
+
+        prompt += f"### Question:\n{query}\n\n"
+        prompt += "### Answer:\n"
+        prompt += (
+            "Provide a natural, conversational response (not JSON), cite sources using [arXiv:id] format.\n\n"
+            "Return EXACTLY in JSON matching this schema:\n"
+            "{\n"
+            '  "answer": "",\n'
+            '  "sources": [],\n'
+            '  "confidence": "",\n'
+            '  "citations": []\n'
+            "}\n"
+            f"and Translate to {user_language}. "
+            f"Output ONLY in {user_language}, formatted clearly for readability"
+        )
+
+        return prompt
 
 
 class ResponseParser:

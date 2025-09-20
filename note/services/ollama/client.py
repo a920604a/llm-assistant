@@ -205,7 +205,7 @@ class OllamaClient:
                 logger.info(f"prompt_data {prompt_data}\n\n")
                 # Generate with structured format
                 response = await self.generate(
-                    prompt=prompt_data["prompt"],
+                    prompt=prompt_data,
                     temperature=temperature,
                     top_p=0.9,
                     # format=prompt_data["format"],
@@ -319,5 +319,61 @@ async def main():
         logger.info(f"❌ Streaming failed: {e}")
 
 
+async def format_llm():
+    from config import get_settings
+    from pydantic import BaseModel
+
+    settings = get_settings()
+
+    class Country(BaseModel):
+        name: str
+        capital: str
+        languages: list[str]
+
+    prompt = """
+        Context: TITAN is a technique for adaptive parameter freezing in VQE.
+
+        Question: What is TITAN?
+
+        Return EXACTLY in this JSON format:
+        {
+            "answer": "",
+            "sources": [],
+            "confidence": "medium",
+            "citations": []
+        }
+
+        Instructions:
+        - Fill the fields based ONLY on the provided context.
+        - Do NOT add extra text, explanations, or formatting outside this JSON.
+        - If the context is insufficient, say so in the "answer" field.
+        """
+
+    data = {
+        "model": settings.MODEL_NAME,
+        "prompt": prompt,
+        "stream": False,
+        # "format" : "json",
+        # "format": Country.model_json_schema()  # <-- 使用 format 強制 JSON 輸出
+    }
+
+    with httpx.Client(timeout=60) as client:
+        resp = client.post(f"{settings.OLLAMA_API_URL}/api/generate", json=data)
+        resp.raise_for_status()
+        result = resp.json()
+
+    # Ollama 回傳的文本
+    llm_output = result.get("response") or result.get("text") or ""
+
+    # 用 Pydantic 驗證
+    try:
+        country = Country.model_validate_json(llm_output)
+        print(country)
+    except Exception as e:
+        print("JSON 解析失敗:", e)
+        print("LLM 原始輸出:", llm_output)
+
+
 if __name__ == "__main__":
     asyncio.run(main())
+    # asyncio.run(format_llm())
