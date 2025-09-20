@@ -171,7 +171,7 @@ def process_user_task(user: dict, papers: list[dict], content_map: dict):
 # ----------------------
 
 
-@flow(name="Daily Papers Flow")
+@flow(name="Daily Subscribe Flow")
 def daily_papers_flow(top_k: int = 3):
     # 初始化 Firebase
     cred = firebase_admin.credentials.Certificate(
@@ -182,7 +182,7 @@ def daily_papers_flow(top_k: int = 3):
     logger = get_run_logger()
 
     start_flow = time.time()
-    logger.info("Daily papers flow started")
+    logger.info("Daily Subscribe Flow started")
 
     # Fetch all subscribed user emails, user_id, translate, and user_language
     users = get_users_task()
@@ -213,7 +213,7 @@ def daily_papers_flow(top_k: int = 3):
         result = process_user_task(user, assigned_papers, content_map)
         logger.info(result)
 
-    logger.info(f"Daily papers flow completed in {time.time() - start_flow:.2f}s")
+    logger.info(f"Daily Subscribe Flow completed in {time.time() - start_flow:.2f}s")
 
 
 if __name__ == "__main__":

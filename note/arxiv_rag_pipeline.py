@@ -29,6 +29,7 @@ def retrieval_pipeline(
     qdrant_client: QdrantDep,
     rag_tracer: RAGTracer = None,
     trace=None,
+    categories=None,
 ) -> Tuple[List[dict], List[str], str]:
     # logger.info("Step 0: Re write ")
     # query = langchain_client.rewrite_query(query, user_id)
@@ -39,12 +40,17 @@ def retrieval_pipeline(
     rag_tracer.end_embedding(embedding_span, query_embedding)
 
     logger.info("Step 1: Retrieval")
-    with rag_tracer.trace_search(trace, query=query, top_k=5) as search_span:
+    with rag_tracer.trace_search(
+        trace, query=query, top_k=system_settings.top_k
+    ) as search_span:
+        logger.info(f"Hybrid search enabled: {system_settings.hybrid_search}")
         chunks, sources, msg, arxiv_ids, total_hits = qdrant_client.search(
             query=query,
             query_vector=query_embedding,
             size=system_settings.top_k,
             min_score=0.3,
+            hybrid=system_settings.hybrid_search,
+            categories=categories,
         )
         rag_tracer.end_search(search_span, chunks, arxiv_ids, total_hits)
 
@@ -72,7 +78,11 @@ def retrieval_pipeline(
         trace, query=query, reranked_chunks=reranked, top_k=system_settings.top_k
     ) as eval_span:
         eval_metrics = evaluate(
-            qdrant_client, reranked, query, top_k=system_settings.top_k
+            qdrant_client,
+            reranked,
+            query,
+            top_k=system_settings.top_k,
+            hybrid_search=system_settings.hybrid_search,
         )
         rag_tracer.end_evaluate(eval_span, eval_metrics)
 
@@ -155,13 +165,14 @@ async def rag_stream(
     system_settings: SystemSettings,
     langfuse_tracer: LangfuseDep,
     user_id: str = "anonymous",
+    categories: List[str] = None,
 ) -> str:
     try:
         rag_tracer = RAGTracer(langfuse_tracer)
         start_time = time.time()
         with rag_tracer.trace_request(user_id, query) as trace:
             reranked_chunks, sources, reranked = retrieval_pipeline(
-                query, system_settings, qdrant_client, rag_tracer, trace
+                query, system_settings, qdrant_client, rag_tracer, trace, categories
             )
 
             if not reranked_chunks:
@@ -203,7 +214,7 @@ async def rag_stream(
 
                     if chunk.get("done", False):
                         rag_tracer.end_generation(gen_span, full_response, "hybrid")
-                        logger.info(f"full_response {full_response}")
+                        # logger.info(f"full_response {full_response}")
                         yield f"data: {json.dumps({'answer': full_response, 'done': True})}\n\n"
 
                         final_chunk = chunk  # ← save last chunk

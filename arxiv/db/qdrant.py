@@ -16,10 +16,19 @@ def create_qdrant_collection():
     try:
         qdrant_client.create_collection(
             collection_name=COLLECTION_NAME,
-            vectors_config=models.VectorParams(
-                size=768, distance=models.Distance.COSINE
-            ),
+            vectors_config={
+                "dense": models.VectorParams(
+                    size=768,
+                    distance=models.Distance.COSINE,
+                ),
+            },
+            sparse_vectors_config={
+                "bm25": models.SparseVectorParams(
+                    modifier=models.Modifier.IDF,
+                )
+            },
         )
+
         logger.info(f"✅ Qdrant collection `{COLLECTION_NAME}` created successfully.")
     except UnexpectedResponse as e:
         # 如果已存在就當作正常，不丟錯

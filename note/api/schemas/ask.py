@@ -52,3 +52,28 @@ class AskResponse(BaseModel):
                 "search_mode": "hybrid",
             }
         }
+
+
+class GradioStreamRequest(BaseModel):
+    """Request model for Gradio streaming."""
+
+    query: str = Field(
+        ..., description="User's question", min_length=1, max_length=1000
+    )
+    top_k: int = Field(3, description="Number of top chunks to retrieve", ge=1, le=10)
+    use_hybrid: bool = Field(True, description="Use hybrid search ")
+    model: str = Field("gpt-oss:20b", description="Ollama model to use for generation")
+    categories: Optional[List[str]] = Field(
+        None, description="Filter by arXiv categories"
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "query": "What are transformers in machine learning?",
+                "top_k": 3,
+                "use_hybrid": True,
+                "model": "gpt-oss:20b",
+                "categories": ["cs.AI", "cs.LG"],
+            }
+        }

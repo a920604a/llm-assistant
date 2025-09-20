@@ -1,5 +1,6 @@
 import asyncio
 import os
+import uuid
 
 from config import get_settings
 from langchain.docstore.document import Document
@@ -61,9 +62,17 @@ class RagAgent:
         dim = len(embeddings[0])
         self.index.recreate_collection(
             collection_name=self.collection_name,
-            vectors_config=model_qdrant.VectorParams(
-                size=dim, distance=model_qdrant.Distance.COSINE
-            ),
+            vectors_config={
+                "dense": model_qdrant.VectorParams(
+                    size=dim,
+                    distance=model_qdrant.Distance.COSINE,
+                ),
+            },
+            sparse_vectors_config={
+                "bm25": model_qdrant.SparseVectorParams(
+                    modifier=model_qdrant.Modifier.IDF,
+                )
+            },
         )
 
         # 上傳所有 chunk
@@ -71,7 +80,15 @@ class RagAgent:
         for idx, (doc, vector) in enumerate(zip(self.documents, embeddings)):
             points.append(
                 model_qdrant.PointStruct(
-                    id=idx, vector=vector, payload={"text": doc.page_content}
+                    id=uuid.uuid4().hex,
+                    vector={
+                        "dense": vector,  # 自己計算的向量
+                        "bm25": model_qdrant.Document(
+                            text=doc.page_content,
+                            model="Qdrant/bm25",
+                        ),
+                    },
+                    payload={"text": doc.page_content},
                 )
             )
 
@@ -80,14 +97,34 @@ class RagAgent:
 
     def _retrieve_context(self, query: str, k: int = 3) -> list[str]:
         print(f"Retrieving context for query: '{query}'")
-        query_embedding = self.embedding_model.encode(query, convert_to_tensor=False)
-        hits = self.index.search(
+
+        # 1. 計算 dense embedding
+        query_vector = self.embedding_model.encode(
+            query, convert_to_tensor=False
+        ).tolist()
+
+        # 2. 使用 query_points 進行查詢
+        hits = self.index.query_points(
             collection_name=self.collection_name,
-            query_vector=query_embedding.tolist(),  # 要轉成 list[float]
-            limit=k,
+            prefetch=[
+                # Dense vector
+                model_qdrant.Prefetch(query=query_vector, using="dense", limit=5 * k),
+                # Sparse BM25
+                model_qdrant.Prefetch(
+                    query=model_qdrant.Document(
+                        text=query,
+                        model="Qdrant/bm25",
+                    ),
+                    using="bm25",
+                    limit=5 * k,
+                ),
+            ],
+            query=model_qdrant.FusionQuery(fusion=model_qdrant.Fusion.RRF),
+            with_payload=True,
         )
 
-        retrieved_docs = [hit.payload["text"] for hit in hits]
+        # 3. 取出 payload
+        retrieved_docs = [hit.payload["text"] for hit in hits.points]
 
         print(f"Retrieved {len(retrieved_docs)} documents.")
 

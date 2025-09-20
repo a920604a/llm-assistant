@@ -72,7 +72,7 @@ app = FastAPI(
 
 Instrumentator().instrument(app).expose(app)
 
-origins = ["http://apiGateway:8000"]
+origins = ["http://apiGateway:8000", "http://localhost:7861"]
 
 
 # 設定允許的來源

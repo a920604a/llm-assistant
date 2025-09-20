@@ -77,8 +77,9 @@ def arxiv_pipeline(
 if __name__ == "__main__":
     # create_qdrant_collection()
     # create_note_bucket()
-    arxiv_pipeline(
-        date_from=(datetime.utcnow() - timedelta(days=30)).strftime("%Y%m%d"),
-        date_to=datetime.utcnow().strftime("%Y%m%d"),
-        max_results=1,
-    )
+    for i in range(3):  # 測試用，跑一次
+        arxiv_pipeline(
+            date_from=(datetime.utcnow() - timedelta(days=30 - i)).strftime("%Y%m%d"),
+            date_to=datetime.utcnow().strftime("%Y%m%d"),
+            max_results=20,
+        )

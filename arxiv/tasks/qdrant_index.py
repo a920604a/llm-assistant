@@ -1,3 +1,4 @@
+import uuid
 from typing import Dict, List
 
 from config import COLLECTION_NAME, QDRANT_BATCH_SIZE
@@ -74,9 +75,24 @@ def qdrant_index_task(
             for chunk_idx, chunk in enumerate(chunks):
                 vector = get_embedding(chunk)
 
-                payload = {**metadata, "text": chunk, "chunk_idx": chunk_idx}
+                point = models.PointStruct(
+                    id=uuid.uuid4().hex,
+                    vector={
+                        # dense embedding 使用指定模型 all-mpnet-base-v2
+                        "dense": vector,  # 自己計算的向量
+                        # sparse embedding (BM25) 自動計算
+                        "bm25": models.Document(
+                            text=chunk,
+                            model="Qdrant/bm25",
+                        ),
+                    },
+                    payload={
+                        **metadata,
+                        "text": chunk,
+                        "chunk_idx": chunk_idx,
+                    },
+                )
 
-                point = models.PointStruct(id=idx, vector=vector, payload=payload)
                 points.append(point)
                 batch_points.append(point)  # ✅ 把 point 加入 batch
                 idx += 1

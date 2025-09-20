@@ -2,8 +2,9 @@
 import time
 
 from api.auto_metrics import observe_api
-from api.schemas.ask import AskRequest, AskResponse
+from api.schemas.ask import AskRequest, AskResponse, GradioStreamRequest
 from api.schemas.query import Query
+from api.schemas.SystemSetting import SystemSettings
 from arxiv_rag_pipeline import ask_flow, rag_stream
 from dependencies import (
     LangchainDep,
@@ -114,6 +115,46 @@ async def ask_question_stream(
             system_settings=system_settings,
             user_id=request.user_id,
             langfuse_tracer=langfuse_tracer,
+        ),
+        media_type="text/plain",  # 前端 fetch 會逐段讀取
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        },
+    )
+
+
+@stream_router.post("/api/v1/gradio/stream")
+async def ask_question_gradio_stream(
+    request: GradioStreamRequest,
+    ollama_client: OllamaDep,
+    qdrant_client: QdrantDep,
+    user_cache_client: UserCacheDep,
+    langfuse_tracer: LangfuseDep,
+):
+    logger.info(f"request {request}")
+
+    settings = SystemSettings(
+        user_language="Traditional Chinese",
+        translate=False,
+        system_prompt="",
+        top_k=request.top_k,
+        use_rag=True,
+        subscribe_email=True,
+        reranker_enabled=True,
+        temperature=0.3,
+        hybrid_search=request.use_hybrid,
+    )
+
+    return StreamingResponse(
+        rag_stream(
+            ollama_client=ollama_client,
+            qdrant_client=qdrant_client,
+            query=request.query,
+            system_settings=settings,
+            user_id="gradio user",
+            langfuse_tracer=langfuse_tracer,
+            categories=request.categories,
         ),
         media_type="text/plain",  # 前端 fetch 會逐段讀取
         headers={

@@ -10,6 +10,7 @@ class SystemSettings(BaseModel):
     subscribe_email: bool
     reranker_enabled: bool
     temperature: float = 0.6  # LLM temperature, default to 0.6
+    hybrid_search: bool = False  # Whether to use hybrid search (vector + text)
 
 
 DEFAULT_SETTINGS = SystemSettings(
@@ -21,6 +22,7 @@ DEFAULT_SETTINGS = SystemSettings(
     subscribe_email=False,
     reranker_enabled=True,
     temperature=0.6,  # Default temperature for LLM responses
+    hybrid_search=False,  # Whether to use hybrid search (vector + text)
 )
 
 

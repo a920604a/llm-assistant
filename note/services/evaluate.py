@@ -30,15 +30,16 @@ def hit_rate(ranked_ids: List[str], ground_truth_ids: List[str], k: int = 5):
     return hits / min(k, len(ground_truth_ids))
 
 
-def generate_pseudo_ground_truth(qdrant_client: QdrantDep, query: str, top_n: int = 5):
+def generate_pseudo_ground_truth(
+    qdrant_client: QdrantDep, query: str, top_n: int = 5, hybrid_search: bool = False
+):
     """
     使用 query embedding 從 Qdrant search 出 top_n 當作 pseudo ground truth
     """
     query_emb = get_embedding(query)
 
     results = qdrant_client.search_native(
-        query_vector=query_emb,
-        size=top_n * 2,
+        query_vector=query_emb, query=query, size=top_n, hybrid_search=hybrid_search
     )
 
     # 返回 arxiv_id list 作為 ground truth
@@ -47,13 +48,19 @@ def generate_pseudo_ground_truth(qdrant_client: QdrantDep, query: str, top_n: in
 
 
 def evaluate(
-    qdrant_client: QdrantDep, reranked_chunks: list, query: str, top_k: int = 5
+    qdrant_client: QdrantDep,
+    reranked_chunks: list,
+    query: str,
+    top_k: int = 5,
+    hybrid_search: bool = False,
 ) -> dict:
     """
     Evaluate retrieval + rerank 表現
     """
 
-    pseudo_gt = generate_pseudo_ground_truth(qdrant_client, query, top_n=top_k)
+    pseudo_gt = generate_pseudo_ground_truth(
+        qdrant_client, query, top_n=top_k, hybrid_search=hybrid_search
+    )
     ranked_ids = [chunk["arxiv_id"] for chunk in reranked_chunks]
 
     ndcg = ndcg_at_k(ranked_ids, pseudo_gt, k=top_k)
