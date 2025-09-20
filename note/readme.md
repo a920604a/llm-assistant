@@ -17,22 +17,19 @@
 │       ├── SystemSetting.py
 │       └── user.py
 │
-├── arxiv_rag_pipeline.py                  # Main RAG pipeline for fetching, embedding, and storing ArXiv papers
+├── arxiv_rag_pipeline.py                  # Main RAG pipeline for embedding, search from qdrant, build prompt, llm
 ├── config.py                              # Configuration settings (API URLs, DB connections, environment variables)
 ├── dependencies.py                        # FastAPI dependencies (e.g., DB sessions, authentication)
-├── embedding.py                            # Functions for generating embeddings from paper text
-├── evaluate.py                             # Evaluation utilities (e.g., accuracy, relevance scoring)
 ├── exceptions.py                           # Custom exception classes
 ├── __init__.py                             # Package initialization
 ├── logger.py                               # Centralized logging utilities
 ├── main.py                                 # FastAPI application entry point
-├── metrics.py                              # Metrics collection and reporting
-├── prompt.py                               # LLM prompt templates or helpers
 │
 ├── services/                               # Core service layer
 │   ├── cache/                              # Caching utilities
 │   │   ├── client.py
 │   │   ├── factory.py
+│   │   ├── metrics.py                      # Redis metrics utilities
 │   ├── data.md                              # Documentation or reference data
 │   ├── estimate_tokens.py                  # Estimate token usage for LLM calls
 │   ├── fetch_chat.py                        # Fetch chat history or conversation context
@@ -63,9 +60,11 @@
 │   ├── rerank.py                            # Reranking retrieved results
 │   ├── store_chat_and_usage.py              # Store chat history and usage metrics
 │   ├── system_setting.py                    # System configuration utilities
-│   └── user_info.py                         # User information utilities
+│   ├── user_info.py                         # User information utilities
+│   ├── embedding.py                         # Functions for generating embeddings from paper text
+│   ├── evaluate.py                          # Evaluation utilities (e.g., accuracy, relevance scoring)
 │
-├── storage/                                # Storage layer (DB/Redis)
+├── db/                                      # DB layer
 │   ├── crud/                                # CRUD operations for FastAPI endpoints
 │   │   ├── chat_history.py
 │   │   ├── note.py
@@ -73,8 +72,6 @@
 │   │   └── user.py
 │   ├── __init__.py
 │   ├── postgres.py                          # PostgreSQL connection and utilities
-│   ├── redis_client.py                       # Redis client setup
-│   ├── redis_metrics.py                      # Redis metrics utilities
 │   └── storage_metrics.py                    # General storage metrics
 │
 └── tests/
@@ -104,20 +101,18 @@
 * Storage management and logging for MinIO, Qdrant, Redis, and Postgres
 * Error handling and retry mechanisms
 
-**Pipeline Layer (`arxiv_rag_pipeline.py`, `pipeline.py`)**
+**Pipeline Layer (`arxiv_rag_pipeline.py`)**
 
-* Orchestration of fetching, processing, and storing ArXiv papers
-* Task sequencing and workflow coordination
-* Summary generation and dispatch to users (email pipeline if applicable)
+* Main RAG pipeline for embedding, search from qdrant, build prompt, llm
 
-**Storage / Repositories Layer (`storage/`, `services/qdrant/`, `services/minio/`)**
+**Storage / Repositories Layer (`db/`, `services/qdrant/`, `services/minio/`)**
 
-* Database abstraction and CRUD operations (`storage/crud/`)
+* Database abstraction and CRUD operations (`db/crud/`)
 * Query optimization, indexing, and transaction management
 * Data consistency, integrity, and schema management
-* Metrics collection and monitoring (`storage_metrics.py`, `redis_metrics.py`)
+* Metrics collection and monitoring (`storage_metrics.py`, `cache/metrics.py`)
 
-**Models & Schemas (`storage/model.py`, `api/schemas/`)**
+**Models & Schemas (`db/postgresql.py`, `api/schemas/`)**
 
 * Database models using SQLAlchemy or ORM
 * Pydantic schemas for API request/response validation
