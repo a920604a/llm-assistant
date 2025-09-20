@@ -143,8 +143,19 @@ class QdrantClient:
                 collection_name=self.settings.COLLECTION_NAME,
                 query=query_vector,
                 using="dense",
+                limit=size,
                 with_payload=True,
             )
+            # query_result = self.client.query_points(
+            #     collection_name=self.settings.COLLECTION_NAME,
+            #     query=models.Document(
+            #         text=query,
+            #         model="Qdrant/bm25",
+            #     ),
+            #     using="bm25",
+            #     limit=size,
+            #     with_payload=True,
+            # )
 
         # Extract essential data for LLM
         chunks = []
