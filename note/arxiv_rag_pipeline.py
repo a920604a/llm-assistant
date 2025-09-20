@@ -123,12 +123,10 @@ async def ask_flow(
                 query, reranked, system_settings.user_language
             )
             final_prompt = prompt_data["prompt"]
-            logger.info(f"Structured final_prompt schema: {final_prompt}")
         except Exception:
             final_prompt = ollama_client.prompt_builder.create_rag_prompt(
                 query, reranked, system_settings.user_language
             )
-            logger.info(f"Structured final_prompt schema: {final_prompt}")
 
         rag_tracer.end_prompt(prompt_span, final_prompt)
 
@@ -146,7 +144,7 @@ async def ask_flow(
             query=query,
             chunks=reranked,
             user_language=system_settings.user_language,
-            use_structured_output=False,
+            use_structured_output=True,
             temperature=system_settings.temperature,
         )
         rag_tracer.end_generation(gen_span, response, "hybrid")

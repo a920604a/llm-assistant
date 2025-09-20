@@ -226,7 +226,7 @@ class OllamaClient:
 
             if response and "response" in response:
                 answer_text = response["response"]
-                logger.info(f"Raw LLM response: {answer_text[:500]}")
+                logger.info(f"Raw LLM response: {answer_text}")
 
                 if use_structured_output:
                     # Try to parse structured response if enabled
