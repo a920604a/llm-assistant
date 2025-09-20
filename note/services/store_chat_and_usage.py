@@ -1,8 +1,8 @@
 from config import get_settings
+from db.crud.chat_history import insert_chat_history
+from db.crud.user import set_user_token_spend
 from langchain_core.messages.ai import AIMessage
 from services.estimate_tokens import get_ollama_token_usage, get_token_estimate
-from storage.crud.chat_history import insert_chat_history
-from storage.crud.user import set_user_token_spend
 
 
 def store_chat_and_usage(user_id: str, query: str, prompt: str, resp: AIMessage):

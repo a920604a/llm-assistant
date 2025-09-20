@@ -1,10 +1,11 @@
 from datetime import datetime
 from typing import List
 
-from storage import db_session
-from storage.crud.user import get_or_create_user
-from storage.postgres import Note, User
-from storage.storage_metrics import monitored_db
+from db.crud.user import get_or_create_user
+from db.postgres import Note, User
+from db.storage_metrics import monitored_db
+
+from db import db_session
 
 
 @monitored_db

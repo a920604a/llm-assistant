@@ -1,10 +1,10 @@
 # services/system_setting.py
 from typing import Optional
 
-from api.schemas.SystemSetting import SystemSettings
+from api.schemas.SystemSetting import PostSettingsRequest, SystemSettings
+from db.crud.setting import get, update
 from logger import AppLogger
-from storage.crud.setting import get, update
-from storage.redis_client import update_redis_system_setting
+from services.cache.client import CacheClient
 
 logger = AppLogger(__name__).get_logger()
 
@@ -18,9 +18,9 @@ def get_setting(user_id: str) -> Optional[SystemSettings]:
         return None
 
 
-def post_setting(user_id: str, settings: SystemSettings) -> bool:
-    logger.info(f"Updating settings for user {user_id}: {settings.dict()}")
+def post_setting(req: PostSettingsRequest, user_cache_client: CacheClient) -> bool:
+    logger.info(f"Updating settings for user {req.user_id}: {req.new_settings.dict()}")
     # save to redis
-    update_redis_system_setting(user_id, settings)
+    user_cache_client.update_redis_system_setting(req.user_id, req.new_settings)
     # save to db
-    return update(user_id, settings.dict(exclude_unset=True))
+    return update(req.user_id, req.new_settings.dict(exclude_unset=True))

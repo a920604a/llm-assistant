@@ -5,12 +5,19 @@ from api.auto_metrics import observe_api
 from api.schemas.ask import AskRequest, AskResponse
 from api.schemas.query import Query
 from arxiv_rag_pipeline import ask_flow, rag_stream
-from dependencies import LangchainDep, LangfuseDep, OllamaDep, PaperCacheDep, QdrantDep
+from dependencies import (
+    LangchainDep,
+    LangfuseDep,
+    OllamaDep,
+    PaperCacheDep,
+    QdrantDep,
+    SettingsDep,
+    UserCacheDep,
+)
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from logger import AppLogger
 from services.langfuse.tracer import RAGTracer
-from storage.redis_client import get_redis_system_setting
 
 logger = AppLogger(__name__).get_logger()
 
@@ -26,14 +33,16 @@ async def ask_question(
     langchain_client: LangchainDep,
     qdrant_client: QdrantDep,
     paper_cache_client: PaperCacheDep,
+    user_cache_client: UserCacheDep,
     langfuse_tracer: LangfuseDep,
+    settings: SettingsDep,
 ) -> AskResponse:
     q = request.text.strip()
     logger.info("ask_question %s", q)
 
     rag_tracer = RAGTracer(langfuse_tracer)
     start_time = time.time()
-    system_settings = get_redis_system_setting(request.user_id)
+    system_settings = user_cache_client.get_redis_system_setting(request.user_id)
     top = system_settings.top_k
     lang = system_settings.user_language
     logger.info("ask_question %s, top_k=%s, user_language=%s", q, top, lang)
@@ -43,7 +52,7 @@ async def ask_question(
         query=request.text,
         top_k=system_settings.top_k,
         use_hybrid=True,
-        model="gpt-oss:20b",
+        model=settings.MODEL_NAME,
     )
 
     with rag_tracer.trace_request(request.user_id, ask_r.query) as trace:
@@ -86,12 +95,13 @@ async def ask_question_stream(
     request: Query,
     ollama_client: OllamaDep,
     qdrant_client: QdrantDep,
+    user_cache_client: UserCacheDep,
     langfuse_tracer: LangfuseDep,
 ):
     q = request.text.strip()
     logger.info("ask_question_stream %s", q)
 
-    system_settings = get_redis_system_setting(request.user_id)
+    system_settings = user_cache_client.get_redis_system_setting(request.user_id)
     top = system_settings.top_k
     lang = system_settings.user_language
     logger.info("ask_question_stream %s, top_k=%s, user_language=%s", q, top, lang)

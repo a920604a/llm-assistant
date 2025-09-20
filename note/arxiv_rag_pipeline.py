@@ -6,9 +6,9 @@ from api.schemas.ask import AskResponse
 from api.schemas.SystemSetting import SystemSettings
 from config import get_settings
 from dependencies import LangchainDep, LangfuseDep, OllamaDep, QdrantDep
-from embedding import get_embedding
-from evaluate import evaluate
 from logger import AppLogger
+from services.embedding import get_embedding
+from services.evaluate import evaluate
 from services.langchain.client import LangChainClient
 from services.langfuse.client import LangfuseTracer
 from services.langfuse.tracer import RAGTracer

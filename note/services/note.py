@@ -1,4 +1,4 @@
-from storage.crud.note import get_note
+from db.crud.note import get_note
 
 
 def get_notes(user_id: str):

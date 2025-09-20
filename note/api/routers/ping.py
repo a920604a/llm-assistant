@@ -6,7 +6,8 @@ from fastapi import APIRouter, Request
 from qdrant_client.http.exceptions import UnexpectedResponse
 from services.ollama.client import OllamaClient
 from sqlalchemy import text
-from storage import db_session
+
+from db import db_session
 
 router = APIRouter()
 

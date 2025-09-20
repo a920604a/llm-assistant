@@ -1,4 +1,4 @@
-from storage.crud.user import get
+from db.crud.user import get
 
 
 def get_info(user_id: str):

@@ -5,6 +5,7 @@ from api.schemas.SystemSetting import (
     PostSettingsRequest,
     SystemSettings,
 )
+from dependencies import UserCacheDep
 from fastapi import APIRouter
 from logger import AppLogger
 from services.system_setting import get_setting, post_setting
@@ -28,7 +29,7 @@ async def get_user_settings(user_id: str):
 
 
 @router.post("/api/v1/setting", response_model=dict)
-async def post_settings(req: PostSettingsRequest):
+async def post_settings(req: PostSettingsRequest, user_cache_client: UserCacheDep):
     logger.info("post_settings %s", req)
-    post_setting(req.user_id, req.new_settings)
+    post_setting(req, user_cache_client)
     return {"status": True, "message": "Settings updated successfully"}

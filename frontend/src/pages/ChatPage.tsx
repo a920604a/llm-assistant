@@ -11,6 +11,7 @@ const ChatPage = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
+    const [mode, setMode] = useState<'standard' | 'stream'>('standard'); // 新增模式狀態
     const bottomRef = useRef<HTMLDivElement>(null);
 
     // 自動捲動到底部
@@ -29,7 +30,7 @@ const ChatPage = () => {
         setLoading(true);
 
         try {
-            await ask(input, "stream", (chunk) => {
+            await ask(input, mode, (chunk) => {
                 setMessages(prev => {
                     const newMsgs = [...prev];
                     const lastMsg = newMsgs[newMsgs.length - 1];
@@ -52,6 +53,29 @@ const ChatPage = () => {
     return (
         <div className="flex flex-col h-full p-4">
             <h2 className="text-2xl font-semibold mb-4">聊天訊息</h2>
+            {/* 選擇模式 UI */}
+            <div className="mb-4 flex items-center space-x-4">
+                <label className="flex items-center space-x-2">
+                    <input
+                        type="radio"
+                        name="mode"
+                        value="standard"
+                        checked={mode === 'standard'}
+                        onChange={() => setMode('standard')}
+                    />
+                    <span>Standard</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                    <input
+                        type="radio"
+                        name="mode"
+                        value="stream"
+                        checked={mode === 'stream'}
+                        onChange={() => setMode('stream')}
+                    />
+                    <span>Stream</span>
+                </label>
+            </div>
 
             <div className="flex-1 overflow-auto flex flex-col space-y-3">
                 {messages.map((msg, idx) => (

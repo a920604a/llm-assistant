@@ -1,7 +1,8 @@
-from storage import db_session
-from storage.crud.user import get_or_create_user
-from storage.postgres import UserSetting
-from storage.storage_metrics import monitored_db
+from db.crud.user import get_or_create_user
+from db.postgres import UserSetting
+from db.storage_metrics import monitored_db
+
+from db import db_session
 
 
 @monitored_db

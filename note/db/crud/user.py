@@ -1,9 +1,10 @@
 from datetime import date
 
+from db.postgres import Paper, User
+from db.storage_metrics import monitored_db
 from logger import AppLogger
-from storage import db_session
-from storage.postgres import Paper, User
-from storage.storage_metrics import monitored_db
+
+from db import db_session
 
 logger = AppLogger(__name__).get_logger()
 # from services.get_user_total_tokens import get_user_total_tokens

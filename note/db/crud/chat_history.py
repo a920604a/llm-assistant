@@ -1,9 +1,10 @@
 from datetime import datetime
 from typing import Optional
 
-from storage import db_session
-from storage.postgres import ChatHistory, User
-from storage.storage_metrics import monitored_db
+from db.postgres import ChatHistory, User
+from db.storage_metrics import monitored_db
+
+from db import db_session
 
 
 @monitored_db
@@ -23,7 +24,7 @@ def insert_chat_history(
         # 確保 user 存在
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
-            from storage.crud.user import get_or_create_user
+            from db.crud.user import get_or_create_user
 
             user = get_or_create_user(db, user_id)
 

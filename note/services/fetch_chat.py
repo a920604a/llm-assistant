@@ -1,5 +1,5 @@
 from api.schemas.history import ChatMessage
-from storage.crud.chat_history import fetch_chat_history
+from db.crud.chat_history import fetch_chat_history
 
 
 def fetch_chat(user_id: str, limit: int) -> list[ChatMessage]:
