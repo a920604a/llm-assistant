@@ -1,0 +1,2 @@
+# 追蹤所有 mp4 檔案
+demo/*.mp4 filter=lfs diff=lfs merge=lfs -text
