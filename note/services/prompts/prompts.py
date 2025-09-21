@@ -112,11 +112,11 @@ class RAGPromptBuilder:
             f"Output ONLY in {user_language}, formatted clearly for readability"
         )
 
-        return prompt
-        # return {
-        #     "prompt": prompt,
-        #     "format": RAGResponse.model_json_schema(),
-        # }
+        # return prompt
+        return {
+            "prompt": prompt,
+            "format": RAGResponse.model_json_schema(),
+        }
 
 
 class ResponseParser:

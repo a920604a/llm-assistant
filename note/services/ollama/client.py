@@ -107,10 +107,12 @@ class OllamaClient:
                     "stream": False,
                     **kwargs,
                 }
+                logger.info(f"ollama data {data}")
 
                 response = await client.post(f"{self.base_url}/api/generate", json=data)
 
                 if response.status_code == 200:
+                    logger.info(f"ollama reponse {response.json()}")
                     return response.json()
                 else:
                     raise OllamaException(f"Generation failed: {response.status_code}")
@@ -205,7 +207,7 @@ class OllamaClient:
                 logger.info(f"prompt_data {prompt_data}\n\n")
                 # Generate with structured format
                 response = await self.generate(
-                    prompt=prompt_data,
+                    prompt=prompt_data["prompt"],
                     temperature=temperature,
                     top_p=0.9,
                     # format=prompt_data["format"],
@@ -233,7 +235,7 @@ class OllamaClient:
                     parsed_response = self.response_parser.parse_structured_response(
                         answer_text
                     )
-                    logger.info(f"Parsed response: {parsed_response}")
+                    logger.info(f"Parsed response:  {parsed_response}")
                     return parsed_response, response
                 else:
                     # For plain text response, build simple response structure
@@ -321,14 +323,9 @@ async def main():
 
 async def format_llm():
     from config import get_settings
-    from pydantic import BaseModel
+    from services.prompts.prompts import ResponseParser
 
     settings = get_settings()
-
-    class Country(BaseModel):
-        name: str
-        capital: str
-        languages: list[str]
 
     prompt = """
         Context: TITAN is a technique for adaptive parameter freezing in VQE.
@@ -345,8 +342,8 @@ async def format_llm():
         "model": settings.MODEL_NAME,
         "prompt": prompt,
         "stream": False,
-        # "format" : "json",
-        "format": Country.model_json_schema(),  # <-- 使用 format 強制 JSON 輸出
+        "format": "json",
+        # "format": RAGResponse.model_json_schema(),  # <-- 使用 format 強制 JSON 輸出
     }
 
     with httpx.Client(timeout=60) as client:
@@ -359,8 +356,8 @@ async def format_llm():
 
     # 用 Pydantic 驗證
     try:
-        country = Country.model_validate_json(llm_output)
-        print(country)
+        parsed = ResponseParser.parse_structured_response(llm_output)
+        print(parsed)
     except Exception as e:
         print("JSON 解析失敗:", e)
         print("LLM 原始輸出:", llm_output)
