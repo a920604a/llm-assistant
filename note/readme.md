@@ -30,14 +30,11 @@
 │   │   ├── client.py
 │   │   ├── factory.py
 │   │   ├── metrics.py                      # Redis metrics utilities
-│   ├── data.md                              # Documentation or reference data
 │   ├── estimate_tokens.py                  # Estimate token usage for LLM calls
 │   ├── fetch_chat.py                        # Fetch chat history or conversation context
 │   ├── langchain/                          # LangChain integration
 │   │   ├── client.py
 │   │   ├── factory.py
-│   │   └── prompts/
-│   │       └── rag_system.txt              # Prompt template for RAG system
 │   ├── langfuse/                           # Langfuse client for tracing/logging LLM usage
 │   │   ├── client.py
 │   │   ├── factory.py
