@@ -169,7 +169,7 @@ class QdrantClient:
             if hit.score < min_score:
                 continue
             payload = hit.payload
-            logger.info(f"payload {payload}")
+            # logger.info(f"payload {payload}")
             arxiv_id = payload.get("arxiv_id", "")
 
             # Minimal chunk data for LLM

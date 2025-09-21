@@ -261,8 +261,8 @@ async def main():
     system_settings = SystemSettings(
         user_language="Traditional Chinese",
         translate=True,
-        system_prompt="You are a helpful assistant.",
-        top_k=10,
+        system_prompt="",
+        top_k=1,
         use_rag=True,
         subscribe_email=True,
         reranker_enabled=False,

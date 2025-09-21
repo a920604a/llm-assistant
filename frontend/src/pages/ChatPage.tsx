@@ -11,7 +11,7 @@ const ChatPage = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
-    const [mode, setMode] = useState<'standard' | 'stream'>('standard'); // 新增模式狀態
+    const [mode, setMode] = useState<'standard' | 'stream'>('stream'); // 新增模式狀態
     const bottomRef = useRef<HTMLDivElement>(null);
 
     // 自動捲動到底部

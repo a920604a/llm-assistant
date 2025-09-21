@@ -12,17 +12,19 @@ export interface SystemSettings {
     use_rag: boolean;           // 是否啟用 RAG
     subscribe_email: boolean;   // 是否訂閱每日 Email
     reranker_enabled: boolean;  // 是否啟用 reranker
+    hybrid_search: boolean;     // 是否啟用混合檢索
     temperature: number;        // LLM 溫度
 }
 
 export const DEFAULT_SETTINGS: SystemSettings = {
     user_language: "English",
-    translate: false,
+    translate: true,
     system_prompt: "",
     top_k: 5,
     use_rag: true,
     subscribe_email: false,
-    reranker_enabled: true,
+    reranker_enabled: false,
+    hybrid_search: true,   // 新增欄位預設
     temperature: 0.6,
 };
 

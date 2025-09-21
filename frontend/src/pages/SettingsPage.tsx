@@ -4,6 +4,8 @@ import { getSystemSettings, updateSystemSettings, type SystemSettings } from "..
 export default function SettingsPage() {
     const [settings, setSettings] = useState<SystemSettings | null>(null);
     const [loading, setLoading] = useState(true);
+    const [showAdvanced, setShowAdvanced] = useState(false); // 控制折疊
+
 
     useEffect(() => {
         getSystemSettings().then((s) => {
@@ -17,6 +19,7 @@ export default function SettingsPage() {
         if (!settings) return;
         setSettings({ ...settings, [key]: value });
     };
+    const toggleAdvanced = () => setShowAdvanced((prev) => !prev);
 
     const handleSave = async () => {
         if (!settings) return;
@@ -59,6 +62,8 @@ export default function SettingsPage() {
                     />
                 </div>
 
+
+
                 <div className="flex flex-col">
                     <label className="mb-1 font-medium text-gray-700">系統 Prompt</label>
                     <textarea
@@ -69,15 +74,6 @@ export default function SettingsPage() {
                     />
                 </div>
 
-                <div className="flex flex-col">
-                    <label className="mb-1 font-medium text-gray-700">檢索 Top-K</label>
-                    <input
-                        type="number"
-                        value={settings.top_k}
-                        onChange={e => handleChange("top_k", parseInt(e.target.value))}
-                        className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    />
-                </div>
 
                 <div className="flex flex-col">
                     <label className="mb-1 font-medium text-gray-700">
@@ -121,16 +117,55 @@ export default function SettingsPage() {
                         className="h-5 w-5"
                     />
                 </div>
-                {/*
-                <div className="flex items-center justify-between p-2 border rounded hover:bg-gray-100">
-                    <span>Reranker</span>
-                    <input
-                        type="checkbox"
-                        checked={settings.reranker_enabled}
-                        onChange={e => handleChange("reranker_enabled", e.target.checked)}
-                        className="h-5 w-5"
-                    />
-                </div> */}
+
+
+                {/* 進階設定折疊 */}
+                <div className="mt-4 border rounded">
+                    <button
+                        onClick={toggleAdvanced}
+                        className="w-full flex justify-between items-center p-3 font-medium text-gray-700 hover:bg-gray-100"
+                    >
+                        <span>進階設定</span>
+                        <span>{showAdvanced ? "▲" : "▼"}</span>
+                    </button>
+
+                    {showAdvanced && (
+                        <div className="p-3 grid grid-cols-1 gap-4">
+                            {/* Top-K */}
+                            <div className="flex flex-col">
+                                <label className="mb-1 font-medium text-gray-700">檢索 Top-K</label>
+                                <input
+                                    type="number"
+                                    value={settings.top_k}
+                                    onChange={e => handleChange("top_k", parseInt(e.target.value))}
+                                    className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                />
+                            </div>
+
+                            {/* Hybrid Search */}
+                            <div className="flex items-center justify-between p-2 border rounded hover:bg-gray-100">
+                                <span>使用 Hybrid Search</span>
+                                <input
+                                    type="checkbox"
+                                    checked={settings.hybrid_search}
+                                    onChange={e => handleChange("hybrid_search", e.target.checked)}
+                                    className="h-5 w-5"
+                                />
+                            </div>
+
+                            {/* Reranker */}
+                            <div className="flex items-center justify-between p-2 border rounded hover:bg-gray-100">
+                                <span>啟用 Reranker</span>
+                                <input
+                                    type="checkbox"
+                                    checked={settings.reranker_enabled}
+                                    onChange={e => handleChange("reranker_enabled", e.target.checked)}
+                                    className="h-5 w-5"
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="mt-6 flex justify-end">
