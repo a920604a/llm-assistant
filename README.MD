@@ -1,10 +1,9 @@
-# Arxiv Knowledge Assistant (Beta)
+# Arxiv Knowledge Assistant
 
 [中文版](README_ZH.MD)
 
-## 🎯 Course Project
 
-### Objective
+## Objective
 
 This project aims to build an **arXiv knowledge retrieval platform**, implementing a complete pipeline of data ingestion, vector-based retrieval, LLM-powered Q\&A, and a visualization dashboard.
 
@@ -24,65 +23,37 @@ Users can query paper abstracts, PDFs, Q\&A history, and references. Developers 
 
 ---
 
-## 🚀 Technologies Used
+## 📦 Quick Start
 
-| Category          | Tools & Frameworks                                       |
-| ----------------- | -------------------------------------------------------- |
-| **Cloud / Infra** | Docker Compose, MinIO, PostgreSQL, Qdrant                |
-| **Backend / API** | FastAPI, Prefect 2                                       |
-| **Frontend**      | React + Vite                                             |
-| **Monitoring**    | Prometheus + Grafana, Logging                            |
-| **CI/CD**         | GitHub Actions (planned)                                 |
-| **Testing**       | pytest (unit + integration, WIP)                         |
-| **IaC**           | Docker Compose + Volumes + Networks (Terraform optional) |
-
----
-
-## 🏗️ Project Structure
+```shell
+git clone https://github.com/a920604a/llm-assistant.git
+cd llm-assistant
+cp .env.example .env
+make net-create && make up
 
 ```
-.
-├── frontend/                 # React Vite app
-├── data/, database/          # Database & storage initialization
-├── docs/                     # Documentation & implementation notes
-├── apiGateway/               # MCP Client backend service
-├── image/                    # Image-related scripts (future extension)
-├── speech/                   # Speech backend service (future extension)
-├── arxiv/                    # Arxiv ingestion service
-├── email/                    # Email subscription service
-├── note/                     # Note backend service (RAG tasks)
-├── ollama_models/            # Local Ollama model management
-├── services/                 # Microservices Dockerfiles & requirements
-│   ├── arxivservice/
-│   ├── emailservice/
-│   ├── imageservice/
-│   ├── apiGateway/
-│   ├── noteservice/
-│   └── speechservice/
-├── terraform/                # Optional IaC scripts
-├── docker-compose*.yml       # Docker Compose configs
-├── Dockerfile.*              # Individual service Dockerfiles
-├── Makefile, setup.sh, requirements.txt
-├── package-lock.json
-├── terraform.tfstate
-├── test/                     # Unit & integration tests
-└── README.md
-```
+
+Frontend: `make up-front` → http://localhost:5173
+
+Gradio UI (optional): `cd gradio && python app.py` → http://localhost:7861
+
+Monitoring: `http://localhost:3002` (Grafana)
 
 ---
 
-## 🧪 System Workflow
+## Requirements
+- Docker & Docker Compose
 
-1. Celery Beat schedules daily arXiv ingestion
-2. PDFs and metadata are stored in MinIO / PostgreSQL
-3. Text embeddings stored in Qdrant
-4. Q\&A uses RAG + agent reflection strategy
-5. Results are returned to the frontend dashboard
-6. CI/CD and model updates can later be automated via GitHub Actions
 
 ---
 
-## 🖥️ System Architecture (Mermaid)
+## 🖥️ System Architecture
+
+
+1. The system ingests daily arXiv papers → stores PDFs/metadata → builds embeddings in Qdrant
+2. RAG pipeline retrieves + re-ranks → answers delivered to frontend dashboard
+3. email subscriptions , fetch paper in qdrant → generate summary → send email
+
 
 ```mermaid
 flowchart LR
@@ -168,6 +139,65 @@ classDef data fill:#C0C0C0,stroke:#333,stroke-width:1px
 
 ---
 
+
+## 🚀 Technologies Used
+
+| Category          | Tools & Frameworks                                       |
+| ----------------- | -------------------------------------------------------- |
+| **Cloud / Infra** | Docker Compose, MinIO, PostgreSQL, Qdrant                |
+| **Backend / API** | FastAPI, Prefect 2                                       |
+| **Frontend**      | React + Vite  and gradio                                   |
+| **Monitoring**    | Prometheus + Grafana, Logging                            |
+| **CI/CD**         | GitHub Actions (planned)                                 |
+| **Testing**       | pytest (unit + integration, WIP)                         |
+| **IaC**           | Docker Compose + Volumes + Networks (Terraform optional) |
+
+---
+
+## 🏗️ Project Structure
+
+```
+.
+├── frontend/                 # React Vite app
+├── data/, database/          # Database & storage initialization
+├── docs/                     # Documentation & implementation notes
+├── apiGateway/               # MCP Client backend service
+├── image/                    # Image-related scripts (future extension)
+├── speech/                   # Speech backend service (future extension)
+├── arxiv/                    # Arxiv ingestion service
+├── email/                    # Email subscription service
+├── note/                     # Note backend service (RAG tasks)
+├── ollama_models/            # Local Ollama model management
+├── services/                 # Microservices Dockerfiles & requirements
+│   ├── arxivservice/
+│   ├── emailservice/
+│   ├── imageservice/
+│   ├── apiGateway/
+│   ├── noteservice/
+│   └── speechservice/
+├── terraform/                # Optional IaC scripts
+├── docker-compose*.yml       # Docker Compose configs
+├── Dockerfile.*              # Individual service Dockerfiles
+├── Makefile, setup.sh, requirements.txt
+├── package-lock.json
+├── terraform.tfstate
+├── test/                     # Unit & integration tests
+└── README.md
+```
+
+---
+
+## 🧪 System Workflow
+
+1. Celery Beat schedules daily arXiv ingestion
+2. PDFs and metadata are stored in MinIO / PostgreSQL
+3. Text embeddings stored in Qdrant
+4. Q\&A uses RAG + agent reflection strategy
+5. Results are returned to the frontend dashboard
+6. CI/CD and model updates can later be automated via GitHub Actions
+
+---
+
 ## 🔁 Reproducibility
 
 To reproduce the environment, create a **`.env`** file and set the required environment variables.
@@ -180,6 +210,28 @@ You must prepare a **Firebase Service Account Key**:
 4. Place it in `apiGateway/serviceAccountKey.json` and `email/serviceAccountKey.json`
 
 > Without the key, user authentication and Firebase access will not work.
+
+
+### React Frontend interface
+> Without the key, user authentication and Firebase access will not work.
+![](demo/homepage.png)
+
+```shell
+make up-front
+```
+visited `http://localhost:5173/`
+
+### Gradio
+If you want to apply Firebase project, you would choose this solution as your interface
+![](demo/gradio.png)
+
+```shell
+pip install gradio
+cd gradio
+python app.py
+```
+
+efault: `http://localhost:7861`
 
 ### Database & Cache
 
@@ -258,35 +310,50 @@ Steps:
 | Item                 | Notes                                                                      |
 | -------------------- | -------------------------------------------------------------------------- |
 | Problem description  | Clear functionality and objectives                                         |
-| Retrieval flow       | [RAG + LLM Q\&A flow](docs/rag_chat.md)                                    |
-| Retrieval evaluation | [Initial tests, not yet optimized](note/arxiv_ingestion/tasks/evaluate.py) |
+| Retrieval flow       | [RAG + LLM Q&A flow](docs/rag_chat.md) and [code: retrieval_pipeline method](note/arxiv_rag_pipeline.py)             |
+| Retrieval evaluation | [Initial tests, not yet optimized](note/services/evaluate.py) |
 | LLM evaluation       | Supports multiple prompt templates                                         |
-| Interface            | [Web UI + Dashboard](http://localhost)                                     |
-| Ingestion pipeline   | [Prefect daily arXiv fetch](arxiv/flows/arxiv_pipeline.py)             |
-| Monitoring           | [Grafana](http://localhost:3002)                                           |
+| Interface            | [React Web](http://localhost)   or [arXiv Paper Assistance - RAG Chat]     |
+| Ingestion pipeline   | [daily arXiv pipeline](arxiv/arxiv_pipeline.py)             |
+| Monitoring           | [Grafana](http://localhost:3002)    or      ![](demo/app_metrics.png)    |
 | Containerization     | [Full Docker Compose setup](docker-compose.dev.yml)                        |
 | Reproducibility      | Complete setup + requirements, Firebase key required                       |
-| Hybrid search        | [here](note/arxiv_ingestion/tasks/retrieval.py)                            |
-| Document re-ranking  | [here](note/arxiv_ingestion/tasks/rerank.py)                               |
-| User query rewriting | [here](note/services/langchain_client.py)                                  |
+| Hybrid search        | [search](note/services/qdrant/client.py)                            |
+| Document re-ranking  | [re_ranking method](note/services/rerank.py)                               |
+| User query rewriting | [rewrite_query method](note/services/langchain/client.py)                                  |
+
+
 
 ---
 
-## 📦 Installation Guide
 
-```bash
-make up
-```
+## 🎥 Demo
+![](demo/homepage.png)
+![](demo/gradio.png)
+![](demo/app_metrics.png)
+
+![](demo/demo.mp4)
 
 ---
+
+
+## 🛠️ Roadmap
+- [ ] GitHub Actions CI/CD
+- [ ] Unit & integration testing
+- [ ] Multi-LLM backend (OpenAI, Anthropic, etc.)
+- [ ] Personalized recommendation / subscription
+
+---
+
 
 ## 🔗 Useful Resources
 
 * [Firebase Authentication](https://firebase.google.com/docs/auth)
 * [Qdrant](https://qdrant.tech/documentation/)
-* [Prefect 2](https://docs.prefect.io/)
+* [Prefect 3](https://docs.prefect.io/)
 * [Grafana](https://grafana.com/)
 * [Langfuse](https://langfuse.com/)
+
 ---
 
 ## 📜 License

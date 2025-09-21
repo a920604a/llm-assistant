@@ -3,9 +3,8 @@
 
 [英文版](README.MD)
 
-## 🎯 Course Project
 
-### Objective
+## Objective
 
 本專案旨在建構一個 **arXiv 論文知識檢索平台**，實作完整的資料擷取、向量化檢索、LLM 問答與可視化 Dashboard。
 
@@ -25,68 +24,36 @@
 
 ---
 
-## 🚀 Technologies Used
+## 📦 Quick Start
 
-| 類別                | 工具與框架                                            |
-| ----------------- | ------------------------------------------------ |
-| **Cloud / Infra** | Docker Compose、MinIO、PostgreSQL、Qdrant           |
-| **Backend / API** | FastAPI, Celery, Prefect 2                       |
-| **Frontend**      | React + Vite                                     |
-| **Monitoring**    | Prometheus + Grafana, Logging                    |
-| **CI/CD**         | GitHub Actions (未完成)                             |
-| **Testing**       | pytest（單元 + 整合，尚未完成）                             |
-| **IaC**           | Docker Compose + Volume + Network（可延伸 Terraform） |
-
----
-
-## 🏗️ Project Structure
-
-```
-.
-.
-├── frontend/                 # React Vite app
-├── data/, database/          # Database & storage initialization
-├── docs/                     # 技術文件、實作歷程
-├── apiGateway/                # MCP Client backend service
-├── image/                    # Image-related scripts (未來擴充)
-├── speech/                   # Speech service backend (未來擴充)
-├── arxiv/                    # Arxiv service (Arxiv ingestion)
-├── email/                    # email subscription service (email subscriptionubs)
-├── note/                     # Note backend service (RAG tasks)
-├── ollama_models/            # 本地 Ollama 模型管理
-├── services/                 # 各微服務 Dockerfile & requirements
-│   ├── arxivservice/
-│   ├── emailservice/
-│   ├── imageservice/
-│   ├── apiGateway/
-│   ├── noteservice/
-│   └── speechservice/
-├── terraform/                # 可選 IaC 腳本
-├── docker-compose*.yml       # Docker Compose configurations
-├── Dockerfile.*              # 各容器 Dockerfile
-├── Makefile, setup.sh, require.txt
-├── package-lock.json
-├── terraform.tfstate
-├── test/                     # 單元測試 & Pytest
-└── README.md
+```shell
+git clone https://github.com/a920604a/llm-assistant.git
+cd llm-assistant
+cp .env.example .env
+make net-create && make up
 
 ```
 
----
+Frontend: `make up-front` → http://localhost:5173
 
-## 🧪 System Workflow
+Gradio UI (optional): `cd gradio && python app.py` → http://localhost:7861
 
-1. Celery Beat 定期觸發 arXiv 擷取流程
-2. PDF 與 Metadata 儲存至 MinIO / PostgreSQL
-3. 文本向量化存入 Qdrant
-4. LLM 問答使用 RAG + Agent 反思策略
-5. 結果回傳至前端 Dashboard
-6. 日後可透過 GitHub Actions 觸發 CICD / 模型更新
+Monitoring: `http://localhost:3002` (Grafana)
+
 
 ---
 
-## 🖥️ System Architecture (Mermaid)
+## Requirements
+- Docker & Docker Compose
 
+---
+## 🖥️ System Architecture
+
+
+
+1. The system ingests daily arXiv papers → stores PDFs/metadata → builds embeddings in Qdrant
+2. RAG pipeline retrieves + re-ranks → answers delivered to frontend dashboard
+3. email subscriptions , fetch paper in qdrant → generate summary → send email
 
 ```mermaid
 flowchart LR
@@ -166,14 +133,71 @@ classDef llm fill:#90EE90,stroke:#333,stroke-width:1px
 classDef queue fill:#D2691E,stroke:#333,stroke-width:1px
 classDef data fill:#C0C0C0,stroke:#333,stroke-width:1px
 
+```
+---
 
+## 🚀 Technologies Used
 
+| 類別                | 工具與框架                                            |
+| ----------------- | ------------------------------------------------ |
+| **Cloud / Infra** | Docker Compose、MinIO、PostgreSQL、Qdrant           |
+| **Backend / API** | FastAPI, Celery, Prefect 2                       |
+| **Frontend**      | React + Vite  and gradio                                   |
+| **Monitoring**    | Prometheus + Grafana, Logging                    |
+| **CI/CD**         | GitHub Actions (未完成)                             |
+| **Testing**       | pytest（單元 + 整合，尚未完成）                             |
+| **IaC**           | Docker Compose + Volume + Network（可延伸 Terraform） |
+
+---
+
+## 🏗️ Project Structure
+
+```
+.
+.
+├── frontend/                 # React Vite app
+├── data/, database/          # Database & storage initialization
+├── docs/                     # 技術文件、實作歷程
+├── apiGateway/                # MCP Client backend service
+├── image/                    # Image-related scripts (未來擴充)
+├── speech/                   # Speech service backend (未來擴充)
+├── arxiv/                    # Arxiv service (Arxiv ingestion)
+├── email/                    # email subscription service (email subscriptionubs)
+├── note/                     # Note backend service (RAG tasks)
+├── ollama_models/            # 本地 Ollama 模型管理
+├── services/                 # 各微服務 Dockerfile & requirements
+│   ├── arxivservice/
+│   ├── emailservice/
+│   ├── imageservice/
+│   ├── apiGateway/
+│   ├── noteservice/
+│   └── speechservice/
+├── terraform/                # 可選 IaC 腳本
+├── docker-compose*.yml       # Docker Compose configurations
+├── Dockerfile.*              # 各容器 Dockerfile
+├── Makefile, setup.sh, require.txt
+├── package-lock.json
+├── terraform.tfstate
+├── test/                     # 單元測試 & Pytest
+└── README.md
 
 ```
 
+---
 
+## 🧪 System Workflow
+
+1. Celery Beat 定期觸發 arXiv 擷取流程
+2. PDF 與 Metadata 儲存至 MinIO / PostgreSQL
+3. 文本向量化存入 Qdrant
+4. LLM 問答使用 RAG + Agent 反思策略
+5. 結果回傳至前端 Dashboard
+6. 日後可透過 GitHub Actions 觸發 CICD / 模型更新
 
 ---
+
+
+
 
 ## 🔁 Reproducibility
 
@@ -187,6 +211,25 @@ classDef data fill:#C0C0C0,stroke:#333,stroke-width:1px
 4. 放置於 `apiGateway/serviceAccountKey.json` `email/serviceAccountKey.json`
 
 > 若未提供 Key，系統將無法驗證使用者，也無法存取 Firebase 資料。
+
+### React Frontend interface
+> 若未提供 Key，系統將無法驗證使用者，也無法存取 Firebase 資料。
+
+```shell
+make up-front
+```
+visited `http://localhost:5173/`
+
+### Gradio
+如果你不想申請 firebase ，可以選擇這個前端。
+![](demo/gradio.png)
+
+```shell
+pip install gradio
+cd gradio
+python app.py
+```
+
 
 ### Database & Cache
 
@@ -259,22 +302,24 @@ SMTP_REQUIRE_TLS=true
 
 ---
 
-## 📈  Checklist
 
-| 項目                 | 備註                                         |
-| -------------------- |  ------------------------------------------ |
-| Problem description  |  功能與目標明確                                    |
-| Retrieval flow       |  [RAG + LLM 問答流程](docs/rag_chat.md)                             |
-| Retrieval evaluation |  [初步驗證，尚未最佳化](note/evaluate.py)  |
-| LLM evaluation       |  支援多種 Prompt                     |
-| Interface            |  [Web UI + Dashboard](http://localhost)                         |
-| Ingestion pipeline   |  [Prefect 自動抓取 arXiv](arxiv/arxiv_pipeline.py)|
-| Monitoring           |  [grafana](http://localhost:3002)                   |
-| Containerization     |  [Docker-compose 完整管理](docker-compose.dev.yml)                        |
-| Reproducibility      |  完整 setup + requirements，Firebase Key 需自行提供 |
-| Hybrid search        |  [here](note/arxiv_ingestion/tasks/retrieval.py)        |
-| Document re-ranking  |  [here](note/arxiv_ingestion/tasks/rerank.py)         |
-| User query rewriting |  [here](note/services/langchain_client.py) |
+## 📈 Checklist
+
+| Item                 | Notes                                                                      |
+| -------------------- | -------------------------------------------------------------------------- |
+| Problem description  | Clear functionality and objectives                                         |
+| Retrieval flow       | [RAG + LLM Q&A flow](docs/rag_chat.md) and [code: retrieval_pipeline method](note/arxiv_rag_pipeline.py)             |
+| Retrieval evaluation | [Initial tests, not yet optimized](note/services/evaluate.py) |
+| LLM evaluation       | Supports multiple prompt templates                                         |
+| Interface            | [React Web](http://localhost)   or [arXiv Paper Assistance - RAG Chat]     |
+| Ingestion pipeline   | [daily arXiv pipeline](arxiv/arxiv_pipeline.py)             |
+| Monitoring           | [Grafana](http://localhost:3002)    or      ![](demo/app_metrics.png)    |
+| Containerization     | [Full Docker Compose setup](docker-compose.dev.yml)                        |
+| Reproducibility      | Complete setup + requirements, Firebase key required                       |
+| Hybrid search        | [search](note/services/qdrant/client.py)                            |
+| Document re-ranking  | [re_ranking method](note/services/rerank.py)                               |
+| User query rewriting | [rewrite_query method](note/services/langchain/client.py)                                  |
+
 
 ---
 
@@ -287,11 +332,33 @@ make up
 
 ---
 
+---
+
+
+## 🎥 Demo
+![](demo/homepage.png)
+![](demo/gradio.png)
+![](demo/app_metrics.png)
+
+![](demo/demo.mp4)
+
+---
+
+
+## 🛠️ Roadmap
+- [ ] GitHub Actions CI/CD
+- [ ] Unit & integration testing
+- [ ] Multi-LLM backend (OpenAI, Anthropic, etc.)
+- [ ] Personalized recommendation / subscription
+
+---
+
+
 ## 🔗 Useful Resources
 
 * [Firebase Authentication](https://firebase.google.com/docs/auth)
 * [Qdrant](https://qdrant.tech/documentation/)
-* [Prefect 2](https://docs.prefect.io/)
+* [Prefect 3](https://docs.prefect.io/)
 * [Grafana](https://grafana.com/)
 * [Langfuse](https://langfuse.com/)
 
@@ -300,3 +367,5 @@ make up
 ## 📜 License
 
 MIT License
+
+Thank you to arXiv for use of its open access interoperability.
