@@ -24,7 +24,7 @@ resource "docker_container" "nginx" {
 
 
 resource "docker_container" "ollama" {
-  name  = "mcphost-ollama"
+  name  = "rag-ollama"
   image = "ollama/ollama:latest"
 
   networks_advanced {
