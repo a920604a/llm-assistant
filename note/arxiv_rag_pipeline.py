@@ -49,7 +49,7 @@ def retrieval_pipeline(
         chunks, sources, msg, arxiv_ids, total_hits = qdrant_client.search(
             query=query,
             query_vector=query_embedding,
-            size=top_k * 2,
+            size=top_k * 2,  # retrieve more for reranking
             min_score=0.3,
             hybrid=system_settings.hybrid_search,
             categories=categories,
@@ -166,7 +166,7 @@ async def ask_flow(
         answer=parsed_response.get("answer", "Unable to generate answer"),
         sources=sources,
         chunks_used=len(chunks),
-        search_mode="hybrid",
+        search_mode=search_mode,
     )
 
     return response
