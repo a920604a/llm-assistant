@@ -335,14 +335,6 @@ async def format_llm():
 
         Question: What is TITAN?
 
-        Return EXACTLY in this JSON format:
-        {
-            "answer": "",
-            "sources": [],
-            "confidence": "medium",
-            "citations": []
-        }
-
         Instructions:
         - Fill the fields based ONLY on the provided context.
         - Do NOT add extra text, explanations, or formatting outside this JSON.
@@ -354,7 +346,7 @@ async def format_llm():
         "prompt": prompt,
         "stream": False,
         # "format" : "json",
-        # "format": Country.model_json_schema()  # <-- 使用 format 強制 JSON 輸出
+        "format": Country.model_json_schema(),  # <-- 使用 format 強制 JSON 輸出
     }
 
     with httpx.Client(timeout=60) as client:
@@ -375,5 +367,5 @@ async def format_llm():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
-    # asyncio.run(format_llm())
+    # asyncio.run(main())
+    asyncio.run(format_llm())

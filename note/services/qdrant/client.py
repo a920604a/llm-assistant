@@ -82,6 +82,7 @@ class QdrantClient:
                 collection_name=self.settings.COLLECTION_NAME,
                 query=query_vector,
                 using="dense",
+                limit=size,
                 with_payload=True,
             )
         return query_result.points

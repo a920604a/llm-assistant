@@ -70,12 +70,12 @@ class RAGTracer:
         span.end()
 
     @contextmanager
-    def trace_search(self, trace, query: str, top_k: int):
+    def trace_search(self, trace, query: str, top_k: int, search_mode: str):
         """Search operation with timing."""
         span = self.tracer.create_span(
             trace=trace,
             name="search_retrieval",
-            input_data={"query": query, "top_k": top_k},
+            input_data={"query": query, "top_k": top_k, "search_mode": search_mode},
         )
         try:
             yield span

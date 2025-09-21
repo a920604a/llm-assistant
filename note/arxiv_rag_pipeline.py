@@ -27,10 +27,11 @@ def retrieval_pipeline(
     query: str,
     system_settings: SystemSettings,
     qdrant_client: QdrantClient,
+    search_mode: str = "hybrid",
     rag_tracer: RAGTracer = None,
     trace=None,
     categories=None,
-) -> Tuple[List[dict], List[str], str]:
+) -> Tuple[List[dict], List[str]]:
     # logger.info("Step 0: Re write ")
     # query = langchain_client.rewrite_query(query, user_id)
 
@@ -40,14 +41,15 @@ def retrieval_pipeline(
     rag_tracer.end_embedding(embedding_span, query_embedding)
 
     logger.info("Step 1: Retrieval")
+    top_k = max(1, system_settings.top_k)  # avoid zero
     with rag_tracer.trace_search(
-        trace, query=query, top_k=system_settings.top_k
+        trace, query=query, top_k=top_k, search_mode=search_mode
     ) as search_span:
         logger.info(f"Hybrid search enabled: {system_settings.hybrid_search}")
         chunks, sources, msg, arxiv_ids, total_hits = qdrant_client.search(
             query=query,
             query_vector=query_embedding,
-            size=system_settings.top_k,
+            size=top_k * 2,
             min_score=0.3,
             hybrid=system_settings.hybrid_search,
             categories=categories,
@@ -56,7 +58,11 @@ def retrieval_pipeline(
 
     if not chunks:
         logger.warning("No chunks retrieved, fallback to query as prompt")
-        return [], [], ""
+        return [], []
+
+    if not system_settings.reranker_enabled:
+        logger.info("Reranker disabled, skip reranking step")
+        return chunks[:top_k], sources
 
     logger.info("Step 2: Re-ranking ")
     logger.info(msg)
@@ -88,7 +94,7 @@ def retrieval_pipeline(
 
     logger.info(f"Evaluation metrics: {eval_metrics}")
 
-    return reranked, sources, reranked
+    return reranked[:top_k], sources
 
 
 # --- Full RAG pipeline ---
@@ -100,38 +106,40 @@ async def ask_flow(
     rag_tracer: RAGTracer,
     trace=None,
     user_id: str = "anonymous",
+    model: str = "gpt-oss:20b",
 ) -> AskResponse:
-    reranked_chunks, sources, reranked = retrieval_pipeline(
-        query, system_settings, qdrant_client, rag_tracer, trace
-    )
+    search_mode = "hybrid" if system_settings.hybrid_search else "dense-only"
 
-    if not reranked_chunks:
+    chunks, sources = retrieval_pipeline(
+        query, system_settings, qdrant_client, search_mode, rag_tracer, trace
+    )
+    if not chunks:
         response = AskResponse(
             query=query,
             answer="I couldn't find any relevant information in the papers to answer your question.",
             sources=[],
             chunks_used=0,
-            search_mode="hybrid",
+            search_mode=search_mode,
         )
         return response
 
     logger.info("Step 4: Build prompt")
     # context = build_prompt(query, reranked)
-    with rag_tracer.trace_prompt_construction(trace, reranked_chunks) as prompt_span:
+    with rag_tracer.trace_prompt_construction(trace, chunks) as prompt_span:
         try:
             prompt_data = ollama_client.prompt_builder.create_structured_prompt(
-                query, reranked, system_settings.user_language
+                query, chunks, system_settings.user_language
             )
             final_prompt = prompt_data["prompt"]
         except Exception:
             final_prompt = ollama_client.prompt_builder.create_rag_prompt(
-                query, reranked, system_settings.user_language
+                query, chunks, system_settings.user_language
             )
 
         rag_tracer.end_prompt(prompt_span, final_prompt)
 
     logger.info(f"Step 5: LLM generation with context = {final_prompt[100:]}")
-    with rag_tracer.trace_generation(trace, "hybrid", final_prompt) as gen_span:
+    with rag_tracer.trace_generation(trace, model, final_prompt) as gen_span:
         # resp = langchain_client.llm_context(
         #     query = query,
         #     context = final_prompt,
@@ -142,12 +150,12 @@ async def ask_flow(
 
         parsed_response, response = await ollama_client.generate_rag_answer(
             query=query,
-            chunks=reranked,
+            chunks=chunks,
             user_language=system_settings.user_language,
-            use_structured_output=False,
+            use_structured_output=True,
             temperature=system_settings.temperature,
         )
-        rag_tracer.end_generation(gen_span, response, "hybrid")
+        rag_tracer.end_generation(gen_span, response, model)
 
     store_chat_and_usage(user_id, query, final_prompt, response)
 
@@ -157,7 +165,7 @@ async def ask_flow(
         query=query,
         answer=parsed_response.get("answer", "Unable to generate answer"),
         sources=sources,
-        chunks_used=len(reranked_chunks),
+        chunks_used=len(chunks),
         search_mode="hybrid",
     )
 
@@ -176,21 +184,28 @@ async def rag_stream(
     try:
         rag_tracer = RAGTracer(langfuse_tracer)
         start_time = time.time()
+
+        search_mode = "hybrid" if system_settings.hybrid_search else "dense-only"
+
         with rag_tracer.trace_request(user_id, query) as trace:
-            reranked_chunks, sources, reranked = retrieval_pipeline(
-                query, system_settings, qdrant_client, rag_tracer, trace, categories
+            chunks, sources = retrieval_pipeline(
+                query,
+                system_settings,
+                qdrant_client,
+                search_mode,
+                rag_tracer,
+                trace,
+                categories,
             )
 
-            if not reranked_chunks:
+            if not chunks:
                 yield f"data: {json.dumps({'answer': 'No relevant information found.', 'sources': [], 'done': True})}\n\n"
 
             logger.info("Step 4: Build prompt")
             # context = build_prompt(query, reranked)
-            with rag_tracer.trace_prompt_construction(
-                trace, reranked_chunks
-            ) as prompt_span:
+            with rag_tracer.trace_prompt_construction(trace, chunks) as prompt_span:
                 final_prompt = ollama_client.prompt_builder.create_rag_prompt(
-                    query, reranked, system_settings.user_language
+                    query, chunks, system_settings.user_language
                 )
 
                 rag_tracer.end_prompt(prompt_span, final_prompt)
@@ -247,11 +262,12 @@ async def main():
         user_language="Traditional Chinese",
         translate=True,
         system_prompt="You are a helpful assistant.",
-        top_k=5,
+        top_k=10,
         use_rag=True,
         subscribe_email=True,
-        reranker_enabled=True,
+        reranker_enabled=False,
         temperature=0.7,
+        hybrid_search=False,
     )
 
     # 依賴注入 (實際要改成你的專案初始化方式)
@@ -267,6 +283,8 @@ async def main():
         ollama_client=ollama_client,
         qdrant_client=qdrant_client,
         rag_tracer=rag_tracer,
+        model=settings.MODEL_NAME,
+        user_id="test_user",
     )
 
     print("=== 最終回答 ===")

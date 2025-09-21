@@ -113,6 +113,10 @@ class RAGPromptBuilder:
         )
 
         return prompt
+        # return {
+        #     "prompt": prompt,
+        #     "format": RAGResponse.model_json_schema(),
+        # }
 
 
 class ResponseParser:

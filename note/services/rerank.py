@@ -1,16 +1,16 @@
-from typing import Any
+from typing import Any, Dict, List
 
 import jieba
 from rank_bm25 import BM25Okapi
 
 
 def re_ranking(
-    chunks: list,
+    chunks: List[Dict[str, Any]],
     query: str,
     vector_weight: float = 0.6,
     bm25_weight: float = 0.3,
     field_weights: dict = None,
-) -> list[dict[str, Any]]:
+) -> List[Dict[str, Any]]:
     """
     Hybrid reranking: vector similarity + BM25 text matching + 欄位加權
     chunks: list of payload dict，需包含 text/title/abstract 與向量相似度 score

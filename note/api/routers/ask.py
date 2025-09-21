@@ -75,6 +75,7 @@ async def ask_question(
             ollama_client=ollama_client,
             qdrant_client=qdrant_client,
             user_id=ask_r.user_id,
+            model=ask_r.model,
             rag_tracer=rag_tracer,
             trace=trace,
         )
