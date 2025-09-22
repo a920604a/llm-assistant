@@ -186,12 +186,18 @@ def daily_papers_flow(top_k: int = 3):
 
     # Fetch all subscribed user emails, user_id, translate, and user_language
     users = get_users_task()
+    if not users:
+        logger.info("No subscribed users found, skipping flow")
+        return
     papers = fetch_papers_task()
     if not papers:
         logger.info("No new papers found, skipping flow")
         return
 
     content_map = fetch_paper_content_task(papers)
+    if not content_map:
+        logger.info("No paper content found, skipping flow")
+        return
 
     for user in users:
         user_unsent_papers = filter_already_sent_papers(
@@ -226,4 +232,4 @@ if __name__ == "__main__":
     # )
     # firebase_admin.initialize_app(cred)
 
-    daily_papers_flow(top_k=3)
+    daily_papers_flow(top_k=2)
