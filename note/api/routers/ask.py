@@ -118,7 +118,7 @@ async def ask_question_stream(
             user_id=request.user_id,
             langfuse_tracer=langfuse_tracer,
         ),
-        media_type="text/plain",  # 前端 fetch 會逐段讀取
+        media_type="text/event-stream",  # 前端 fetch 會逐段讀取
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
@@ -158,7 +158,7 @@ async def ask_question_gradio_stream(
             langfuse_tracer=langfuse_tracer,
             categories=request.categories,
         ),
-        media_type="text/plain",  # 前端 fetch 會逐段讀取
+        media_type="text/event-stream",  # 前端 fetch 會逐段讀取
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",

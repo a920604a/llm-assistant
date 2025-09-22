@@ -45,8 +45,7 @@ async def stream_response(
                 search_mode = ""
 
                 async for line in response.aiter_lines():
-                    if not line.startswith("data: "):
-                        continue
+                    if line.startswith("data: "):
                         data_str = line[6:]  # Remove "data: " prefix
 
                         try:

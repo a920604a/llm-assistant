@@ -57,7 +57,7 @@ async def ask_question_stream(
 
     return StreamingResponse(
         generate_stream(query, user_id),
-        media_type="text/plain",  # 前端 fetch 會逐段讀取
+        media_type="text/event-stream",  # 前端 fetch 會逐段讀取
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
