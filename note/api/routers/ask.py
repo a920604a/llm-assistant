@@ -138,7 +138,7 @@ async def ask_question_gradio_stream(
 
     settings = SystemSettings(
         user_language="Traditional Chinese",
-        translate=False,
+        translate=True,
         system_prompt="",
         top_k=request.top_k,
         use_rag=True,

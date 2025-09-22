@@ -5,7 +5,6 @@
 ├── prefect_entrypoint.py             #  flow.serve 註冊 flow 並套用 schedule
 ├── config.py                          # Configuration settings (API keys, DB connections, environment variables)
 ├── pipeline.py                        # Main pipeline orchestrating the process of fetching, summarizing, and emailing papers
-├── email_alarm_task.py                # Task definition for sending paper summary emails (entry point for alerts)
 ├── logger.py                          # Centralized logging utilities
 ├── serviceAccountKey.json             # Firebase service account credentials for authentication
 │
@@ -35,10 +34,10 @@
 
 ### Layer-by-Layer Breakdown
 
-**Pipeline Layer (`pipeline.py`, `email_alarm_task.py`)**
+**Pipeline Layer (`pipeline.py`)**
 
 * Orchestrates the full workflow: fetching papers → summarizing → sending emails
-* Defines task sequences and background job scheduling via Celery (`celery_app.py`)
+* Defines task sequences and background job scheduling via Prefect + Orion (prefect_entrypoint.py)
 * Handles alerting and scheduled dispatch of paper summaries
 
 **Services Layer (`services/`)**

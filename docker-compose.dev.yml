@@ -63,7 +63,6 @@ services:
       start_period: 40s
 
   arxiv-flow:
-    # Celery Worker → 負責執行任務
     build:
       context: .
       dockerfile: ./services/arxivservice/Dockerfile.arxiv
