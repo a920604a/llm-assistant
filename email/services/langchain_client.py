@@ -1,7 +1,7 @@
 import pathlib
 from typing import Dict
 
-from config import MODEL_NAME, OLLAMA_API_URL
+from config import settings
 from langchain_ollama import ChatOllama
 
 PROMPT_FILE = pathlib.Path(__file__).parent / "prompt_template.txt"
@@ -42,9 +42,9 @@ def llm_summary(paper: Dict, user: dict, max_words: int = 300) -> str:
     )
 
     chat_model = ChatOllama(
-        model=MODEL_NAME,
+        model=settings.MODEL_NAME,
         temperature=temperature,
-        base_url=OLLAMA_API_URL,
+        base_url=settings.OLLAMA_API_URL,
         request_kwargs={"timeout": 300},  # timeout 秒數
         reset_context=True,  # ⚡每次都清掉 session
     )
@@ -73,9 +73,9 @@ def llm_translate(user: dict, summary: str) -> str:
     )
 
     chat_model = ChatOllama(
-        model=MODEL_NAME,
+        model=settings.MODEL_NAME,
         temperature=temperature,
-        base_url=OLLAMA_API_URL,
+        base_url=settings.sOLLAMA_API_URL,
         request_kwargs={"timeout": 300},  # timeout 秒數
         reset_context=True,  # ⚡每次都清掉 session
     )
@@ -95,9 +95,9 @@ def llm_html_foramt(summary: str) -> str:
         return "Summary not available."
 
     chat_model = ChatOllama(
-        model=MODEL_NAME,
+        model=settings.MODEL_NAME,
         temperature=0.0,
-        base_url=OLLAMA_API_URL,
+        base_url=settings.OLLAMA_API_URL,
         request_kwargs={"timeout": 300},  # timeout 秒數
         reset_context=True,  # ⚡每次都清掉 session
     )

@@ -88,6 +88,8 @@ async def ask_question(
                 logger.warning(f"Failed to store response in cache: {e}")
 
         rag_tracer.end_request(trace, response.answer, time.time() - start_time)
+
+        logger.info(f"ask_question response {response}")
         return response
 
 

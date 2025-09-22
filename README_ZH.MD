@@ -30,7 +30,7 @@
 git clone https://github.com/a920604a/llm-assistant.git
 cd llm-assistant
 cp .env.example .env
-make net-create && make up
+make build && make up
 
 ```
 

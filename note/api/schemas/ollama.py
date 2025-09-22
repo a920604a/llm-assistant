@@ -1,6 +1,6 @@
 """Pydantic models for Ollama structured outputs."""
 
-from typing import List, Optional
+from typing import List
 
 from pydantic import BaseModel, Field
 
@@ -15,11 +15,11 @@ class RAGResponse(BaseModel):
         default_factory=list,
         description="List of PDF URLs from papers used in the answer",
     )
-    confidence: Optional[str] = Field(
-        default=None,
+    confidence: str = Field(
+        default="",
         description="Confidence level: high, medium, or low based on excerpt relevance",
     )
-    citations: Optional[List[str]] = Field(
-        default=None,
+    citations: List[str] = Field(
+        default_factory=list,
         description="Specific arXiv IDs or paper titles referenced in the answer",
     )

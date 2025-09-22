@@ -76,6 +76,7 @@ build:
 	$(MAKE) net-create
 	$(DOCKER_COMPOSE) build
 	$(MONITOR_DEV_COMPOSE) build
+	$(DOCKER_COMPOSE) exec ollama /bin/bash -c "ollama pull gpt-oss:20b"
 
 # 進入 apiGateway 容器
 shell:

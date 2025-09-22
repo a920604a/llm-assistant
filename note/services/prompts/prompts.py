@@ -101,18 +101,10 @@ class RAGPromptBuilder:
         prompt += "### Answer:\n"
         prompt += (
             "Provide a natural, conversational response (not JSON), cite sources using [arXiv:id] format.\n\n"
-            "Return EXACTLY in JSON matching this schema:\n"
-            "{\n"
-            '  "answer": "",\n'
-            '  "sources": [],\n'
-            '  "confidence": "",\n'
-            '  "citations": []\n'
-            "}\n"
             f"and Translate to {user_language}. "
             f"Output ONLY in {user_language}, formatted clearly for readability"
         )
 
-        # return prompt
         return {
             "prompt": prompt,
             "format": RAGResponse.model_json_schema(),

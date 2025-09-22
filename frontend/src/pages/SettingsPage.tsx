@@ -132,15 +132,45 @@ export default function SettingsPage() {
                     {showAdvanced && (
                         <div className="p-3 grid grid-cols-1 gap-4">
                             {/* Top-K */}
+
                             <div className="flex flex-col">
-                                <label className="mb-1 font-medium text-gray-700">檢索 Top-K</label>
-                                <input
-                                    type="number"
-                                    value={settings.top_k}
-                                    onChange={e => handleChange("top_k", parseInt(e.target.value))}
-                                    className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                />
+                                <label className="mb-1 font-medium text-gray-700">
+                                    檢索 Top-K
+                                    <span className="ml-2 text-sm text-gray-500">(1 ~ 50)</span>
+                                </label>
+
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="range"
+                                        min={1}
+                                        max={50}
+                                        step={1}
+                                        value={typeof settings.top_k === "number" ? settings.top_k : 3}
+                                        onChange={e => handleChange("top_k", parseFloat(e.target.value))}
+                                        className="w-full"
+                                    />
+                                    {/* 數字輸入框 */}
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={50}
+                                        step={1}
+                                        value={typeof settings.top_k === "number" ? settings.top_k : 3}
+                                        onChange={e => {
+                                            let val = parseFloat(e.target.value);
+                                            if (isNaN(val)) val = 1;
+                                            if (val < 1) val = 1;
+                                            if (val > 50) val = 50;
+                                            handleChange("top_k", val);
+                                        }}
+                                        className="w-16 text-right border border-gray-300 rounded px-2 py-1"
+                                    />
+                                </div>
                             </div>
+
+
+
+
 
                             {/* Hybrid Search */}
                             <div className="flex items-center justify-between p-2 border rounded hover:bg-gray-100">

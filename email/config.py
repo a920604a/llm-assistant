@@ -3,9 +3,6 @@ import os
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-OLLAMA_API_URL = os.getenv("OLLAMA_API_URL", "http://localhost:11434")
-MODEL_NAME = "gpt-oss:20b"
-
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@note-db:5432/note")
 COLLECTION_NAME = "arxiv_collection"
 QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
@@ -15,6 +12,10 @@ FIREBASE_KEY_PATH = "/app"
 
 
 class Settings(BaseSettings):
+    OLLAMA_API_URL: str = Field(
+        default=os.getenv("OLLAMA_API_URL", "http://localhost:11434")
+    )
+    MODEL_NAME: str = Field(default=os.getenv("MODEL_NAME", "gpt-oss:20b"))
     # 郵件設定
     MAIL_USERNAME: str = Field(default=os.getenv("MAIL_USERNAME"))
     MAIL_PASSWORD: str = Field(default=os.getenv("MAIL_PASSWORD"))

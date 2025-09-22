@@ -17,12 +17,12 @@ def call_note_server(server_url: str, payload: dict) -> str:
         search_mode=response["search_mode"],
     )
     reply = f"{askResponse.answer}\n\n\n"
-    reply += f"引用的資料來源 ({len(askResponse.sources)} 個)：\n"
+
+    if askResponse.chunks_used:
+        reply += f"引用的資料片段 {askResponse.chunks_used} 個:\n"
+
     if askResponse.sources:
         reply += "\n".join(f"- {s}" for s in askResponse.sources)
-    else:
-        reply += "無\n"
-    # reply += f"\n\n使用的 chunks 數量：{askResponse.chunks_used}\n"
     # reply += f"檢索模式：{askResponse.search_mode}\n"
 
     return reply

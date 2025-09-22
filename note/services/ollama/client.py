@@ -107,7 +107,7 @@ class OllamaClient:
                     "stream": False,
                     **kwargs,
                 }
-                logger.info(f"ollama data {data}")
+                logger.info(f"{self.model_name} ollama data {data}")
 
                 response = await client.post(f"{self.base_url}/api/generate", json=data)
 
@@ -210,7 +210,9 @@ class OllamaClient:
                     prompt=prompt_data["prompt"],
                     temperature=temperature,
                     top_p=0.9,
-                    # format=prompt_data["format"],
+                    format=prompt_data[
+                        "format"
+                    ],  # Be careful , only specific for structured output
                 )
             else:
                 # Fallback to plain text mode
@@ -302,7 +304,7 @@ async def main():
     # --------------------------
     try:
         result = await client.generate(
-            model="gpt-oss:20b", prompt="Hello, who are you?"
+            model="llama3.2:1b ", prompt="Hello, who are you?"
         )
         logger.info(f"✅ Generate result: {result}")
     except Exception as e:
@@ -314,7 +316,7 @@ async def main():
     try:
         logger.info("✅ Streaming result:")
         async for chunk in client.generate_stream(
-            model="gpt-oss:20b", prompt="Tell me a story about a dragon"
+            model="llama3.2:1b ", prompt="Tell me a story about a dragon"
         ):
             logger.info(f"Chunk: {chunk}")
     except Exception as e:
@@ -322,13 +324,93 @@ async def main():
 
 
 async def format_llm():
+    from api.schemas.ollama import RAGResponse
     from config import get_settings
     from services.prompts.prompts import ResponseParser
 
     settings = get_settings()
 
     prompt = """
-        Context: TITAN is a technique for adaptive parameter freezing in VQE.
+        ### Context from Papers:
+
+[1. arXiv:2509.15193v1]
+
+exceed|∆E| < 0.03. Thiscorroboratesthattheperformanceliftstemsfrom TITAN’sinformed
+freezingstrategyratherthanstochasticvariance. Forc=0(pureXY model)TITAN’sadvantage
+narrowsyetremainspositive,whereasforZZ-dominatedcolumns(c=±5)improvementsareboth
+largerinmagnitudeandspatiallywider. Thispatternsuggeststhatcircuitswithstrongerlongitu-
+dinalentanglementprofitmorefromTITAN’searlydimensionalityreduction. Theheatmapsare
+approximatelysymmetricwithrespectto(a,b)(cid:55)→(−a,−b),inlinewiththeunderlyingH
+
+[2. arXiv:2509.15193v1]
+
+exceed|∆E| < 0.03. Thiscorroboratesthattheperformanceliftstemsfrom TITAN’sinformed
+freezingstrategyratherthanstochasticvariance. Forc=0(pureXY model)TITAN’sadvantage
+narrowsyetremainspositive,whereasforZZ-dominatedcolumns(c=±5)improvementsareboth
+largerinmagnitudeandspatiallywider. Thispatternsuggeststhatcircuitswithstrongerlongitu-
+dinalentanglementprofitmorefromTITAN’searlydimensionalityreduction. Theheatmapsare
+approximatelysymmetricwithrespectto(a,b)(cid:55)→(−a,−b),inlinewiththeunderlyingH
+
+[3. arXiv:2509.15193v1]
+
+exceed|∆E| < 0.03. Thiscorroboratesthattheperformanceliftstemsfrom TITAN’sinformed
+freezingstrategyratherthanstochasticvariance. Forc=0(pureXY model)TITAN’sadvantage
+narrowsyetremainspositive,whereasforZZ-dominatedcolumns(c=±5)improvementsareboth
+largerinmagnitudeandspatiallywider. Thispatternsuggeststhatcircuitswithstrongerlongitu-
+dinalentanglementprofitmorefromTITAN’searlydimensionalityreduction. Theheatmapsare
+approximatelysymmetricwithrespectto(a,b)(cid:55)→(−a,−b),inlinewiththeunderlyingH
+
+[4. arXiv:2509.15193v1]
+
+exceed|∆E| < 0.03. Thiscorroboratesthattheperformanceliftstemsfrom TITAN’sinformed
+freezingstrategyratherthanstochasticvariance. Forc=0(pureXY model)TITAN’sadvantage
+narrowsyetremainspositive,whereasforZZ-dominatedcolumns(c=±5)improvementsareboth
+largerinmagnitudeandspatiallywider. Thispatternsuggeststhatcircuitswithstrongerlongitu-
+dinalentanglementprofitmorefromTITAN’searlydimensionalityreduction. Theheatmapsare
+approximatelysymmetricwithrespectto(a,b)(cid:55)→(−a,−b),inlinewiththeunderlyingH
+
+[5. arXiv:2509.15193v1]
+
+exceed|∆E| < 0.03. Thiscorroboratesthattheperformanceliftstemsfrom TITAN’sinformed
+freezingstrategyratherthanstochasticvariance. Forc=0(pureXY model)TITAN’sadvantage
+narrowsyetremainspositive,whereasforZZ-dominatedcolumns(c=±5)improvementsareboth
+largerinmagnitudeandspatiallywider. Thispatternsuggeststhatcircuitswithstrongerlongitu-
+dinalentanglementprofitmorefromTITAN’searlydimensionalityreduction. Theheatmapsare
+approximatelysymmetricwithrespectto(a,b)(cid:55)→(−a,−b),inlinewiththeunderlyingH
+
+[6. arXiv:2509.15193v1]
+dingonthisobservation,wedeviseadeep
+nomenon of VQE. Intensity refers to the number of
+learning(DL)model,TITAN,aimingtoharness
+inactivesessions.MoredetailsareofferedinSec.4.
+thepowerofneuralnetworkstocaptureandpre-
+dictthefrozenparametersofVQEforagivenfamilyofHamiltoniansacrossvaryingscales. As
+in other deep learning applications, TITAN comprises three stages: dataset construction, model
+implementationandtraining,andmodelinference.
+Despiteitspromise,implementingTITANposesnotablechallenges,especia
+
+[7. arXiv:2509.15193v1]
+dingonthisobservation,wedeviseadeep
+nomenon of VQE. Intensity refers to the number of
+learning(DL)model,TITAN,aimingtoharness
+inactivesessions.MoredetailsareofferedinSec.4.
+thepowerofneuralnetworkstocaptureandpre-
+dictthefrozenparametersofVQEforagivenfamilyofHamiltoniansacrossvaryingscales. As
+in other deep learning applications, TITAN comprises three stages: dataset construction, model
+implementationandtraining,andmodelinference.
+Despiteitspromise,implementingTITANposesnotablechallenges,especia
+
+[8. arXiv:2509.15193v1]
+dingonthisobservation,wedeviseadeep
+nomenon of VQE. Intensity refers to the number of
+learning(DL)model,TITAN,aimingtoharness
+inactivesessions.MoredetailsareofferedinSec.4.
+thepowerofneuralnetworkstocaptureandpre-
+dictthefrozenparametersofVQEforagivenfamilyofHamiltoniansacrossvaryingscales. As
+in other deep learning applications, TITAN comprises three stages: dataset construction, model
+implementationandtraining,andmodelinference.
+Despiteitspromise,implementingTITANposesnotablechallenges,especia
+
 
         Question: What is TITAN?
 
@@ -338,29 +420,33 @@ async def format_llm():
         - If the context is insufficient, say so in the "answer" field.
         """
 
-    data = {
-        "model": settings.MODEL_NAME,
-        "prompt": prompt,
-        "stream": False,
-        "format": "json",
-        # "format": RAGResponse.model_json_schema(),  # <-- 使用 format 強制 JSON 輸出
-    }
+    async with httpx.AsyncClient(timeout=60) as client:
+        data = {
+            "model": settings.MODEL_NAME,
+            "prompt": prompt,
+            "stream": False,
+            "format": RAGResponse.model_json_schema(),  # <-- 使用 format 強制 JSON 輸出
+        }
 
-    with httpx.Client(timeout=60) as client:
-        resp = client.post(f"{settings.OLLAMA_API_URL}/api/generate", json=data)
-        resp.raise_for_status()
-        result = resp.json()
+        response = await client.post(
+            f"{settings.OLLAMA_API_URL}/api/generate", json=data
+        )
+        if response.status_code == 200:
+            response = response.json()
+        else:
+            raise OllamaException(f"Generation failed: {response.status_code}")
 
     # Ollama 回傳的文本
-    llm_output = result.get("response") or result.get("text") or ""
+    if response and "response" in response:
+        answer_text = response["response"]
 
-    # 用 Pydantic 驗證
-    try:
-        parsed = ResponseParser.parse_structured_response(llm_output)
-        print(parsed)
-    except Exception as e:
-        print("JSON 解析失敗:", e)
-        print("LLM 原始輸出:", llm_output)
+        # 用 Pydantic 驗證
+        try:
+            parsed = ResponseParser.parse_structured_response(answer_text)
+            print(parsed)
+        except Exception as e:
+            print("JSON 解析失敗:", e)
+            print("LLM 原始輸出:", response)
 
 
 if __name__ == "__main__":
