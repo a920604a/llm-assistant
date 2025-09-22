@@ -31,12 +31,12 @@ def get_paper_cache_client(request: Request) -> CacheClient | None:
 
 
 def get_qdrant_client(request: Request) -> QdrantClient:
-    """Get OpenSearch client from the request state."""
+    """Get Qdrant client from the request state."""
     return request.app.state.qdrant_client
 
 
 def get_minio_client(request: Request) -> MinioClient:
-    """Get OpenSearch client from the request state."""
+    """Get Minio client from the request state."""
     return request.app.state.minio_client
 
 

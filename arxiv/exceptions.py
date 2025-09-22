@@ -34,10 +34,6 @@ class PDFCacheException(Exception):
     """Exception raised for PDF cache-related errors."""
 
 
-class OpenSearchException(Exception):
-    """Base exception for OpenSearch-related errors."""
-
-
 class ArxivAPIException(Exception):
     """Base exception for arXiv API-related errors."""
 

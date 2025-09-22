@@ -1,7 +1,6 @@
 import os
 
 from dotenv import load_dotenv
-from pydantic import Field
 from pydantic_settings import BaseSettings
 
 load_dotenv()
@@ -35,13 +34,6 @@ class ArxivSettings(DefaultSettings):
     cache_dir: str = PDF_CACHE_DIR
     # base_url: str = "https://export.arxiv.org/api/query"
     pdf_cache_dir: str = PDF_CACHE_DIR
-    namespaces: dict = Field(
-        default={
-            "atom": "http://www.w3.org/2005/Atom",
-            "opensearch": "http://a9.com/-/spec/opensearch/1.1/",
-            "arxiv": "http://arxiv.org/schemas/atom",
-        }
-    )
     rate_limit_delay: float = 4.0  # seconds between requests
     timeout_seconds: int = 30
     max_results: int = 100
