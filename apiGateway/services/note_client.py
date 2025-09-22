@@ -37,9 +37,12 @@ async def call_note_stream_server(server_url: str, payload: dict):
             async for line in resp.aiter_lines():
                 if not line:
                     continue
+                if line.startswith("data: "):
+                    line = line[6:]  # 去掉 "data: "
                 try:
                     chunk = json.loads(line)
                     yield chunk
                 except json.JSONDecodeError:
-                    # 如果不是 json，可以忽略或 log
+                    # 可以 log 原始 line 看看格式是不是正確
+                    print(f"⚠️ JSONDecodeError, raw line: {line}")
                     continue

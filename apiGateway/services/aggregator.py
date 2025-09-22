@@ -73,11 +73,11 @@ async def generate_stream(query: str, user_id: str):
                 settings.NOTE_API_URL,
                 {"text": query, "user_id": user_id},
             ):
-                if chunk.get("response"):
-                    text_chunk = chunk["response"]
+                if chunk.get("chunk"):
+                    text_chunk = chunk["chunk"]
                     yield text_chunk
 
-                if chunk.get("done", False):
+                if chunk.get("answer", False):
                     break
 
     except Exception as e:

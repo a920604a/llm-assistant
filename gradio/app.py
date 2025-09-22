@@ -47,71 +47,74 @@ async def stream_response(
                 async for line in response.aiter_lines():
                     if not line.startswith("data: "):
                         continue
+                        data_str = line[6:]  # Remove "data: " prefix
 
-                    data_str = line[6:]
-                    try:
-                        data = json.loads(data_str)
+                        try:
+                            data = json.loads(data_str)
 
-                        # Handle error
-                        if "error" in data:
-                            yield f"❌ Error: {data['error']}"
-                            return
+                            # Handle error
+                            if "error" in data:
+                                yield f"❌ Error: {data['error']}"
+                                return
 
-                        # Handle metadata
-                        if "sources" in data:
-                            sources = data["sources"]
-                            chunks_used = data.get("chunks_used", 0)
-                            search_mode = data.get("search_mode", "unknown")
+                            # Handle metadata
+                            if "sources" in data:
+                                sources = data["sources"]
+                                chunks_used = data.get("chunks_used", 0)
+                                search_mode = data.get("search_mode", "unknown")
+                                continue
+
+                            # Handle streaming chunks
+                            if "chunk" in data or "response" in data:
+                                current_answer += data["chunk"]
+                                formatted_response = current_answer
+                                if sources or chunks_used:
+                                    formatted_response += "\n\n**🔎 Search Info:**\n"
+                                    formatted_response += f"- Mode: {search_mode}\n"
+                                    formatted_response += (
+                                        f"- Chunks used: {chunks_used}\n"
+                                    )
+                                    if sources:
+                                        formatted_response += (
+                                            f"- Sources: {len(sources)} papers\n"
+                                        )
+                                        for i, source in enumerate(sources[:3], 1):
+                                            formatted_response += f"  {i}. [{source.split('/')[-1]}]({source})\n"
+                                        if len(sources) > 3:
+                                            formatted_response += (
+                                                f"  ... and {len(sources) - 3} more\n"
+                                            )
+                                yield formatted_response
+
+                            # Handle completion
+                            if data.get("done", False):
+                                final_answer = data.get("answer", current_answer)
+                                if final_answer != current_answer:
+                                    current_answer = final_answer
+
+                                formatted_response = current_answer
+                                if sources or chunks_used:
+                                    formatted_response += "\n\n**🔎 Search Info:**\n"
+                                    formatted_response += f"- Mode: {search_mode}\n"
+                                    formatted_response += (
+                                        f"- Chunks used: {chunks_used}\n"
+                                    )
+                                    if sources:
+                                        formatted_response += (
+                                            f"- Sources: {len(sources)} papers\n"
+                                        )
+                                        for i, source in enumerate(sources[:3], 1):
+                                            formatted_response += f"  {i}. [{source.split('/')[-1]}]({source})\n"
+                                        if len(sources) > 3:
+                                            formatted_response += (
+                                                f"  ... and {len(sources) - 3} more\n"
+                                            )
+
+                                yield formatted_response
+                                break
+
+                        except json.JSONDecodeError:
                             continue
-
-                        # Handle streaming chunks
-                        if "chunk" in data:
-                            current_answer += data["chunk"]
-                            formatted_response = current_answer
-                            if sources or chunks_used:
-                                formatted_response += "\n\n**🔎 Search Info:**\n"
-                                formatted_response += f"- Mode: {search_mode}\n"
-                                formatted_response += f"- Chunks used: {chunks_used}\n"
-                                if sources:
-                                    formatted_response += (
-                                        f"- Sources: {len(sources)} papers\n"
-                                    )
-                                    for i, source in enumerate(sources[:3], 1):
-                                        formatted_response += f"  {i}. [{source.split('/')[-1]}]({source})\n"
-                                    if len(sources) > 3:
-                                        formatted_response += (
-                                            f"  ... and {len(sources) - 3} more\n"
-                                        )
-
-                            yield formatted_response
-
-                        # Handle completion
-                        if data.get("done", False):
-                            final_answer = data.get("answer", current_answer)
-                            if final_answer != current_answer:
-                                current_answer = final_answer
-
-                            formatted_response = current_answer
-                            if sources or chunks_used:
-                                formatted_response += "\n\n**🔎 Search Info:**\n"
-                                formatted_response += f"- Mode: {search_mode}\n"
-                                formatted_response += f"- Chunks used: {chunks_used}\n"
-                                if sources:
-                                    formatted_response += (
-                                        f"- Sources: {len(sources)} papers\n"
-                                    )
-                                    for i, source in enumerate(sources[:3], 1):
-                                        formatted_response += f"  {i}. [{source.split('/')[-1]}]({source})\n"
-                                    if len(sources) > 3:
-                                        formatted_response += (
-                                            f"  ... and {len(sources) - 3} more\n"
-                                        )
-
-                            yield formatted_response
-                            break
-
-                    except json.JSONDecodeError:
-                        continue
 
     except httpx.RequestError as e:
         yield f"⚠️ Connection error: {str(e)}\nMake sure the API server is running at {API_BASE_URL}"

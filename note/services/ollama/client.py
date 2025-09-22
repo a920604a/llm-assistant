@@ -160,8 +160,7 @@ class OllamaClient:
                     async for line in response.aiter_lines():
                         if line.strip():
                             try:
-                                chunk = json.loads(line)
-                                yield chunk
+                                yield json.loads(line)
                             except json.JSONDecodeError:
                                 logger.warning(
                                     f"Failed to parse streaming chunk: {line}"

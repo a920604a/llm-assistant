@@ -221,11 +221,14 @@ async def rag_stream(
                     prompt=final_prompt, temperature=system_settings.temperature
                 ):
                     # 每一個 chunk 是模型生成的一部分文字
+                    logger.info("chunk: %s", chunk)
 
                     if chunk.get("response"):
                         text_chunk = chunk["response"]
                         full_response += text_chunk
-                        yield json.dumps(chunk) + "\n\n"
+                        # yield json.dumps(chunk) + "\n\n"
+                        logger.info(f"data: {json.dumps({'chunk': text_chunk})}\n\n")
+                        yield f"data: {json.dumps({'chunk': text_chunk})}\n\n"
 
                     if chunk.get("done", False):
                         rag_tracer.end_generation(gen_span, full_response, "hybrid")
