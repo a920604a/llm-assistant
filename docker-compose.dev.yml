@@ -4,7 +4,7 @@ networks:
 
 services:
   ollama:
-    image: ollama/ollama:0.11.2
+    image: ollama/ollama
     container_name: rag-ollama
     ports:
       - "11434:11434"

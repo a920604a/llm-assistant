@@ -42,7 +42,7 @@ def llm_summary(paper: Dict, user: dict, max_words: int = 300) -> str:
     )
 
     chat_model = ChatOllama(
-        model=settings.MODEL_NAME,
+        model=settings.SUMMARY_MODEL_NAME,
         temperature=temperature,
         base_url=settings.OLLAMA_API_URL,
         request_kwargs={"timeout": 300},  # timeout 秒數
@@ -64,7 +64,7 @@ def llm_translate(user: dict, summary: str) -> str:
         return summary
 
     user_language = user.get("user_language", "English")
-    temperature = min(0.2, user.get("temperature", 0.5))
+    temperature = min(user.get("temperature", 0.5), 0.2)
 
     translation_instruction = (
         f"SUMMARIZE AND TRANSLATE THE FOLLOWING PAPER INTO {user_language.upper()} ONLY. "
@@ -73,21 +73,27 @@ def llm_translate(user: dict, summary: str) -> str:
     )
 
     chat_model = ChatOllama(
-        model=settings.MODEL_NAME,
+        model=settings.SUMMARY_MODEL_NAME,
         temperature=temperature,
-        base_url=settings.sOLLAMA_API_URL,
+        base_url=settings.OLLAMA_API_URL,
         request_kwargs={"timeout": 300},  # timeout 秒數
         reset_context=True,  # ⚡每次都清掉 session
     )
+
     try:
         resp = chat_model.invoke(translation_instruction)
         trans_summary = resp.content.strip()
         trans_summary = "\n".join(
             [line for line in trans_summary.splitlines() if line.strip()]
         )
+
+        # fallback 檢查
+        if trans_summary.lower().startswith("i can't"):
+            return f"[Fallback] 無法完整翻譯，原文保留:\n{summary}"
         return trans_summary
+
     except Exception as e:
-        return f"Summary generation failed:</strong> {e}>"
+        return f"[Fallback] 翻譯失敗: {e}\n原文:\n{summary}"
 
 
 def llm_html_foramt(summary: str) -> str:
@@ -95,7 +101,7 @@ def llm_html_foramt(summary: str) -> str:
         return "Summary not available."
 
     chat_model = ChatOllama(
-        model=settings.MODEL_NAME,
+        model=settings.SUMMARY_MODEL_NAME,
         temperature=0.0,
         base_url=settings.OLLAMA_API_URL,
         request_kwargs={"timeout": 300},  # timeout 秒數

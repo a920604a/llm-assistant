@@ -15,7 +15,9 @@ class Settings(BaseSettings):
     OLLAMA_API_URL: str = Field(
         default=os.getenv("OLLAMA_API_URL", "http://localhost:11434")
     )
-    MODEL_NAME: str = Field(default=os.getenv("MODEL_NAME", "gpt-oss:20b"))
+    SUMMARY_MODEL_NAME: str = Field(
+        default=os.getenv("SUMMARY_MODEL_NAME", "gpt-oss:20b")
+    )
     # 郵件設定
     MAIL_USERNAME: str = Field(default=os.getenv("MAIL_USERNAME"))
     MAIL_PASSWORD: str = Field(default=os.getenv("MAIL_PASSWORD"))

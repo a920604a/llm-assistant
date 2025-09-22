@@ -7,7 +7,6 @@ from pydantic_settings import BaseSettings
 load_dotenv()
 QDRANT_BATCH_SIZE = 200
 OLLAMA_API_URL = os.getenv("OLLAMA_API_URL", "http://ollama:11434")
-MODEL_NAME = os.getenv("MODEL_NAME", "gpt-oss:20b")
 
 
 PDF_CACHE_DIR = "/data/arxiv_pdfs"
