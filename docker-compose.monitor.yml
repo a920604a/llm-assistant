@@ -105,3 +105,16 @@ services:
       - REDIS_ADDR=redis:6379
     networks:
       - langfuse-otel-net
+      - monitor-net
+
+  prefect-exporter:
+    image: prefecthq/prometheus-prefect-exporter:latest
+    container_name: prefect-exporter
+    restart: unless-stopped
+    ports:
+      - "8033:8000"
+    environment:
+      PREFECT_API_URL: http://orion:4200/api
+    networks:
+      - langfuse-otel-net
+      - monitor-net

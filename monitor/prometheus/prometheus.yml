@@ -16,6 +16,7 @@ scrape_configs:
       - targets:
           - 'node-exporter:9100'
           - 'redis-exporter:9121'
+          - 'prefect-exporter:8000'
           - 'cadvisor:8080'
 
   - job_name: 'api_gateway'
