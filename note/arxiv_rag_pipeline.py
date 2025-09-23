@@ -180,6 +180,7 @@ async def rag_stream(
     langfuse_tracer: LangfuseTracer,
     user_id: str = "anonymous",
     categories: List[str] = None,
+    model: str = "gpt-oss:20b",
 ) -> str:
     try:
         rag_tracer = RAGTracer(langfuse_tracer)
@@ -213,7 +214,7 @@ async def rag_stream(
             logger.info(
                 f"Step 5: LLM stream generation with final_prompt = {final_prompt}"
             )
-            with rag_tracer.trace_generation(trace, "hybrid", final_prompt) as gen_span:
+            with rag_tracer.trace_generation(trace, model, final_prompt) as gen_span:
                 full_response = ""
                 final_chunk = None
 
@@ -231,7 +232,7 @@ async def rag_stream(
                         yield f"data: {json.dumps({'chunk': text_chunk})}\n\n"
 
                     if chunk.get("done", False):
-                        rag_tracer.end_generation(gen_span, full_response, "hybrid")
+                        rag_tracer.end_generation(gen_span, full_response, model)
                         # logger.info(f"full_response {full_response}")
                         yield f"data: {json.dumps({'answer': full_response, 'done': True})}\n\n"
 

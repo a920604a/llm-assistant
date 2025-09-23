@@ -3,7 +3,7 @@ from api.auto_metrics import observe_api
 from api.schemas.user import UserQuery
 from api.verify_token import verify_firebase_token  # 解析 Firebase token
 from core.limiter import limiter
-from dependencies import LangChainDep, LangfuseDep, OllamaDep
+from dependencies import LangfuseDep, OllamaDep, SettingsDep
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from services.aggregator import generate_stream, process_user_query
@@ -14,11 +14,12 @@ router = APIRouter()
 @router.post("/api/v1/ask")
 @limiter.limit("7/minute")  # 每分鐘 7 次
 @observe_api
-def ask_question(
+async def ask_question(
     request: Request,
     user_query: UserQuery,
-    langchain_client: LangChainDep,
+    ollama_client: OllamaDep,
     langfuse_tracer: LangfuseDep,
+    settings: SettingsDep,
     user_id: str = Depends(verify_firebase_token),
 ):
     """
@@ -34,11 +35,12 @@ def ask_question(
         if not query:
             return {"error": "Query 不可為空"}
 
-        result: str = process_user_query(
+        result: str = await process_user_query(
             query,
             user_id=user_id,
-            langchain_client=langchain_client,
+            ollama_client=ollama_client,
             langfuse_tracer=langfuse_tracer,
+            model=settings.SUMMARY_MODEL_NAME,
         )
 
         return result
@@ -57,8 +59,8 @@ async def ask_question_stream(
     request: Request,
     user_query: UserQuery,
     ollama_client: OllamaDep,
-    langchain_client: LangChainDep,
     langfuse_tracer: LangfuseDep,
+    settings: SettingsDep,
     user_id: str = Depends(verify_firebase_token),
 ) -> StreamingResponse:
     """Streaming RAG endpoint - returns answer as it's generated."""
@@ -69,11 +71,11 @@ async def ask_question_stream(
 
     return StreamingResponse(
         generate_stream(
-            query,
-            user_id,
-            ollama_client,
-            langchain_client,
+            query=query,
+            user_id=user_id,
+            ollama_client=ollama_client,
             langfuse_tracer=langfuse_tracer,
+            model=settings.SUMMARY_MODEL_NAME,
         ),
         media_type="text/event-stream",  # 前端 fetch 會逐段讀取
         headers={

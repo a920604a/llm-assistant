@@ -101,6 +101,7 @@ async def ask_question_stream(
     qdrant_client: QdrantDep,
     user_cache_client: UserCacheDep,
     langfuse_tracer: LangfuseDep,
+    settings: SettingsDep,
 ):
     q = request.text.strip()
     logger.info("ask_question_stream %s", q)
@@ -118,6 +119,7 @@ async def ask_question_stream(
             system_settings=system_settings,
             user_id=request.user_id,
             langfuse_tracer=langfuse_tracer,
+            model=settings.MODEL_NAME,
         ),
         media_type="text/event-stream",  # 前端 fetch 會逐段讀取
         headers={

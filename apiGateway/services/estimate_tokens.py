@@ -17,7 +17,7 @@ def get_token_estimate(resp, prompt: str):
     prompt_tokens = estimate_tokens(prompt)
 
     # Output token（回傳內容）
-    output_tokens = estimate_tokens(resp.content)
+    output_tokens = estimate_tokens(resp.get("response", ""))
 
     total_tokens = prompt_tokens + output_tokens
 

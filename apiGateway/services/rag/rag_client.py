@@ -1,14 +1,15 @@
 import json
 
 import httpx
-import requests
 from api.schemas.ask import AskResponse
 
 
-def call_note_server(server_url: str, payload: dict) -> str:
-    resp = requests.post(f"{server_url}/api/v1/ask", json=payload, timeout=180)
-    resp.raise_for_status()
-    response = resp.json()
+async def call_note_server(server_url: str, payload: dict) -> str:
+    async with httpx.AsyncClient(timeout=180.0) as client:
+        resp = await client.post(f"{server_url}/api/v1/ask", json=payload)
+        resp.raise_for_status()
+        response = resp.json()
+
     askResponse = AskResponse(
         query=response["query"],
         answer=response["answer"],

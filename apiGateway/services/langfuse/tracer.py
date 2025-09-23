@@ -1,7 +1,6 @@
 """Simple, efficient Langfuse tracing utility for RAG pipeline."""
 
 from contextlib import contextmanager
-from typing import Dict, List
 
 from services.langfuse.client import LangfuseTracer
 
@@ -45,12 +44,12 @@ class RAGTracer:
             pass
 
     @contextmanager
-    def trace_prompt_construction(self, trace, chunks: List[Dict]):
+    def trace_prompt_construction(self, trace, prompt: str):
         """Prompt building with timing."""
         span = self.tracer.create_span(
             trace=trace,
             name="prompt_construction",
-            input_data={"chunk_count": len(chunks)},
+            input_data={"prompt_count": len(prompt)},
         )
         try:
             yield span
