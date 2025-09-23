@@ -14,16 +14,26 @@ def observe_api(func):
     - Counter: 呼叫次數
     - Histogram: 延遲時間
     """
+    service_name = "rag-api"
     endpoint_name = func.__name__
 
     # 如果還沒創建，就創建
     if endpoint_name not in _METRICS_REGISTRY:
+        counter = Counter(
+            f"{endpoint_name}_total",
+            f"Total requests to {endpoint_name}",
+            ["endpoint", "app_service"],
+        )
+        histogram = Histogram(
+            f"{endpoint_name}_latency_seconds",
+            f"Latency for {endpoint_name}",
+            ["endpoint", "app_service"],
+            buckets=[0.005, 0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5],
+        )
         _METRICS_REGISTRY[endpoint_name] = {
-            "counter": Counter(
-                f"{endpoint_name}_total", f"Total requests to {endpoint_name}"
-            ),
-            "histogram": Histogram(
-                f"{endpoint_name}_latency_seconds", f"Latency for {endpoint_name}"
+            "counter": counter.labels(endpoint=endpoint_name, app_service=service_name),
+            "histogram": histogram.labels(
+                endpoint=endpoint_name, app_service=service_name
             ),
         }
 

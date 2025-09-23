@@ -1,4 +1,6 @@
 networks:
+  monitor-net:
+    external: true
   langfuse-otel-net:
     external: true
 
@@ -26,6 +28,7 @@ services:
       - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
     networks:
       - langfuse-otel-net
+      - monitor-net
   note-storage:
     image: minio/minio
     container_name: note-minio
