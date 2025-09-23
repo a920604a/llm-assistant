@@ -85,7 +85,7 @@ class OllamaClient:
         self,
         prompt: str = "",
         **kwargs,
-    ) -> str:
+    ) -> dict:
         """
         Generate text using specified model.
 

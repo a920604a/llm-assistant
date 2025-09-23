@@ -157,7 +157,7 @@ async def ask_flow(
         )
         rag_tracer.end_generation(gen_span, response, model)
 
-    store_chat_and_usage(user_id, query, final_prompt, response)
+    store_chat_and_usage(user_id, query, response)
 
     # return answer
     # Prepare response

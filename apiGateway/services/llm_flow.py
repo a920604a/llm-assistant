@@ -30,6 +30,6 @@ async def llm_flow(
 
         rag_tracer.end_generation(gen_span, resp, model)
 
-    store_chat_and_usage(user_id, query, query, resp)
+    store_chat_and_usage(user_id, query, resp)
 
     return resp.get("response", "")

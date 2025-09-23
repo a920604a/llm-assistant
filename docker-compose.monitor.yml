@@ -41,7 +41,7 @@ services:
       - .env
 
   grafana:
-    image: grafana/grafana-enterprise
+    image: grafana/grafana:latest
     user: "472"
     ports:
       - "0.0.0.0:3002:3000"
@@ -49,10 +49,13 @@ services:
       - ./monitor/dashboards:/var/lib/grafana/dashboards # dashboard JSON, Node Exporter Full: 1860 , cAdvisor Exporter: 14282 , Prometheus Blackbox Exporter: 7587
       - ./monitor/provisioning:/etc/grafana/provisioning # provisioning 設定
     environment:
-      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
-      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
-      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD} # 可設定 Grafana admin 密碼
-      - GF_INSTALL_PLUGINS=vertamedia-clickhouse-datasource
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-admin}
+      GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER:-admin}
+      GF_SECURITY_SECRET_KEY: ${GRAFANA_SECRET_KEY:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_USERS_ALLOW_ORG_CREATE: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
     restart: always
     networks:
       - monitor-net

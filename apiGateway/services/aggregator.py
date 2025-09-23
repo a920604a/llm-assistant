@@ -10,6 +10,7 @@ from services.llm_flow import llm_flow
 from services.ollama.client import OllamaClient
 from services.prompts.prompts import build_prompt
 from services.rag.rag_client import call_note_server, call_note_stream_server
+from services.store_chat_and_usage import store_chat_and_ollama_usage
 
 logger = AppLogger(__name__).get_logger()
 
@@ -84,6 +85,7 @@ async def generate_stream(
 
                 with rag_tracer.trace_generation(trace, model, prompt) as gen_span:
                     full_response = ""
+                    final_chunk = None
 
                     async for chunk in ollama_client.generate_stream(
                         prompt=prompt, temperature=_cache.temperature
@@ -99,8 +101,17 @@ async def generate_stream(
                         if chunk.get("done", False):
                             # yield f"data: {json.dumps({'answer': full_response, 'done': True})}\n\n"
                             rag_tracer.end_generation(gen_span, full_response, model)
+                            final_chunk = chunk
                             break
                 rag_tracer.end_request(trace, full_response, time.time() - start_time)
+
+                store_chat_and_ollama_usage(
+                    user_id,
+                    query,
+                    final_chunk=final_chunk,
+                    prompt=prompt,
+                    response=full_response,
+                )
 
         else:
             # 呼叫 MCP Server（筆記服務）
