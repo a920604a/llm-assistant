@@ -15,7 +15,7 @@ class OllamaClient:
     def __init__(self, settings: Settings):
         """Initialize Ollama client with settings."""
         self.base_url = settings.OLLAMA_API_URL
-        self.model_name = settings.MODEL_NAME
+        self.model_name = settings.SUMMARY_MODEL_NAME
         self.timeout = httpx.Timeout(float(settings.OLLAMA_TIMEOUT))
         # self.prompt_builder = RAGPromptBuilder()
         # self.response_parser = ResponseParser()

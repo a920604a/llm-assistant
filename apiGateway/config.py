@@ -34,7 +34,7 @@ class Settings(BaseConfigSettings):
     OLLAMA_TIMEOUT: int = 300
 
     # 模型名稱
-    MODEL_NAME: str = "gpt-oss:20b"
+    SUMMARY_MODEL_NAME: str = "gpt-oss:20b"
 
     # Firebase key path
     FIRBASE_KEY_PATH: str = "/app"

@@ -1,10 +1,9 @@
 import httpx
+from api.schemas.SystemSetting import SystemSettings
 from config import Settings
-from langchain_core.messages.ai import AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 from logger import AppLogger
-from services.prompts.prompts import RAGPromptBuilder, ResponseParser
 
 logger = AppLogger(__name__).get_logger()
 
@@ -15,60 +14,65 @@ class LangChainClient:
     def __init__(self, settings: Settings):
         """Initialize Ollama client with settings."""
         self.base_url = settings.OLLAMA_API_URL
-        self.model_name = settings.MODEL_NAME
+        self.model_name = settings.SUMMARY_MODEL_NAME
         self.timeout = httpx.Timeout(float(settings.OLLAMA_TIMEOUT))
-        self.prompt_builder = RAGPromptBuilder()
-        self.response_parser = ResponseParser()
 
-    def llm_context(
+    def llm(
         self,
-        context: str,
         query: str,
-        user_language: str = "Traditional Chinese",
-        temperature: float = 0.5,
-        system_prompt: str = "",
-    ) -> AIMessage:
+        system_setting: SystemSettings,
+        user_id: str = "anonymous",
+    ) -> str:
+        isTranslate = system_setting.translate
+        user_language = system_setting.user_language
+        system_prompt = system_setting.system_prompt
+
         chat_model = ChatOllama(
             model=self.model_name,
-            temperature=temperature,
+            temperature=system_setting.temperature,
             base_url=self.base_url,
         )
 
-        prompt = ChatPromptTemplate.from_template(
+        if isTranslate:
+            # 使用 user_language 指定語言
+            prompt_template = """
+            {system_prompt}
+            You are a helpful assistant.
+
+            Question:
+            {question}
+
+            Answer in {user_language}, concise and clear.
             """
-        {system_prompt}
-        You are an expert note organizer and Markdown formatter.
-        Please read the following context and question, and provide a well-structured answer
-        using headings, subheadings, bullet points, and numbering where appropriate.
+            prompt = ChatPromptTemplate.from_template(prompt_template)
+            chain = prompt | chat_model
+            resp = chain.invoke(
+                {
+                    "system_prompt": system_prompt,
+                    "question": query,
+                    "user_language": user_language,
+                }
+            )
+        else:
+            # 不翻譯，使用預設語言
+            prompt_template = """
+            You are a helpful assistant.
 
+            Question:
+            {question}
 
-        Context:
-        {context}
-
-        Question:
-        {question}
-
-        Translate the summary to {user_language}. Output ONLY in {user_language}, formatted clearly for readability with headings, bullet points, and numbering.
-        """
-        )
-
-        chain = prompt | chat_model
-
-        resp = chain.invoke(
-            {
-                "system_prompt": system_prompt,
-                "context": context,
-                "question": query,
-                "user_language": user_language,
-            }
-        )
+            Answer concise and clear.
+            """
+            prompt = ChatPromptTemplate.from_template(prompt_template)
+            chain = prompt | chat_model
+            resp = chain.invoke({"system_prompt": system_prompt, "question": query})
 
         return resp
 
     def rewrite_query(self, query: str, user_id: str) -> str:
         chat_model = ChatOllama(
             model=self.model_name,
-            temperature=0.6,
+            temperature=0.2,
             base_url=self.base_url,
         )
 
@@ -87,3 +91,30 @@ class LangChainClient:
         resp = chain.invoke({"question": query})
 
         return resp.content
+
+
+if __name__ == "__main__":
+    q = "What is LangChain？"
+    print(q)
+
+    cache = SystemSettings(
+        user_language="zh",
+        translate=False,
+        system_prompt="you are a student",
+        top_k=5,
+        use_rag=True,
+        subscribe_email=False,
+        reranker_enabled=True,
+        temperature=0.6,  # Default temperature for LLM responses
+    )
+    lang = LangChainClient(cache)
+
+    # 使用翻譯
+    result = lang.llm(q, cache, user_id="test_user")
+    logger.info(result.content)
+
+    cache.translate = True
+
+    # 不翻譯
+    result2 = lang.llm(q, cache, user_id="test_user")
+    logger.info(result2.content)

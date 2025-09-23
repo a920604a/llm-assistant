@@ -5,6 +5,7 @@ from config import get_settings
 from core.middleware import setup_middlewares
 from fastapi import FastAPI
 from logger import AppLogger
+from services.langchain.factory import make_langchain_client
 from services.ollama.factory import make_ollama_client
 
 logger = AppLogger(__name__).get_logger()
@@ -25,6 +26,9 @@ async def lifespan(app: FastAPI):
     app.state.settings = settings
 
     app.state.ollama_client = make_ollama_client()
+
+    app.state.langchain_client = make_langchain_client()
+
     logger.info("API ready")
     yield
 

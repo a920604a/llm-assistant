@@ -17,5 +17,5 @@ def store_chat_and_usage(user_id: str, query: str, prompt: str, resp: AIMessage)
         input_token=usage["prompt_tokens"],
         output_token=usage["completion_tokens"],
         latency_ms=usage["latency_ms"],
-        model=settings.MODEL_NAME,
+        model=settings.SUMMARY_MODEL_NAME,
     )

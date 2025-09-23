@@ -3,7 +3,7 @@ from api.auto_metrics import observe_api
 from api.schemas.user import UserQuery
 from api.verify_token import verify_firebase_token  # 解析 Firebase token
 from core.limiter import limiter
-from dependencies import OllamaDep
+from dependencies import LangChainDep, OllamaDep
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from services.aggregator import generate_stream, process_user_query
@@ -17,7 +17,7 @@ router = APIRouter()
 def ask_question(
     request: Request,
     user_query: UserQuery,
-    ollama_client: OllamaDep,
+    langchain_client: LangChainDep,
     user_id: str = Depends(verify_firebase_token),
 ):
     """
@@ -34,7 +34,7 @@ def ask_question(
             return {"error": "Query 不可為空"}
 
         result: str = process_user_query(
-            query, user_id=user_id, ollama_client=ollama_client
+            query, user_id=user_id, langchain_client=langchain_client
         )
 
         return result
@@ -52,6 +52,7 @@ async def ask_question_stream(
     request: Request,
     user_query: UserQuery,
     ollama_client: OllamaDep,
+    langchain_client: LangChainDep,
     user_id: str = Depends(verify_firebase_token),
 ) -> StreamingResponse:
     """Streaming RAG endpoint - returns answer as it's generated."""
@@ -61,7 +62,7 @@ async def ask_question_stream(
         raise HTTPException(status_code=400, detail="Query 不可為空")
 
     return StreamingResponse(
-        generate_stream(query, user_id, ollama_client),
+        generate_stream(query, user_id, ollama_client, langchain_client),
         media_type="text/event-stream",  # 前端 fetch 會逐段讀取
         headers={
             "Cache-Control": "no-cache",
