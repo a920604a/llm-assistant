@@ -31,6 +31,7 @@ class Settings(BaseConfigSettings):
     SPEECH_API_URL: str = "http://imageserver:8000"
     IMAGE_API_URL: str = "http://speechserver:8000"
     OLLAMA_API_URL: str = "http://ollama:11434"
+    OLLAMA_TIMEOUT: int = 300
 
     # 模型名稱
     MODEL_NAME: str = "gpt-oss:20b"

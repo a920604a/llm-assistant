@@ -3,7 +3,7 @@ from api.schemas.health import HealthResponse, ServiceStatus
 from core.limiter import limiter
 from dependencies import SettingsDep
 from fastapi import APIRouter, Request
-from services.ollama_client import OllamaClient
+from services.ollama.client import OllamaClient
 from sqlalchemy import text
 from storage import db_session
 
@@ -56,7 +56,7 @@ async def health_check(request: Request, settings: SettingsDep) -> HealthRespons
 
     # Handle Ollama async check separately
     try:
-        ollama_client = OllamaClient()
+        ollama_client = OllamaClient(settings)
         ollama_health = await ollama_client.health_check()
         services["ollama"] = ServiceStatus(
             status=ollama_health["status"], message=ollama_health["message"]

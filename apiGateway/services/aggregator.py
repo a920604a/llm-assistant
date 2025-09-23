@@ -5,14 +5,14 @@ from logger import AppLogger
 from redis_client import get_redis_system_setting
 from services.langchain_client import rewrite_query
 from services.llm_flow import llm_flow
-from services.note_client import call_note_server, call_note_stream_server
-from services.ollama_client import OllamaClient
+from services.ollama.client import OllamaClient
 from services.prompts import build_prompt
+from services.rag.rag_client import call_note_server, call_note_stream_server
 
 logger = AppLogger(__name__).get_logger()
 
 
-def process_user_query(query: str, user_id: str) -> str:
+def process_user_query(query: str, user_id: str, ollama_client: OllamaClient) -> str:
     _cache = get_redis_system_setting(user_id=user_id)
     shortcut = not _cache.use_rag  # 是否使用快捷方式
 
@@ -38,9 +38,8 @@ def process_user_query(query: str, user_id: str) -> str:
         return note_result
 
 
-async def generate_stream(query: str, user_id: str):
+async def generate_stream(query: str, user_id: str, ollama_client: OllamaClient):
     try:
-        ollama_clinet = OllamaClient()
         _cache = get_redis_system_setting(user_id=user_id)
         shortcut = not _cache.use_rag
         logger.info(f"query {query}")
@@ -50,7 +49,7 @@ async def generate_stream(query: str, user_id: str):
             logger.info(f"prompt {prompt}")
             # full_response = ""
             # 丟到 LLM，使用 streaming 介面
-            async for chunk in ollama_clinet.generate_stream(
+            async for chunk in ollama_client.generate_stream(
                 prompt=prompt, temperature=_cache.temperature
             ):
                 # 每一個 chunk 是模型生成的一部分文字
