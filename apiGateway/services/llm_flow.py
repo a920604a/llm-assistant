@@ -12,10 +12,10 @@ def llm_flow(
     system_setting: SystemSettings,
     langchain_client: LangChainClient,
 ) -> str:
-    llm_rewrite_query = langchain_client.rewrite_query(query=query, user_id=user_id)
-    resp = langchain_client.llm(llm_rewrite_query, system_setting, user_id)
+    # query = langchain_client.rewrite_query(query=query, user_id=user_id)
+    resp = langchain_client.llm(query, system_setting, user_id)
     logger.info(f"llm_reply {resp}")
 
-    store_chat_and_usage(user_id, query, llm_rewrite_query, resp)
+    store_chat_and_usage(user_id, query, query, resp)
 
     return resp.content

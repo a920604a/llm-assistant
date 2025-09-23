@@ -18,13 +18,13 @@ scrape_configs:
           - 'redis-exporter:9121'
           - 'cadvisor:8080'
 
-  - job_name: 'mcp_client'
+  - job_name: 'api_gateway'
     static_configs:
       - targets: ['apiGateway:8000']
     relabel_configs:
       - source_labels: ['__address__']
         target_label: 'service'
-        replacement: 'mcp client'
+        replacement: 'api gateway'
 
   - job_name: 'noteserver'
     static_configs:

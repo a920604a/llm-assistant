@@ -62,6 +62,10 @@ restart:
 	$(DOCKER_COMPOSE) down
 	$(DOCKER_COMPOSE) up -d
 
+restart-minitor:
+	$(MONITOR_COMPOSE) down
+	$(MONITOR_COMPOSE) up -d
+
 # 查看容器日誌（預設看 apiGateway）
 logs:
 	$(DOCKER_COMPOSE) logs -f apiGateway

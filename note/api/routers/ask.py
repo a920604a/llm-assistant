@@ -94,6 +94,7 @@ async def ask_question(
 
 
 @stream_router.post("/api/v1/stream")
+@observe_api
 async def ask_question_stream(
     request: Query,
     ollama_client: OllamaDep,

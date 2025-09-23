@@ -481,7 +481,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "rate(ask_host_total[5m])",
+          "expr": "rate(ask_question_total[5m])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -503,7 +503,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "MCP Client API calling",
+  "title": "API Gateway calling",
   "uid": "e329fa12-87fb-4f21-8eba-398e2865424a",
   "version": 17
 }

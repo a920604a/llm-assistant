@@ -158,7 +158,7 @@ classDef data fill:#C0C0C0,stroke:#333,stroke-width:1px
 ├── frontend/                 # React Vite app
 ├── data/, database/          # Database & storage initialization
 ├── docs/                     # 技術文件、實作歷程
-├── apiGateway/                # MCP Client backend service
+├── apiGateway/               # API Gateway backend service
 ├── image/                    # Image-related scripts (未來擴充)
 ├── speech/                   # Speech service backend (未來擴充)
 ├── arxiv/                    # Arxiv service (Arxiv ingestion)

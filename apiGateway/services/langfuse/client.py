@@ -65,7 +65,7 @@ class LangfuseTracer:
         try:
             # Create a trace using v2 API
             trace = self.client.trace(
-                name="rag_request",
+                name="api_gateway_request",
                 input={"query": query},
                 metadata=metadata or {},
                 user_id=user_id,
@@ -109,79 +109,6 @@ class LangfuseTracer:
         except Exception as e:
             logger.error(f"Error creating span {name}: {e}")
             return None
-
-    def create_generation(
-        self,
-        trace,
-        name: str,
-        model: str,
-        input_data: Optional[Dict[str, Any]] = None,
-        output: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        usage: Optional[Dict[str, Any]] = None,
-    ):
-        """
-        Create a generation (LLM call) within a trace.
-
-        Args:
-            trace: Parent trace object
-            name: Name of the generation
-            model: Model name
-            input_data: Input/prompt data
-            output: Generated output
-            metadata: Additional metadata
-            usage: Token usage information
-
-        Returns:
-            Generation object if successful, None otherwise
-        """
-        if not trace or not self.client:
-            return None
-
-        try:
-            # Create a generation using v2 API
-            return self.client.generation(
-                trace_id=trace.trace_id,
-                name=name,
-                model=model,
-                input=input_data,
-                output=output,
-                metadata=metadata or {},
-                usage=usage,
-            )
-        except Exception as e:
-            logger.error(f"Error creating generation {name}: {e}")
-            return None
-
-    def score_trace(
-        self,
-        trace,
-        name: str,
-        value: float,
-        comment: Optional[str] = None,
-    ):
-        """
-        Add a score to a trace.
-
-        Args:
-            trace: Trace object
-            name: Score name (e.g., "relevance", "accuracy")
-            value: Score value
-            comment: Optional comment
-        """
-        if not trace or not self.client:
-            return
-
-        try:
-            # Create a score using v2 API
-            self.client.score(
-                trace_id=trace.trace_id,
-                name=name,
-                value=value,
-                comment=comment,
-            )
-        except Exception as e:
-            logger.error(f"Error scoring trace: {e}")
 
     def update_span(
         self,

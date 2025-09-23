@@ -1,9 +1,12 @@
 import json
+import time
 
 from config import settings
 from logger import AppLogger
 from redis_client import get_redis_system_setting
 from services.langchain.client import LangChainClient
+from services.langfuse.client import LangfuseTracer
+from services.langfuse.tracer import RAGTracer
 from services.llm_flow import llm_flow
 from services.ollama.client import OllamaClient
 from services.prompts import build_prompt
@@ -13,7 +16,10 @@ logger = AppLogger(__name__).get_logger()
 
 
 def process_user_query(
-    query: str, user_id: str, langchain_client: LangChainClient
+    query: str,
+    user_id: str,
+    langchain_client: LangChainClient,
+    langfuse_tracer: LangfuseTracer,
 ) -> str:
     _cache = get_redis_system_setting(user_id=user_id)
     shortcut = not _cache.use_rag  # 是否使用快捷方式
@@ -21,7 +27,12 @@ def process_user_query(
     # 呼叫 Ollama LLM（主要語言理解與生成）
     logger.info(f"query {query}")
     if shortcut:
-        llm_reply = llm_flow(query, user_id, _cache, langchain_client)
+        rag_tracer = RAGTracer(langfuse_tracer)
+        start_time = time.time()
+        with rag_tracer.trace_request(user_id, query) as trace:
+            llm_reply = llm_flow(query, user_id, _cache, langchain_client)
+
+            rag_tracer.end_request(trace, llm_reply, time.time() - start_time)
 
         return llm_reply
     else:  # rag
@@ -45,13 +56,14 @@ async def generate_stream(
     user_id: str,
     ollama_client: OllamaClient,
     langchain_client: LangChainClient,
+    langfuse_tracer: LangfuseTracer,
 ):
     try:
         _cache = get_redis_system_setting(user_id=user_id)
         shortcut = not _cache.use_rag
         logger.info(f"query {query}")
         if shortcut:
-            query = langchain_client.rewrite_query(query=query, user_id=user_id)
+            # query = langchain_client.rewrite_query(query=query, user_id=user_id)
             prompt = build_prompt(query, _cache)
             logger.info(f"prompt {prompt}")
             # full_response = ""
