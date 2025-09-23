@@ -6,11 +6,10 @@ datasources:
     url: note-db:5432
     isDefault: false
     editable: true
+    user: user
+    database: note
     jsonData:
-      defaultDatabase: note
       sslmode: disable
-      tlsAuth: false
-      tlsAuthWithCACert: false
+      postgresVersion: 1300
     secureJsonData:
-      user: user                      # POSTGRES_USER
-      password: password              # POSTGRES_PASSWORD
+      password: password
