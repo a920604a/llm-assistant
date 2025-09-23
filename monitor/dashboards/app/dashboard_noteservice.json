@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": 5,
   "links": [],
   "panels": [
     {
@@ -105,13 +105,13 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(ask_question_stream_total) by (handler) ",
+          "expr": "rate(ask_question_stream_total{endpoint=\"ask_question_stream\", app_service=\"rag-api\"}[5m])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "New panel",
+      "title": "POST /api/v1/stream呼叫次數",
       "type": "timeseries"
     },
     {
@@ -180,7 +180,7 @@
         "x": 12,
         "y": 0
       },
-      "id": 3,
+      "id": 1,
       "options": {
         "legend": {
           "calcs": [],
@@ -197,14 +197,18 @@
       "pluginVersion": "12.1.1",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
           "editorMode": "code",
-          "expr": "sum(post_settings_total) by (handler)",
+          "expr": "rate(ask_question_total{endpoint=\"ask_question\", app_service=\"rag-api\"}[5m])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "POST /api/setting 呼叫次數",
+      "title": "POST /api/v1/ask 呼叫次數",
       "type": "timeseries"
     },
     {
@@ -291,13 +295,13 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(get_user_settings_total) by (handler)",
+          "expr": "rate(get_user_settings_total{endpoint=\"get_user_settings\", app_service=\"rag-api\"}[5m])\r\n",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "GET /api/setting 呼叫次數",
+      "title": "GET /api/v1/setting 呼叫次數",
       "type": "timeseries"
     },
     {
@@ -366,7 +370,7 @@
         "x": 12,
         "y": 8
       },
-      "id": 1,
+      "id": 3,
       "options": {
         "legend": {
           "calcs": [],
@@ -383,18 +387,14 @@
       "pluginVersion": "12.1.1",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
           "editorMode": "code",
-          "expr": "sum(ask_question_total) by (handler) ",
+          "expr": "rate(post_settings_total{endpoint=\"post_settings\", app_service=\"rag-api\"}[5m])\r\n",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "POST /api/query 呼叫次數",
+      "title": "POST /api/v1/setting 呼叫次數",
       "type": "timeseries"
     },
     {
@@ -481,13 +481,13 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(get_user_data_total) by (handler)",
+          "expr": "rate(get_user_data_total{endpoint=\"get_user_data\", app_service=\"rag-api\"}[5m])\r\n",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "GET /api/user/ 呼叫次數",
+      "title": "GET /api/v1/user/ 呼叫次數",
       "type": "timeseries"
     }
   ],

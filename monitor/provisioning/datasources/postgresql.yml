@@ -3,10 +3,14 @@ datasources:
   - name: postgresql
     type: postgres
     access: proxy
-    url: http://note-db:5432
+    url: note-db:5432
     isDefault: false
     editable: true
     jsonData:
-      defaultDatabase: default
+      defaultDatabase: note
+      sslmode: disable
       tlsAuth: false
       tlsAuthWithCACert: false
+    secureJsonData:
+      user: user                      # POSTGRES_USER
+      password: password              # POSTGRES_PASSWORD

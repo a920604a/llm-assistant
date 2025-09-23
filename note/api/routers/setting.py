@@ -29,6 +29,7 @@ async def get_user_settings(user_id: str):
 
 
 @router.post("/api/v1/setting", response_model=dict)
+@observe_api
 async def post_settings(req: PostSettingsRequest, user_cache_client: UserCacheDep):
     logger.info("post_settings %s", req)
     post_setting(req, user_cache_client)
