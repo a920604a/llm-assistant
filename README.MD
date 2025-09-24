@@ -331,7 +331,7 @@ Steps:
 ![](demo/homepage.png)
 ![](demo/gradio.png)
 ![](demo/app_metrics.png)
-
+![](demo/dashboard.png)
 ![](demo/demo.mp4)
 
 ---
