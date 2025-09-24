@@ -18,9 +18,75 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 3,
+  "id": 2,
   "links": [],
   "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 15
+              },
+              {
+                "color": "red",
+                "value": 25
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 9,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "sum(\r\n  rate(llm_assistance_noteservice_http_requests_total[1m])\r\n  )*60 +\r\n  sum(\r\n  rate(llm_assistance_apiGateway_http_requests_total[1m])\r\n) * 60\r\n",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "每分鐘 QPS",
+      "type": "gauge"
+    },
     {
       "datasource": {
         "type": "prometheus",
@@ -47,7 +113,7 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
+            "insertNulls": 3600000,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -74,7 +140,7 @@
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 3
               }
             ]
           }
@@ -84,10 +150,10 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 7,
+        "x": 12,
         "y": 0
       },
-      "id": 7,
+      "id": 10,
       "options": {
         "legend": {
           "calcs": [],
@@ -105,13 +171,13 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "rate(redis_get_total[5m]) / rate(redis_set_total[5m])",
+          "expr": "sum (\r\n  rate(llm_assistance_noteservice_http_requests_total[1m])*60 \r\n) + \r\nsum(\r\n  rate(llm_assistance_apiGateway_http_requests_total[1m])*60\r\n)\r\n",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Redis Operations",
+      "title": "每分鐘 QPS",
       "type": "timeseries"
     },
     {
@@ -178,9 +244,9 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 6
       },
-      "id": 1,
+      "id": 12,
       "options": {
         "legend": {
           "calcs": [],
@@ -197,18 +263,14 @@
       "pluginVersion": "12.1.1",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
           "editorMode": "code",
-          "expr": "sum(llm_assistance_apiGateway_http_requests_total)",
+          "expr": "sum by (service, status) (\r\n  rate(llm_assistance_noteservice_http_requests_total[5m])\r\n  or\r\n  rate(llm_assistance_apiGateway_http_requests_total[5m])\r\n)\r\n",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "API Gateway Requests",
+      "title": "QPS 趨勢",
       "type": "timeseries"
     },
     {
@@ -218,15 +280,43 @@
       },
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
+            "lineWidth": 1,
             "scaleDistribution": {
               "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
           }
         },
         "overrides": []
@@ -239,51 +329,39 @@
       },
       "id": 3,
       "options": {
-        "calculate": false,
-        "cellGap": 1,
-        "color": {
-          "exponent": 0.5,
-          "fill": "dark-orange",
-          "mode": "scheme",
-          "reverse": false,
-          "scale": "exponential",
-          "scheme": "Oranges",
-          "steps": 64
-        },
-        "exemplars": {
-          "color": "rgba(255,0,255,0.7)"
-        },
-        "filterValues": {
-          "le": 1e-9
-        },
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
         "legend": {
-          "show": true
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "rowsFrame": {
-          "layout": "auto"
-        },
+        "orientation": "auto",
+        "showValue": "auto",
+        "stacking": "none",
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
-          "showColorScale": false,
-          "yHistogram": false
+          "sort": "none"
         },
-        "yAxis": {
-          "axisPlacement": "left",
-          "reverse": false
-        }
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
       },
       "pluginVersion": "12.1.1",
       "targets": [
         {
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(llm_assistance_apiGateway_http_request_duration_seconds_bucket[5m])) by (le))",
+          "expr": "topk(5,\r\n  histogram_quantile(0.95,\r\n    sum by (le, service, handler, method) (\r\n      rate(llm_assistance_apiGateway_http_request_duration_seconds_bucket[5m])\r\n      or\r\n      rate(llm_assistance_noteservice_http_request_duration_seconds_bucket[5m])\r\n    )\r\n  ) * 1000\r\n)\r\n",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "API Gateway Request Duration",
-      "type": "heatmap"
+      "title": "95th percentile latency (ms)",
+      "type": "barchart"
     },
     {
       "datasource": {
@@ -301,28 +379,16 @@
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
+            "fillOpacity": 80,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
             "lineWidth": 1,
-            "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -349,15 +415,117 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 14
       },
-      "id": 2,
+      "id": 11,
       "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
         "legend": {
           "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
+        },
+        "orientation": "auto",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "topk(5,\r\n  sum by (handler, method) (\r\n    rate(llm_assistance_noteservice_http_requests_total{handler!~\"/metrics|/openapi.json|/api/v1/health\"}[5m])\r\n  )\r\n  +\r\n  sum by (handler, method) (\r\n    rate(llm_assistance_apiGateway_http_requests_total{handler!~\"/metrics|/openapi.json|/api/v1/health\"}[5m])\r\n  )\r\n)\r\n",
+          "legendFormat": "{{handler}} {{method}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "熱門 API endpoint)",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "percent"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "hidden",
+          "placement": "right",
+          "showLegend": false
         },
         "tooltip": {
           "hideZeros": false,
@@ -369,88 +537,14 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(llm_assistance_noteservice_http_requests_total)",
+          "expr": "rate(redis_set_total[1m]) or rate(redis_get_total[1m])\r\n",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Note Server Requests",
+      "title": "Redis ",
       "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "scaleDistribution": {
-              "type": "linear"
-            }
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 16
-      },
-      "id": 4,
-      "options": {
-        "calculate": false,
-        "cellGap": 1,
-        "color": {
-          "exponent": 0.5,
-          "fill": "dark-orange",
-          "mode": "scheme",
-          "reverse": false,
-          "scale": "exponential",
-          "scheme": "Oranges",
-          "steps": 64
-        },
-        "exemplars": {
-          "color": "rgba(255,0,255,0.7)"
-        },
-        "filterValues": {
-          "le": 1e-9
-        },
-        "legend": {
-          "show": true
-        },
-        "rowsFrame": {
-          "layout": "auto"
-        },
-        "tooltip": {
-          "mode": "single",
-          "showColorScale": false,
-          "yHistogram": false
-        },
-        "yAxis": {
-          "axisPlacement": "left",
-          "reverse": false
-        }
-      },
-      "pluginVersion": "12.1.1",
-      "targets": [
-        {
-          "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(llm_assistance_noteservice_http_request_duration_seconds_bucket[5m])) by (le))",
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Note Server Request Duration",
-      "type": "heatmap"
     }
   ],
   "preload": false,
@@ -467,5 +561,5 @@
   "timezone": "browser",
   "title": "Top-level Overview",
   "uid": "e01805f7-8cf5-4697-b114-87634ac81ef7",
-  "version": 14
+  "version": 1
 }
