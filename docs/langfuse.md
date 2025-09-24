@@ -79,7 +79,7 @@ Langfuse 提供了多種 SDK，包括 Python、JavaScript、OpenAI 等，支持�
 
 在 Langfuse 後台，我們能看到這次請求的完整樹狀結構（如下圖）：
 
-![](https://github.com/a920604a/llm-assistant/blob/feat/langfuse/demo/langfuse_trace_span.png?raw=true)
+![](https://github.com/a920604a/llm-assistant/blob/main/demo/langfuse_trace_span.png?raw=true)
 
 對應到程式碼，整體流程如下：
 
