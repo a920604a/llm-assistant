@@ -145,7 +145,7 @@ classDef data fill:#C0C0C0,stroke:#333,stroke-width:1px
 | Category          | Tools & Frameworks                                       |
 | ----------------- | -------------------------------------------------------- |
 | **Cloud / Infra** | Docker Compose, MinIO, PostgreSQL, Qdrant                |
-| **Backend / API** | FastAPI, Prefect 2                                       |
+| **Backend / API** | FastAPI, Prefect 3                                       |
 | **Frontend**      | React + Vite  and gradio                                   |
 | **Monitoring**    | Prometheus + Grafana, Logging                            |
 | **CI/CD**         | GitHub Actions (planned)                                 |
