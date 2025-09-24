@@ -23,7 +23,7 @@ groups:
           description: "API {{ $labels.api }} exceeded 12 calls per minute. Current rate: {{ $value }} calls/min"
 
       - alert: APIHighFrequency
-        expr: rate(ask_host_total[1m]) > 0.2
+        expr: rate(ask_question_total[1m]) > 0.2
         for: 1m
         labels:
           severity: warning

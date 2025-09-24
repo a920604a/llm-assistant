@@ -2,6 +2,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -18,6 +19,26 @@ class BaseConfigSettings(BaseSettings):
     )
 
 
+class LangfuseSettings(BaseConfigSettings):
+    model_config = SettingsConfigDict(
+        env_file=[".env", str(ENV_FILE_PATH)],
+        env_prefix="LANGFUSE__",
+        extra="ignore",
+        frozen=True,
+        case_sensitive=False,
+    )
+
+    public_key: str = ""
+    secret_key: str = ""
+    host: str = "http://localhost:3000"  # Self-hosted Langfuse URL
+    enabled: bool = True
+    flush_at: int = 15  # Number of events before flushing
+    flush_interval: float = 1.0  # Seconds between flushes
+    max_retries: int = 3
+    timeout: int = 30
+    debug: bool = False
+
+
 class Settings(BaseConfigSettings):
     app_version: str = "0.1.0"
     debug: bool = True
@@ -31,9 +52,12 @@ class Settings(BaseConfigSettings):
     SPEECH_API_URL: str = "http://imageserver:8000"
     IMAGE_API_URL: str = "http://speechserver:8000"
     OLLAMA_API_URL: str = "http://ollama:11434"
+    OLLAMA_TIMEOUT: int = 300
+
+    langfuse: LangfuseSettings = Field(default_factory=LangfuseSettings)
 
     # 模型名稱
-    MODEL_NAME: str = "gpt-oss:20b"
+    SUMMARY_MODEL_NAME: str = "gpt-oss:20b"
 
     # Firebase key path
     FIRBASE_KEY_PATH: str = "/app"

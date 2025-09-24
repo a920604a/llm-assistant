@@ -1,4 +1,6 @@
 networks:
+  monitor-net:
+    external: true
   langfuse-otel-net:
     external: true
 
@@ -16,9 +18,9 @@ services:
     image: postgres:15
     container_name: note-db
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: note
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5411:5432"
     volumes:
@@ -26,6 +28,7 @@ services:
       - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
     networks:
       - langfuse-otel-net
+      - monitor-net
   note-storage:
     image: minio/minio
     container_name: note-minio
@@ -34,8 +37,8 @@ services:
       - "9111:9000"
       - "9001:9001"
     environment:
-      MINIO_ROOT_USER: note
-      MINIO_ROOT_PASSWORD: note123note123
+      MINIO_ROOT_USER: ${MINIO__ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO__SECRET_KEY}
     volumes:
       - ./data/note-storage:/data
     networks:

@@ -31,3 +31,15 @@ def build_prompt(
         """
 
     return prompt_text
+
+
+def build_rewrite_prompt(query: str):
+    return f"""
+        You are a professional query rewriting assistant.
+
+        Original Question:
+        {query}
+
+        Rewrite the question clearly and concisely for information retrieval.
+        Only output the rewritten query, do not answer it.
+        """

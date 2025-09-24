@@ -1,8 +1,8 @@
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import httpx
-from config import settings
+from config import Settings
 from exceptions import OllamaConnectionError, OllamaException, OllamaTimeoutError
 from logger import AppLogger
 
@@ -12,10 +12,13 @@ logger = AppLogger(__name__).get_logger()
 class OllamaClient:
     """Client for interacting with Ollama local LLM service."""
 
-    def __init__(self):
+    def __init__(self, settings: Settings):
         """Initialize Ollama client with settings."""
         self.base_url = settings.OLLAMA_API_URL
-        self.timeout = httpx.Timeout(float(300))
+        self.model_name = settings.SUMMARY_MODEL_NAME
+        self.timeout = httpx.Timeout(float(settings.OLLAMA_TIMEOUT))
+        # self.prompt_builder = RAGPromptBuilder()
+        # self.response_parser = ResponseParser()
 
     async def health_check(self) -> Dict[str, Any]:
         """
@@ -80,10 +83,9 @@ class OllamaClient:
 
     async def generate(
         self,
-        model: str = settings.MODEL_NAME,
         prompt: str = "",
         **kwargs,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict:
         """
         Generate text using specified model.
 
@@ -97,11 +99,18 @@ class OllamaClient:
         """
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                data = {"model": model, "prompt": prompt, **kwargs}
+                data = {
+                    "model": self.model_name,
+                    "prompt": prompt,
+                    "stream": False,
+                    **kwargs,
+                }
+                logger.info(f"{self.model_name} ollama data {data}")
 
                 response = await client.post(f"{self.base_url}/api/generate", json=data)
 
                 if response.status_code == 200:
+                    logger.info(f"ollama reponse {response.json()}")
                     return response.json()
                 else:
                     raise OllamaException(f"Generation failed: {response.status_code}")
@@ -115,9 +124,7 @@ class OllamaClient:
         except Exception as e:
             raise OllamaException(f"Error generating with Ollama: {e}")
 
-    async def generate_stream(
-        self, model: str = settings.MODEL_NAME, prompt: str = "", **kwargs
-    ):
+    async def generate_stream(self, prompt: str = "", **kwargs):
         """
         Generate text with streaming response.
 
@@ -131,7 +138,14 @@ class OllamaClient:
         """
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                data = {"model": model, "prompt": prompt, "stream": True, **kwargs}
+                data = {
+                    "model": self.model_name,
+                    "prompt": prompt,
+                    "stream": True,
+                    **kwargs,
+                }
+
+                logger.info(f"Starting streaming generation: model={self.model_name}")
 
                 async with client.stream(
                     "POST", f"{self.base_url}/api/generate", json=data
@@ -145,7 +159,6 @@ class OllamaClient:
                         if line.strip():
                             try:
                                 yield json.loads(line)
-
                             except json.JSONDecodeError:
                                 logger.warning(
                                     f"Failed to parse streaming chunk: {line}"

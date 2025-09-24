@@ -14,10 +14,10 @@
 * **Monitoring（監控）**：追蹤已知指標，設告警門檻，確保服務運行健康
 * **Observability（可觀測性）**：分析未知異常，定位性能瓶頸與流程問題
 
-換人話就是
+換句話說，我們要：
 
 * 確保 **服務可用性**（API、Notes Service、背景任務）
-* 監控 **性能瓶頸**（Celery 任務延遲、LLM 調用延遲）
+* 監控 **性能瓶頸**（（Prefect Flow / Task 延遲、LLM 調用延遲）
 * 快速 **定位異常**（API 過頻、Redis/DB 錯誤、資源耗盡）
 
 
@@ -30,7 +30,7 @@
 | 類別              | Monitoring（監控）                                   | Observability（可觀測性）                            |
 | --------------- | ------------------------------------------------ | ---------------------------------------------- |
 | **Metrics**     | CPU/Memory/Disk、API 請求數、Celery 成功率、Redis/DB 操作次數 | LLM 延遲、Celery 任務詳細耗時、Redis/DB latency、API 路由細節 |
-| **Tracing**     |                                        | RAG 問答流程全程追蹤、Background Tasks 流程分析             |
+| **Tracing**     |                      -                  | RAG 問答流程全程追蹤、Prefect Flow / Task 流程分析             |
 | **Alert / Log** | 服務不可用、API 過頻、資源異常告警                              | 日誌與異常追蹤、定位未知問題                                 |
 
 > 簡單來說，Metrics 量化、Tracing 跟蹤流程、Alert / Log 告訴你系統哪裡出問題。

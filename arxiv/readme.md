@@ -107,7 +107,7 @@ flowchart TD
 
     %% === RAG Search Pipeline ===
     subgraph RAG_Pipeline["Arxiv Paper RAG Pipeline"]
-        B1[ Query Rewrite Task @ MCP Client ]
+        B1[ Query Rewrite Task @ API Gateway ]
         B2[Retrieval Task<br> Search]
         B3[Document Reranking Task]
         B4[Build Prompt Task]

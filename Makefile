@@ -62,6 +62,7 @@ restart:
 	$(DOCKER_COMPOSE) down
 	$(DOCKER_COMPOSE) up -d
 
+
 # 查看容器日誌（預設看 apiGateway）
 logs:
 	$(DOCKER_COMPOSE) logs -f apiGateway
@@ -149,4 +150,8 @@ lint:
 down-monitor:
 	$(MONITOR_COMPOSE) down
 up-monitor:
+	$(MONITOR_COMPOSE) up -d
+
+restart-monitor:
+	$(MONITOR_COMPOSE) down
 	$(MONITOR_COMPOSE) up -d
