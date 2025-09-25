@@ -38,18 +38,68 @@ scrape_configs:
   - job_name: 'blackbox-http'
     metrics_path: /probe
     params:
-      module: [http_2xx]
+      module: [http_2xx ]
     static_configs:
       - targets:
           # App 內部服務
           - 'http://noteserver:8000/docs'
+          - 'http://noteserver:8000/api/v1/health'
+          - 'http://noteserver:8000/api/v1/ping'
+          - 'http://noteserver:8000/api/v1/setting'
+          - 'http://noteserver:8000/api/v1/chat/history'
           - 'http://apiGateway:8000/docs'
+          - 'http://apiGateway:8000/api/v1/health'
+          - 'http://apiGateway:8000/api/v1/ping'
+          - 'http://apiGateway:8000/api/v1/dashboard/stat'
+          - 'http://apiGateway:8000/api/v1/user/settings'
+          - 'http://apiGateway:8000/api/v1/chat/history'
           - 'http://open-webui:8080'
           - 'http://note-storage:9001'
+          - 'http://ollama:11434'
+          - 'http://note-qdrant:6333/dashboard'
           # 其他服務模組
           - 'http://langfuse-web:3000'
           - 'http://grafana:3000'
           - 'http://prometheus:9090/-/ready'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  - job_name: 'blackbox-http-post'
+    metrics_path: /probe
+    params:
+      module: [http_post]  # <- 這裡用 POST probe
+    static_configs:
+      - targets:
+          - 'http://apiGateway:8000/api/v1/ask'
+          - 'http://apiGateway:8000/api/v1/stream'
+          - 'http://apiGateway:8000/api/v1/user/serttings'
+          - 'http://noteserver:8000/api/v1/ask'
+          - 'http://noteserver:8000/api/v1/stream'
+          - 'http://noteserver:8000/api/v1/gradio/stream'
+          - 'http://noteserver:8000/api/v1/setting'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  - job_name: 'blackbox-tcp'
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]
+    static_configs:
+      - targets:
+          - 'note-db:5432'
+          - 'redis:6379'
+          - 'note-qdrant:6333'
+          - 'note-storage:9000'
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target

@@ -1,4 +1,7 @@
 modules:
+  # ----------------------------
+  # HTTP / HTTPS Probe
+  # ----------------------------
   http_2xx:
     prober: http
     timeout: 5s
@@ -8,4 +11,25 @@ modules:
       method: GET
       fail_if_ssl: false
       fail_if_not_ssl: false
+      preferred_ip_protocol: "ip4"
+      fail_if_body_matches_regexp: []   # 可加入錯誤訊息判斷
+      fail_if_body_not_matches_regexp: [] # 可加入必須包含的內容
+
+  http_post:
+    prober: http
+    timeout: 5s
+    http:
+      method: POST
+      headers:
+        Content-Type: "application/json"
+      body: '{"key":"value"}'
+      valid_status_codes: [200,201]
+      fail_if_ssl: false
+      fail_if_not_ssl: false
+      preferred_ip_protocol: "ip4"
+
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
+    tcp:
       preferred_ip_protocol: "ip4"
