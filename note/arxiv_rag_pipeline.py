@@ -79,21 +79,6 @@ def retrieval_pipeline(
         )
         rag_tracer.end_rerank(rerank_span, reranked)
 
-    logger.info("Step 3: Evaluation")
-    with rag_tracer.trace_evaluate(
-        trace, query=query, reranked_chunks=reranked, top_k=system_settings.top_k
-    ) as eval_span:
-        eval_metrics = evaluate(
-            qdrant_client,
-            reranked,
-            query,
-            top_k=system_settings.top_k,
-            hybrid_search=system_settings.hybrid_search,
-        )
-        rag_tracer.end_evaluate(eval_span, eval_metrics)
-
-    logger.info(f"Evaluation metrics: {eval_metrics}")
-
     return reranked[:top_k], sources
 
 
@@ -123,7 +108,7 @@ async def ask_flow(
         )
         return response
 
-    logger.info("Step 4: Build prompt")
+    logger.info("Step 3: Build prompt")
     # context = build_prompt(query, reranked)
     with rag_tracer.trace_prompt_construction(trace, chunks) as prompt_span:
         try:
@@ -138,16 +123,8 @@ async def ask_flow(
 
         rag_tracer.end_prompt(prompt_span, final_prompt)
 
-    logger.info(f"Step 5: LLM generation with context = {final_prompt[100:]}")
+    logger.info(f"Step 4: LLM generation with context = {final_prompt[100:]}")
     with rag_tracer.trace_generation(trace, model, final_prompt) as gen_span:
-        # resp = langchain_client.llm_context(
-        #     query = query,
-        #     context = final_prompt,
-        #     user_language=system_settings.user_language,
-        #     system_prompt=system_settings.system_prompt,
-        # )
-        # rag_tracer.end_generation(gen_span, resp.content, "hybrid")
-
         parsed_response, response = await ollama_client.generate_rag_answer(
             query=query,
             chunks=chunks,
@@ -156,6 +133,18 @@ async def ask_flow(
             temperature=system_settings.temperature,
         )
         rag_tracer.end_generation(gen_span, response, model)
+
+    logger.info("Step 5: Evaluation")
+    with rag_tracer.trace_evaluate(
+        trace, query=query, relevant_chunks=chunks
+    ) as eval_span:
+        eval_metrics = await evaluate(
+            ollama_client,
+            question=query,
+            answer=response.get("response", ""),
+        )
+        logger.info(f"Evaluation metrics: {eval_metrics}")
+        rag_tracer.end_evaluate(eval_span, eval_metrics)
 
     store_chat_and_usage(user_id, query, response)
 
@@ -170,6 +159,34 @@ async def ask_flow(
     )
 
     return response
+
+
+async def do_evaluate(
+    ollama_client: OllamaClient,
+    rag_tracer: RAGTracer,
+    trace,
+    query: str,
+    full_response: str,
+    chunks: list,
+    start_time: float,
+):
+    try:
+        with rag_tracer.trace_evaluate(
+            trace, query=query, relevant_chunks=chunks
+        ) as eval_span:
+            eval_metrics = await evaluate(
+                ollama_client,
+                question=query,
+                answer=full_response,
+            )
+        logger.info(f"Evaluation metrics: {eval_metrics}")
+        rag_tracer.end_evaluate(eval_span, eval_metrics)
+        logger.info(f"Evaluation metrics (background): {eval_metrics}")
+
+        rag_tracer.end_request(trace, full_response, time.time() - start_time)
+
+    except Exception as e:
+        logger.error(f"Background evaluation error: {e}")
 
 
 async def rag_stream(
@@ -202,7 +219,7 @@ async def rag_stream(
             if not chunks:
                 yield f"data: {json.dumps({'answer': 'No relevant information found.', 'sources': [], 'done': True})}\n\n"
 
-            logger.info("Step 4: Build prompt")
+            logger.info("Step 3: Build prompt")
             # context = build_prompt(query, reranked)
             with rag_tracer.trace_prompt_construction(trace, chunks) as prompt_span:
                 final_prompt = ollama_client.prompt_builder.create_rag_prompt(
@@ -212,11 +229,10 @@ async def rag_stream(
                 rag_tracer.end_prompt(prompt_span, final_prompt)
 
             logger.info(
-                f"Step 5: LLM stream generation with final_prompt = {final_prompt}"
+                f"Step 4: LLM stream generation with final_prompt = {final_prompt}"
             )
             with rag_tracer.trace_generation(trace, model, final_prompt) as gen_span:
                 full_response = ""
-                final_chunk = None
 
                 async for chunk in ollama_client.generate_stream(
                     prompt=final_prompt, temperature=system_settings.temperature
@@ -232,26 +248,37 @@ async def rag_stream(
                         yield f"data: {json.dumps({'chunk': text_chunk})}\n\n"
 
                     if chunk.get("done", False):
-                        rag_tracer.end_generation(gen_span, full_response, model)
-                        # logger.info(f"full_response {full_response}")
-                        yield f"data: {json.dumps({'answer': full_response, 'done': True})}\n\n"
-
-                        final_chunk = chunk  # ← save last chunk
                         break
 
-            rag_tracer.end_request(trace, full_response, time.time() - start_time)
-            if final_chunk:
-                usage = store_chat_and_ollama_usage(
-                    user_id,
-                    query,
-                    final_chunk=final_chunk,
-                    prompt=final_prompt,
-                    response=full_response,
+            rag_tracer.end_generation(gen_span, full_response, model)
+            yield f"data: {json.dumps({'answer': full_response, 'done': True})}\n\n"
+
+            logger.info("Step 5: Evaluation")
+            # 非阻塞觸發 background evaluate
+            asyncio.create_task(
+                do_evaluate(
+                    ollama_client=ollama_client,
+                    rag_tracer=rag_tracer,
+                    trace=trace,
+                    query=query,
+                    full_response=full_response,
+                    chunks=chunks,
+                    start_time=start_time,
                 )
-                print("Token Usage:", usage)
+            )
+
+            usage = store_chat_and_ollama_usage(
+                user_id,
+                query,
+                final_chunk={},
+                prompt=final_prompt,
+                response=full_response,
+            )
+            logger.info(f"Token Usage: {usage}")
 
     except Exception as e:
         error_msg = {"error": str(e)}
+        logger.error("error:", str(e))
         yield f"data: {json.dumps(error_msg)}\n\n"
 
 

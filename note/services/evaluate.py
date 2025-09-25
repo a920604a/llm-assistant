@@ -1,8 +1,13 @@
+import json
 import math
 from typing import List
 
-from dependencies import QdrantDep
+from logger import AppLogger
 from services.embedding import get_embedding
+from services.ollama.client import OllamaClient
+from services.qdrant.client import QdrantClient
+
+logger = AppLogger(__name__).get_logger()
 
 
 # ---------------- 評估函數 ----------------
@@ -31,7 +36,7 @@ def hit_rate(ranked_ids: List[str], ground_truth_ids: List[str], k: int = 5):
 
 
 def generate_pseudo_ground_truth(
-    qdrant_client: QdrantDep, query: str, top_n: int = 5, hybrid_search: bool = False
+    qdrant_client: QdrantClient, query: str, top_n: int = 5, hybrid_search: bool = False
 ):
     """
     使用 query embedding 從 Qdrant search 出 top_n 當作 pseudo ground truth
@@ -47,24 +52,42 @@ def generate_pseudo_ground_truth(
     return pseudo_gt
 
 
-def evaluate(
-    qdrant_client: QdrantDep,
-    reranked_chunks: list,
-    query: str,
-    top_k: int = 5,
-    hybrid_search: bool = False,
+async def evaluate(
+    ollama_client: OllamaClient,
+    question: str,
+    answer: str,
 ) -> dict:
     """
     Evaluate retrieval + rerank 表現
     """
+    evaluation_prompt_template = """
+        You are an expert evaluator for a RAG system.
+        Classify the answer relevance as "NON_RELEVANT", "PARTLY_RELEVANT", or "RELEVANT".
 
-    pseudo_gt = generate_pseudo_ground_truth(
-        qdrant_client, query, top_n=top_k, hybrid_search=hybrid_search
-    )
-    ranked_ids = [chunk["arxiv_id"] for chunk in reranked_chunks]
+        Question: {question}
+        Generated Answer: {answer_llm}
 
-    ndcg = ndcg_at_k(ranked_ids, pseudo_gt, k=top_k)
-    mrr = mrr_at_k(ranked_ids, pseudo_gt, k=top_k)
-    hit = hit_rate(ranked_ids, pseudo_gt, k=top_k)
+        Return ONLY JSON like:
+        {{"Relevance": "NON_RELEVANT", "Explanation": "Brief explanation"}}
+        """
 
-    return {"ndcg": ndcg, "mrr": mrr, "hit_rate": hit, "ranked_ids": ranked_ids}
+    logger.info(f"EVALUATE question {question}")
+    logger.info(f"EVALUATE answer {answer}")
+
+    prompt = evaluation_prompt_template.format(question=question, answer_llm=answer)
+    logger.info(f"EVALUATE prompt {prompt}")
+
+    resp = await ollama_client.generate(prompt=prompt)
+    logger.info(f"EVALUATE {resp}")
+    evaluation = resp.get("response", "")
+
+    try:
+        eval_metrics = json.loads(evaluation)
+        logger.info(f"eval_metrics {eval_metrics}")
+        return eval_metrics
+
+    except json.JSONDecodeError:
+        return {
+            "Relevance": "UNKNOWN",
+            "Explanation": "Failed to parse evaluation",
+        }

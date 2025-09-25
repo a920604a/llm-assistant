@@ -139,17 +139,16 @@ class RAGTracer:
         )
 
     @contextmanager
-    def trace_evaluate(self, trace, query: str, reranked_chunks: list, top_k: int = 5):
+    def trace_evaluate(self, trace, query: str, relevant_chunks: list):
         """
         Evaluation of reranked results with timing.
         """
         span = self.tracer.create_span(
             trace=trace,
-            name="rerank_evaluation",
+            name="evaluation",
             input_data={
                 "query": query,
-                "top_k": top_k,
-                "reranked_chunks": reranked_chunks,
+                "relevant_chunks": relevant_chunks,
             },
         )
         try:
@@ -168,12 +167,8 @@ class RAGTracer:
         self.tracer.update_span(
             span=span,
             output={
-                "ndcg": eval_metrics.get("ndcg"),
-                "mrr": eval_metrics.get("mrr"),
-                "hit_rate": eval_metrics.get("hit_rate"),
-                "ranked_ids": eval_metrics.get("ranked_ids", [])[
-                    :10
-                ],  # top 10 for logging
+                "Relevance": eval_metrics.get("Relevance"),
+                "Explanation": eval_metrics.get("Explanation"),
             },
         )
 
