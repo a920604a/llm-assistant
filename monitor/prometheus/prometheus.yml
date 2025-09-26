@@ -16,81 +16,107 @@ scrape_configs:
       - targets:
           - 'node-exporter:9100'
           - 'redis-exporter:9121'
-          - 'prefect-exporter:8000'
+          # - 'prefect-exporter:8000'
           - 'cadvisor:8080'
 
-  - job_name: 'api_gateway'
+  - job_name: 'api_gateway' # 沒有指定 metrics_path，Prometheus 預設抓 /metrics。
     static_configs:
       - targets: ['apiGateway:8000']
+        labels:
+          service: apiGateway
     relabel_configs:
       - source_labels: ['__address__']
         target_label: 'service'
         replacement: 'api gateway'
 
-  - job_name: 'noteserver'
+  - job_name: 'noteserver' # 沒有指定 metrics_path，Prometheus 預設抓 /metrics。
     static_configs:
       - targets: ['noteserver:8000']
+        labels:
+          service: ragService
     relabel_configs:
       - source_labels: ['__address__']
         target_label: 'service'
         replacement: 'noteserver'
 
-  - job_name: 'blackbox-http'
+  - job_name: 'blackbox-http-health'
     metrics_path: /probe
     params:
-      module: [http_2xx ]
+      module: [http_2xx_health]
     static_configs:
       - targets:
-          # App 內部服務
-          - 'http://noteserver:8000/docs'
-          - 'http://noteserver:8000/api/v1/health'
-          - 'http://noteserver:8000/api/v1/ping'
-          - 'http://noteserver:8000/api/v1/setting'
-          - 'http://noteserver:8000/api/v1/chat/history'
-          - 'http://apiGateway:8000/docs'
-          - 'http://apiGateway:8000/api/v1/health'
-          - 'http://apiGateway:8000/api/v1/ping'
-          - 'http://apiGateway:8000/api/v1/dashboard/stat'
-          - 'http://apiGateway:8000/api/v1/user/settings'
-          - 'http://apiGateway:8000/api/v1/chat/history'
-          - 'http://open-webui:8080'
-          - 'http://note-storage:9001'
-          - 'http://ollama:11434'
-          - 'http://note-qdrant:6333/dashboard'
-          # 其他服務模組
-          - 'http://langfuse-web:3000'
-          - 'http://grafana:3000'
-          - 'http://prometheus:9090/-/ready'
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: blackbox-exporter:9115
-
-  - job_name: 'blackbox-http-post'
-    metrics_path: /probe
-    params:
-      module: [http_post]  # <- 這裡用 POST probe
-    static_configs:
+          - 'noteserver:8000/api/v1/health'
+        labels:
+          service: noteserver
       - targets:
-          - 'http://apiGateway:8000/api/v1/ask'
-          - 'http://apiGateway:8000/api/v1/stream'
-          - 'http://apiGateway:8000/api/v1/user/serttings'
-          - 'http://noteserver:8000/api/v1/ask'
-          - 'http://noteserver:8000/api/v1/stream'
-          - 'http://noteserver:8000/api/v1/gradio/stream'
-          - 'http://noteserver:8000/api/v1/setting'
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: blackbox-exporter:9115
+          - 'noteserver:8000/api/v1/ping'
+        labels:
+          service: noteserver
+      - targets:
+          - 'noteserver:8000/docs'
+        labels:
+          service: noteserver
 
-  - job_name: 'blackbox-tcp'
+      - targets:
+          - 'apiGateway:8000/api/v1/health'
+        labels:
+          service: apiGateway
+      - targets:
+          - 'apiGateway:8000/api/v1/ping'
+        labels:
+          service: apiGateway
+      - targets:
+          - 'apiGateway:8000/docs'
+        labels:
+          service: apiGateway
+
+      - targets:
+          - 'open-webui:8080'
+        labels:
+          service: open-webui
+
+      - targets:
+          - 'note-storage:9001'
+        labels:
+          service: note-storage
+      - targets:
+          - 'ollama:11434'
+        labels:
+          service: ollama
+
+      - targets:
+          - 'note-qdrant:6333/dashboard'
+        labels:
+          service: note-qdrant
+
+      - targets:
+          - 'langfuse-web:3000'
+        labels:
+          service: langfuse-web
+
+      - targets:
+          - 'grafana:3000'
+        labels:
+          service: grafana
+
+      - targets:
+          - 'prometheus:9090/-/ready'
+        labels:
+          service: prometheus
+
+    relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      replacement: blackbox-exporter:9115
+    - source_labels: [service]       # 把 static_config 的 service 保留到最終 alert 標籤
+      target_label: service
+
+
+
+  - job_name: 'blackbox-tcp' # 如果沒有 relabel_configs，Prometheus 會直接認為 target 就是 metrics endpoint
     metrics_path: /probe
     params:
       module: [tcp_connect]

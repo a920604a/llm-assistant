@@ -1,55 +1,54 @@
 groups:
   - name: Service
     rules:
+      # 服務不可用
       - alert: ServiceDown
         expr: up == 0
         for: 2m
         labels:
-          severity: page
+          severity: critical
           team: app
-          service: all
+          service: '{{ $labels.service }}'
         annotations:
           summary: "Instance {{ $labels.instance }} down"
           description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 2 minutes."
-      - alert: APIHighFrequency
-        expr: rate(get_dashboard_stats_total[1m]) > 0.2
-        for: 1m
-        labels:
-          severity: warning
-          service: apiGateway
-          api: dashboard_stats
-        annotations:
-          summary: "API {{ $labels.api }} is called frequently"
-          description: "API {{ $labels.api }} exceeded 12 calls per minute. Current rate: {{ $value }} calls/min"
 
-      - alert: APIHighFrequency
-        expr: rate(ask_question_total[1m]) > 0.2
+      # blackbox GET probe
+      - alert: BlackboxHTTPGetFail
+        expr: probe_success{job="blackbox-http-get"} == 0
         for: 1m
         labels:
           severity: warning
-          service: apiGateway
-          api: dashboard_stats
+          team: app
+          service: '{{ $labels.service }}'
         annotations:
-          summary: "API {{ $labels.api }} is called frequently"
-          description: "API {{ $labels.api }} exceeded 12 calls per minute. Current rate: {{ $value }} calls/min"
+          summary: "HTTP GET Probe Failed on {{ $labels.instance }}"
+          description: "HTTP GET endpoint {{ $labels.instance }} did not respond correctly."
 
-      - alert: APIHighFrequency
-        expr: rate(post_settings_total[1m]) > 0.2
+      # blackbox TCP probe
+      - alert: BlackboxTCPFail
+        expr: probe_success{job="blackbox-tcp"} == 0
         for: 1m
         labels:
-          severity: warning
-          service: apiGateway
-          api: dashboard_stats
+          severity: critical
+          team: app
+          service: '{{ $labels.service }}'
         annotations:
-          summary: "API {{ $labels.api }} is called frequently"
-          description: "API {{ $labels.api }} exceeded 12 calls per minute. Current rate: {{ $value }} calls/min"
+          summary: "TCP Probe Failed on {{ $labels.instance }}"
+          description: "TCP endpoint {{ $labels.instance }} is unreachable."
+
+
+  - name: API
+    rules:
+      # API 高頻率告警
       - alert: APIHighFrequency
-        expr: rate(get_user_settings_total[1m]) > 0.2
+        expr: rate({__name__=~"get_dashboard_stats_total|ask_question_total|post_settings_total|get_user_settings_total"}[1m]) > 0.2
         for: 1m
         labels:
           severity: warning
+          team: app
           service: apiGateway
-          api: dashboard_stats
+          api: '{{ $labels.__name__ }}'
         annotations:
           summary: "API {{ $labels.api }} is called frequently"
           description: "API {{ $labels.api }} exceeded 12 calls per minute. Current rate: {{ $value }} calls/min"
@@ -57,17 +56,19 @@ groups:
 
   - name: System
     rules:
+      # 網路不可達
       - alert: NetworkDown
-        expr: probe_success == 0
-        for: 30s
+        expr: probe_success{job="blackbox-http-health"} == 0
+        for: 2m
         labels:
-          severity: "critical"
+          severity: critical
           team: ops
           service: network
         annotations:
           summary: "Network unreachable on {{ $labels.instance }}"
-          description: "Endpoint {{ $labels.instance }} network down for 30s."
+          description: "Endpoint {{ $labels.instance }} network down for 2 minutes."
 
+      # 磁碟空間
       - alert: FreeDiskUsage
         expr: |
           (node_filesystem_avail_bytes{mountpoint="/"} * 100 / node_filesystem_size_bytes{mountpoint="/"}) < 20
@@ -82,21 +83,20 @@ groups:
           summary: "Low disk space on {{ $labels.instance }}"
           description: "Available disk space on {{ $labels.instance }} is below 20%."
 
-
+      # 記憶體使用率
       - alert: MemoryUsage
-        ## 記憶體使用率％
-        expr: ((1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100) > 50
+        expr: ((1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100) > 75
         for: 2m
         labels:
           severity: warning
           team: ops
           service: system
         annotations:
-          summary: " the total percentage of used memory"
-          description: "{{ $labels.instance }} of job {{ $labels.job }}"
+          summary: "High Memory Usage"
+          description: "{{ $labels.instance }} memory usage is above 75%."
 
+      # CPU 使用率
       - alert: HighCPUUsage
-        #  CPU 使用率 進行監控，並且當使用率超過 80% 時會https://github.com/hello02923/prometheus發出告警，
         expr: (1 - sum by (instance) (irate(node_cpu_seconds_total{job="node_exporter_metrics",mode="idle"}[5m]))) * 100 > 80
         for: 2m
         labels:
@@ -105,4 +105,4 @@ groups:
           service: system
         annotations:
           summary: "High CPU Usage Detected"
-          description: "The CPU usage for instance {{ $labels.instance }} has exceeded 80% over the last 5 minutes, indicating a high load on the system."
+          description: "The CPU usage for instance {{ $labels.instance }} exceeded 80% over the last 5 minutes."

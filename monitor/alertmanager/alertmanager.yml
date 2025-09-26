@@ -6,7 +6,7 @@ route:
   group_by: ['alertname']
   group_wait: 5s
   group_interval: 30s
-  repeat_interval: 3h
+  repeat_interval: 1h
 
 receivers:
   - name: 'live-monitoring'

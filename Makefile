@@ -40,7 +40,8 @@ up:
 	$(OBS_COMPOSE) up -d
 	$(STORAGE_COMPOSE) up -d
 	$(DOCKER_COMPOSE) up -d
-	$(MONITOR_DEV_COMPOSE) up -d
+# 	$(MONITOR_DEV_COMPOSE) up -d
+	sleep 5
 	$(MONITOR_COMPOSE) up -d
 	$(DOCKER_FRONTEND_COMPOSE) up -d
 
@@ -52,15 +53,13 @@ up-front:
 down:
 	$(DOCKER_FRONTEND_COMPOSE) down
 	$(STORAGE_COMPOSE) down
-	$(MONITOR_DEV_COMPOSE) down
+# 	$(MONITOR_DEV_COMPOSE) down
 	$(MONITOR_COMPOSE) down
 	$(DOCKER_COMPOSE) down
 	$(OBS_COMPOSE) down
 
 # 重啟所有容器
-restart:
-	$(DOCKER_COMPOSE) down
-	$(DOCKER_COMPOSE) up -d
+restart: down up
 
 
 # 查看容器日誌（預設看 apiGateway）

@@ -1,32 +1,17 @@
 modules:
   # ----------------------------
-  # HTTP / HTTPS Probe
+  # 健康檢查 Probe (GET /health)
   # ----------------------------
-  http_2xx:
+  http_2xx_health:
     prober: http
     timeout: 5s
     http:
-      valid_http_versions: ["HTTP/1.1", "HTTP/2"]
-      valid_status_codes: []        # 空表示任何 2xx 都算成功
       method: GET
+      valid_status_codes: []   # 空表示任何 2xx 都算成功
       fail_if_ssl: false
       fail_if_not_ssl: false
       preferred_ip_protocol: "ip4"
-      fail_if_body_matches_regexp: []   # 可加入錯誤訊息判斷
-      fail_if_body_not_matches_regexp: [] # 可加入必須包含的內容
 
-  http_post:
-    prober: http
-    timeout: 5s
-    http:
-      method: POST
-      headers:
-        Content-Type: "application/json"
-      body: '{"key":"value"}'
-      valid_status_codes: [200,201]
-      fail_if_ssl: false
-      fail_if_not_ssl: false
-      preferred_ip_protocol: "ip4"
 
   tcp_connect:
     prober: tcp
