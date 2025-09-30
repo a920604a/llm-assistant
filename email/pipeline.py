@@ -232,4 +232,4 @@ if __name__ == "__main__":
     # )
     # firebase_admin.initialize_app(cred)
 
-    daily_papers_flow(top_k=2)
+    daily_papers_flow(top_k=3)  # 補寄
