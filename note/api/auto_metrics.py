@@ -2,7 +2,7 @@ import asyncio
 import time
 from functools import wraps
 
-from prometheus_client import Counter, Histogram
+from prometheus_client import Counter, Gauge, Histogram
 
 # 紀錄各個 endpoint 的 metrics
 _METRICS_REGISTRY = {}
@@ -10,10 +10,13 @@ _METRICS_REGISTRY = {}
 
 def observe_api(func):
     """
-    自動包裝 FastAPI 路由：
-    - Counter: 呼叫次數
-    - Histogram: 延遲時間
+    FastAPI API 監控，涵蓋四個黃金訊號：
+    - Latency: Histogram
+    - Traffic: Counter
+    - Errors: Counter
+    - Saturation: Gauge (併發中請求數)
     """
+
     service_name = "rag-api"
     endpoint_name = func.__name__
 
@@ -24,44 +27,74 @@ def observe_api(func):
             f"Total requests to {endpoint_name}",
             ["endpoint", "app_service"],
         )
+        error_counter = Counter(
+            f"{endpoint_name}_error_total",
+            f"Error requests to {endpoint_name}",
+            ["endpoint", "app_service", "error_type"],
+        )
         histogram = Histogram(
             f"{endpoint_name}_latency_seconds",
             f"Latency for {endpoint_name}",
             ["endpoint", "app_service"],
             buckets=[0.005, 0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5],
         )
+        in_flight = Gauge(
+            f"{endpoint_name}_in_flight",
+            f"In-flight requests for {endpoint_name}",
+            ["endpoint", "app_service"],
+        )
+
         _METRICS_REGISTRY[endpoint_name] = {
             "counter": counter.labels(endpoint=endpoint_name, app_service=service_name),
+            "error_counter": error_counter.labels(
+                endpoint=endpoint_name, app_service=service_name, error_type="unknown"
+            ),
             "histogram": histogram.labels(
+                endpoint=endpoint_name, app_service=service_name
+            ),
+            "in_flight": in_flight.labels(
                 endpoint=endpoint_name, app_service=service_name
             ),
         }
 
-    counter = _METRICS_REGISTRY[endpoint_name]["counter"]
-    histogram = _METRICS_REGISTRY[endpoint_name]["histogram"]
+    metrics = _METRICS_REGISTRY[endpoint_name]
+
+    def record_metrics(e=None):
+        if e is not None:
+            metrics["error_counter"].labels(
+                endpoint=endpoint_name,
+                app_service=service_name,
+                error_type=type(e).__name__,
+            ).inc()
+
+    async def async_wrapper(*args, **kwargs):
+        metrics["counter"].inc()
+        metrics["in_flight"].inc()
+        start = time.time()
+        try:
+            result = await func(*args, **kwargs)
+            return result
+        except Exception as e:
+            record_metrics(e)
+            raise
+        finally:
+            metrics["histogram"].observe(time.time() - start)
+            metrics["in_flight"].dec()
+
+    def sync_wrapper(*args, **kwargs):
+        metrics["counter"].inc()
+        metrics["in_flight"].inc()
+        start = time.time()
+        try:
+            result = func(*args, **kwargs)
+            return result
+        except Exception as e:
+            record_metrics(e)
+            raise
+        finally:
+            metrics["histogram"].observe(time.time() - start)
+            metrics["in_flight"].dec()
 
     if asyncio.iscoroutinefunction(func):
-        # async function
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            counter.inc()
-            start = time.time()
-            try:
-                result = await func(*args, **kwargs)
-            finally:
-                histogram.observe(time.time() - start)
-            return result
-
-    else:
-        # sync function
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            counter.inc()
-            start = time.time()
-            try:
-                result = func(*args, **kwargs)
-            finally:
-                histogram.observe(time.time() - start)
-            return result
-
-    return wrapper
+        return wraps(func)(async_wrapper)
+    return wraps(func)(sync_wrapper)
