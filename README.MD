@@ -311,8 +311,8 @@ Steps:
 | -------------------- | -------------------------------------------------------------------------- |
 | Problem description  | Clear functionality and objectives                                         |
 | Retrieval flow       | [RAG + LLM Q&A flow](docs/rag_chat.md) and [code: retrieval_pipeline method](note/arxiv_rag_pipeline.py)             |
-| Retrieval evaluation | [Initial tests, not yet optimized](note/services/evaluate.py) |
-| LLM evaluation       | Supports multiple prompt templates                                         |
+| Retrieval evaluation | [multiple retrieval](note/services/qdrant/client.py) |
+| LLM evaluation       | [Supports multiple prompt templates](note/services/evaluate.py)                              |
 | Interface            | [React Web](http://localhost)   or [arXiv Paper Assistance - RAG Chat]     |
 | Ingestion pipeline   | [daily arXiv pipeline](arxiv/arxiv_pipeline.py)             |
 | Monitoring           | [Grafana](http://localhost:3002)    or      ![](demo/app_metrics.png)    |
